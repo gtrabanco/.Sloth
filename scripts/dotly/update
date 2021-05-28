@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+[[ -z "$DOTLY_PATH" ]] && exit 1
+
+#shellcheck source=/dev/null
+. "$DOTLY_PATH/scripts/core/_main.sh"
+dot::get_script_src_path "github.sh" "core"
+dot::get_script_src_path "marketplace.sh"
+
+##? Update script from dotly marketplace
+##?   NOTE: Only work for user scripts in DOTFILES_PATH, not for
+##?         core scripts.
+##?
+##? Usage:
+##?   update [-h | --help]
+##?   update [-v | --version]
+##?   update [-y | --yes] <context> <script>
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+docs::parse "$@"
+
+SCRIPT_NAME="dot dotly install"
+SCRIPT_VERSION="1.0.0"
+
+# Print name and version
+if ${version:-}; then
+  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  exit
+fi
+
+{ [[ -z "${context:-}" ]] || [[ -z "${script:-}" ]]; } &&\
+  output::error "Wrong usage" &&\
+  output::empty_line &&\
+  dot::get_full_script_path --help &&\
+  exit 1
+
+script_remote_sha="$(github::get_remote_file_path_json "$context/$script" "$MARKETPLACE_REPOSITORY" | jq -r '.sha')"
+
+if [[ -z "$script_remote_sha" ]]; then
+  output::error "Script does not exists in the default marketplace"
+  output::empty_line
+  exit 1
+fi
+
+script_local_sha="$(git::file_hash "$DOTFILES_SCRIPTS_PATH/$context/$script")"
+
+
+output::empty_line
+
+if [[ "$script_remote_sha" == "$script_local_sha" ]]; then
+  output::answer "Your script"
+  "$DOTLY_PATH/bin/dot" "$context" "$script" --version
+  output::empty_line
+  output::solution "is the latest version"
+  output::empty_line
+  exit 0
+else
+  cmd_args=("dotly" "install")
+  cmd_args+=("--yes")
+  cmd_args+=("$context" "${script:-}")
+
+  if ! ${yes:-}; then
+    ! output::yesno "There is a newer version. Do you want to update" &&\
+    output::error "Script was not updated"
+  fi
+
+  "$DOTLY_PATH/bin/dot" "dotly" "install" --yes "$context" "$script"
+fi
+
+output::empty_line
