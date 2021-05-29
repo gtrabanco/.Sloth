@@ -9,8 +9,8 @@
 # templating::replace_var [<file_path>|<template_string>] <var_name> [<value1>...]
 # echo "template string" | templating::replace_var <var_name> [<value1>...]
 #
-echo "Those are my family names: XXX_FAMILY_NAMES_XXX" |\
-  templating::replace_var family-names Miguel Manuel
+# echo "Those are my family names: XXX_FAMILY_NAMES_XXX" |\
+#   templating::replace_var family-names Miguel Manuel
 #
 # This will print:
 #   "Those are my family names: Miguel Manuel"
@@ -21,22 +21,19 @@ templating::replace_var () {
 
   # Replacer
   if [[ -t 0 ]] && [[ -f "$1" ]]; then
-    echo "1"
     file_path="$1"; shift
     var_name="XXX_$(str::to_upper "$1" | tr '-' '_')_XXX"; shift
     value="${*:-}"
     sed -i -e "s|${var_name}|${value}|g" "$file_path"
   elif [[ -t 0 ]]; then
-    echo "2"
     string="$1"; shift
-    var_name="$1"; shift
+    var_name="XXX_$(str::to_upper "$1" | tr '-' '_')_XXX"; shift
     value="${*:-}"
     echo "${string//$var_name/$value}"
   else
-    echo "3"
-    var_name="$1"; shift
+    var_name="XXX_$(str::to_upper "$1" | tr '-' '_')_XXX"; shift
     value="${*:-}"
-    echo sed -i -e "s|${var_name}|${value}|g"
+    sed -e "s|${var_name}|${value}|g" </dev/stdin
   fi
 }
 
