@@ -4,8 +4,8 @@
 
 #shellcheck source=/dev/null
 . "$DOTLY_PATH/scripts/core/_main.sh"
-dot::get_script_src_path "github.sh" "core"
-dot::get_script_src_path "marketplace.sh"
+dot::load_library "github.sh" "core"
+dot::load_library "marketplace.sh"
 
 ##? Update script from dotly marketplace
 ##?   NOTE: Only work for user scripts in DOTFILES_PATH, not for
