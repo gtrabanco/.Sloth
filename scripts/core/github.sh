@@ -54,7 +54,7 @@ github::get_api_url() {
 
   { [[ -z "$user" ]] || [[ -z "$repository" ]]; } && return 1
   
-  [[ $# -gt 0 ]] && arguments="/$(str::join '/' "$*")"
+  [[ $# -gt 0 ]] && arguments="$(str::join '/' "$*")"
 
   echo "$GITHUB_API_URL/$user/$repository${branch:-}${arguments:-}"
 }
