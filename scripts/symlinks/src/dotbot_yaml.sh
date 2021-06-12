@@ -81,8 +81,7 @@ dotbot::mv() {
   unset "_args[$from_argn]" "_args[$to_argn]"
   
   if [[ -e "$from" ]]; then
-    # TODO Undo in production
-    echo mv "${_args[@]}" "$from" "$to"
+    mv "${_args[@]}" "$from" "$to"
   else
     return 1
   fi
@@ -114,10 +113,9 @@ dotbot::rm() {
   file_path="$(dotbot::realpath "${_args[$file_argn]}")"
   unset "_args[$file_argn]"
 
-  # TODO Undo in production
   if [[ -e "$file_path" ]]; then
     #shellcheck disable=SC2086
-    echo $rm_cmd "${_args[@]}" "\"$file_path\""
+    $rm_cmd "${_args[@]}" "\"$file_path\""
   fi
 }
 
