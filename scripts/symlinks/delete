@@ -66,7 +66,7 @@ preview_cmd+='Press Ctrl+C to exit with no selection.\n\n'
 if [ -z "${links[*]}" ] && ${by_value:-false}; then
   preview_cmd+='Linked in:\n'
   preview_cmd+='\t$(symlinks::get_link_by_linked_path "$yaml_file" {};)";'
-  dotfiles=($(dotbot::get_all_values_in "link" "$yaml_file" | symlinks::fzf -m --preview "${preview_cmd[*]}" --header "Select dotfile(s) link to delete."))
+  dotfiles=($(dotbot::get_all_values_in "link" "$yaml_file" | dotly::fzf -m --preview "${preview_cmd[*]}" --header "Select dotfile(s) link to delete."))
 
   for df in "${dotfiles[@]}"; do
     if ${skip:-false}; then
@@ -88,7 +88,7 @@ else
   fi
 
   for link in "${links[@]}"; do
-    link="$(dotbot::relative_path "$link")"
+    link="$(dotbot::relativepath "$link")"
     if ${skip:-false}; then
       # Delete only the symlink in yaml and symbolic link
       if symlinks::delete_link "$yaml_file" "$link"; then

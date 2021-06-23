@@ -34,5 +34,9 @@ install_macos_custom() {
 }
 
 install_linux_custom() {
-  echo
+  "$DOTLY_PATH/bin/dot" package add build-essential
+  "$DOTLY_PATH/bin/dot" package add coreutils
+  "$DOTLY_PATH/bin/dot" package add findutils
+  "$DOTLY_PATH/bin/dot" package add bat
+  "$DOTLY_PATH/bin/dot" package add zsh
 }

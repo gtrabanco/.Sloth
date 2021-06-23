@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "symlinks.sh loaded"
+
 # TODO Remove all TODOs in production
 # FIXME Delete all references to dotbot::create_relative_link
 
@@ -25,14 +27,14 @@ symlinks::link_exists() {
   link_check_value="$(dotbot::get_value_of_key_in "link" "$link_or_dotfile_path" "$yaml_file" || echo -n "")"
   [[ -n "$link_check_value" ]] && echo "$link_or_dotfile_path" && return 0
 
-  link_check_value="$(dotbot::get_value_of_key_in "link" "$(dotbot::relative_path "$link_or_dotfile_path")" "$yaml_file" || echo "")"
+  link_check_value="$(dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link_or_dotfile_path")" "$yaml_file" || echo "")"
   [[ -n "$link_check_value" ]] && echo "$link_or_dotfile_path" && return 0
 
   # By link value
   link_check_value="$(dotbot::get_key_by_value_in "link" "$link_or_dotfile_path" "$yaml_file")"
   [[ -n "$link_check_value" ]] && echo "$link_check_value" && return 0
 
-  link_check_value="$(dotbot::get_key_by_value_in "link" "$(dotbot::relative_path "$link_or_dotfile_path")" "$yaml_file")"
+  link_check_value="$(dotbot::get_key_by_value_in "link" "$(dotbot::relativepath "$link_or_dotfile_path")" "$yaml_file")"
   [[ -n "$link_check_value" ]] && echo "$link_check_value" && return 0
 
   return 1
@@ -135,7 +137,7 @@ symlinks::restore_by_link() {
 
   [[ ! -f "$yaml_file" ]] && return 1
 
-  link="$(dotbot::relative_path "${2:-}")"
+  link="$(dotbot::relativepath "${2:-}")"
   dotfiles_file_path="$(dotbot::get_value_of_key_in "link" "$link" "$yaml_file")"
 
   [[ -z "$link"  || -z "$dotfiles_file_path" ]] && return 1
@@ -159,7 +161,7 @@ symlinks::restore_by_dotfile_file_path() {
 
   [[ ! -f "$yaml_file" ]] && return 1
 
-  dotfiles_file_path="$(dotbot::relative_path "${2:-}")"
+  dotfiles_file_path="$(dotbot::relativepath "${2:-}")"
   link="$(dotbot::get_key_by_value_in "link" "$dotfiles_file_path" "$yaml_file")"
 
   # if [ -n "$link" ]; then
@@ -172,8 +174,8 @@ symlinks::edit_link_by_link_path() {
   local yaml_file old_link_realpath old_link new_link link_value link_value_realpath
   yaml_file="${1:-}"
   old_link_realpath="$(realpath -qs "${2:-}" 2>/dev/null || true)"
-  old_link="$(dotbot::relative_path "$old_link_realpath")"
-  new_link="$(dotbot::relative_path "${3:-}")"
+  old_link="$(dotbot::relativepath "$old_link_realpath")"
+  new_link="$(dotbot::relativepath "${3:-}")"
 
   [[ ! -f "$yaml_file" ]] && return 1
 
@@ -207,7 +209,7 @@ symlinks::edit_link_by_link_path() {
 symlinks::edit_link_by_dotfile_file_path() {
   local yaml_file dotfiles_file_path new_link old_link
   yaml_file="${1:-}"
-  dotfiles_file_path="$(dotbot::relative_path "${2:-}")"
+  dotfiles_file_path="$(dotbot::relativepath "${2:-}")"
   new_link="${3:-}"
 
   [[ ! -f "$yaml_file" ]] && return 1
@@ -227,7 +229,7 @@ symlinks::delete_link() {
 
   [[ -z "$link" || ! -f "$yaml_file" ]] && return 1
 
-  link="$(dotbot::relative_path "$link")"
+  link="$(dotbot::relativepath "$link")"
 
   if [[ -n "$(symlinks::link_exists "$link")" ]]; then
     # 1. Delete the link
@@ -261,7 +263,7 @@ symlinks::delete_link_and_files() {
     delete_cmd=("$@")
   fi
 
-  link="$(dotbot::relative_path "$link")"
+  link="$(dotbot::relativepath "$link")"
 
   if [[ -n "$(symlinks::link_exists "$yaml_file" "$link")" ]]; then
     dotbot_file_path="$(dotbot::get_value_of_key_in "link" "$link" "$yaml_file")"
@@ -280,7 +282,7 @@ symlinks::delete_link_and_files() {
 symlinks::delete_link_by_link_value() {
   local yaml_file link_value link delete_cmd
   yaml_file="${1:-}"
-  link_value="$(dotbot::relative_path "${2:-}")"
+  link_value="$(dotbot::relativepath "${2:-}")"
 
   [[ ! -f "$yaml_file" || -z "${link_value:-}" ]] && return 1
   
@@ -295,7 +297,7 @@ symlinks::delete_link_by_link_value() {
 symlinks::delete_link_and_files_by_link_value() {
   local yaml_file link_value link delete_cmd
   yaml_file="${1:-}"
-  link_value="$(dotbot::relative_path "${2:-}")"
+  link_value="$(dotbot::relativepath "${2:-}")"
   shift 2
 
   [[ ! -f "$yaml_file" || -z "${link_value:-}" ]] && return 1
@@ -307,34 +309,34 @@ symlinks::delete_link_and_files_by_link_value() {
   fi
 }
 
+# It has positional arguments, valid example of usage is:
+# symlinks::find --exclude "$DOTBOT_BASE_PATH" -maxdepth 1 -name "*"
+# Not valid usage is:
+# symlinks::find -name "*" -maxdepth 1 "$DOTBOT_BASE_PATH"
+# 
+# --exclude must be the first
+# "/some/path/to/find" the second
+# Any other find commands (first global options and later "particular" options)
 symlinks::find() {
   local find_relative_path exclude_itself arguments preview
   arguments=()
+  exclude_itself=false
 
   case "${1:-}" in
     --exclude)
       exclude_itself=true; shift
     ;;
-    *)
-      exclude_itself=false
-    ;;
   esac
 
-  find_relative_path="$DOTBOT_BASE_PATH/"
+  find_relative_path="$(dotbot::realpath "${1:-}")"
 
-  if [ -e "$DOTBOT_BASE_PATH/${1:-}" ]; then
-    find_relative_path="$find_relative_path${1:-}"; shift
-  fi
+  arguments+=("$@")
 
   if $exclude_itself; then
     arguments+=(-not -path "$find_relative_path")
   fi
 
-  arguments+=("$@")
-
-  find "$find_relative_path" -not -iname ".*" "${arguments[@]}" -print0 -exec echo {} \; | while read -r item; do
-    printf "%s\n" "${item/$find_relative_path\//}"
-  done
+  find "$find_relative_path" "${arguments[@]:-}" -not -iname ".*" -print0 | xargs -0 -I _ realpath -qsm --relative-to="$find_relative_path" _
 }
 
 symlinks::fzf() {
@@ -381,4 +383,8 @@ symlinks::fzf() {
   fi
   
   fzf "${arguments[@]}"
+}
+
+symlinks::wtf() {
+  echo "WTF: ${1:-}"
 }
