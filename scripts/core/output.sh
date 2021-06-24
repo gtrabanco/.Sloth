@@ -1,51 +1,117 @@
-#!/usr/bin/env bash
-
 red='\033[0;31m'
 green='\033[0;32m'
 bold_blue='\033[1m\033[34m'
-gray='\e[90m'
 normal='\033[0m'
 
-output::write() {
+_output::parse_code() {
+  local color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
+
+  echo "color: $color"
+
   local -r text="${*:-}"
-  echo -e "$text"
+
+  with_code_parsed=$(echo "$text" | awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | awk "{ORS=NR%1==0?\"${color}\":RS}1" RS="\`" | tr -d '\n')
+
+  echo -e "$with_code_parsed"
 }
-output::answer() { output::write " > ${*:-}"; }
-output::clarification() {
-  with_code_parsed=$(echo "${*:-}" | awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | awk "{ORS=NR%1==0?\"${normal}\":RS}1" RS="\`"| tr -d '\n')
-  output::write "$with_code_parsed";
+
+output::write() {
+  local with_code_parsed color
+  color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
+
+  local -r text="${*:-}"
+  with_code_parsed="$(_output::parse_code --color "${color}" "$text")"
+  echo -e "$with_code_parsed"
 }
-output::error() { output::answer "${red}${*:-}${normal}"; }
-output::solution() { output::answer "${green}${*:-}${normal}"; }
+output::answer() {
+  local color
+  color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
+  output::write --color "${color}" " > ${*:-}";
+}
+output::error() { output::answer --color "${red}" "${red}${*:-}${normal}"; }
+output::solution() { output::answer --color "${green}" "${green}${*:-}${normal}"; }
 output::question() {
-  [[ $# -ne 2 ]] && return 1
+  local with_code_parsed color
+  color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
+  with_code_parsed="$(_output::parse_code --color "${color}" "${1:-}")"
 
-  if [ platform::is_macos ]; then
-    echo -n " > 🤔 $1: ";
-    read -r "$2";
+  if [ "${DOTLY_ENV:-PROD}" == "CI" ] || [ "${DOTLY_INSTALLER:-false}" = true ]; then
+    answer="y"
   else
-    read -rp "🤔 $1: " "$2"
+    read -rp "🤔 $with_code_parsed: " "answer"
   fi
+
+  echo "$answer"
 }
+output::answer_is_yes() {
+  if [[ "${1:-Y}" =~ ^[Yy] ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
 output::question_default() {
-  local question default_value var_name
+  local with_code_parsed color question default_value var_name
+  color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
 
-  [[ $# -ne 3 ]] && return 1
+  [[ $# -lt 3 ]] && return 1
 
-  question="${1:-}"
-  default_value="${2:-}"
-  var_name="${3:-}"
+  question="$1"
+  default_value="$2"
+  var_name="$3"
 
-  output::question "$question? [$default_value]" "$var_name"
-  eval "$var_name=\"\${$var_name:-$default_value}\""
+  with_code_parsed="$(_output::parse_code --color "${color}" "$question")"
+
+  read -rp "🤔 $with_code_parsed ? [$default_value]: " PROMPT_REPLY
+  eval "$var_name=\"${PROMPT_REPLY:-$default_value}\""
 }
+
 output::yesno() {
-  local question default PROMPT_REPLY values
+  local with_code_parsed color question default PROMPT_REPLY values
+  color="$normal"
+  case "${1:-}" in
+    --color)
+      color="$2"
+      shift 2
+      ;;
+  esac
 
   [[ $# -eq 0 ]] && return 1
 
   question="$1"
   default="${2:-Y}"
+  with_code_parsed="$(_output::parse_code --color "${color}" "$question")"
 
   if [[ "$default" =~ ^[Yy] ]]; then
     values="Y/n"
@@ -53,14 +119,27 @@ output::yesno() {
     values="y/N"
   fi
 
-  output::question "$question? [$values]" "PROMPT_REPLY"
+  output::question_default "$with_code_parsed" "$values" "PROMPT_REPLY"
+  [[ "$PROMPT_REPLY" == "$values" ]] && PROMPT_REPLY=""
   [[ "${PROMPT_REPLY:-$default}" =~ ^[Yy] ]]
 }
 
 output::empty_line() { echo ''; }
 
-output::header() { output::empty_line; output::write "${bold_blue}---- ${*:-} ----${normal}"; }
-output::h1_without_margin() { output::write "${bold_blue}# ${*:-}${normal}"; }
-output::h1() { output::empty_line; output::h1_without_margin "${*:-}"; }
-output::h2() { output::empty_line; output::write "${bold_blue}## ${*:-}${normal}"; }
-output::h3() { output::empty_line; output::write "${bold_blue}### ${*:-}${normal}"; }
+output::header() {
+  output::empty_line
+  output::write --color "${bold_blue}" "${bold_blue}---- ${*:-} ----${normal}"
+}
+output::h1_without_margin() { output::write --color "${bold_blue}" "${bold_blue}# ${*:-}${normal}"; }
+output::h1() {
+  output::empty_line
+  output::h1_without_margin "${*:-}"
+}
+output::h2() {
+  output::empty_line
+  output::write --color "${bold_blue}" "${bold_blue}## ${*:-}${normal}"
+}
+output::h3() {
+  output::empty_line
+  output::write --color "${bold_blue}" "${bold_blue}### ${*:-}${normal}"
+}
