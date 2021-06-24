@@ -26,7 +26,7 @@ set -euo pipefail
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 docs::parse "$@"
 
-SCRIPT_NAME="dot dotly install-remote"
+SCRIPT_NAME="lazy dotly install-remote"
 SCRIPT_VERSION="1.0.0"
 
 # Print name and version

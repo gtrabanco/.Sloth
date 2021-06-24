@@ -36,7 +36,7 @@ dot::load_library "templating.sh"
 ##?
 docs::parse "$@"
 
-SCRIPT_NAME="dot dotly create"
+SCRIPT_NAME="lazy script create"
 SCRIPT_VERSION="1.1.0"
 
 # Print name and version
