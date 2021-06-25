@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-. "$DOTLY_PATH/scripts/core/_main.sh"
+source "$DOTLY_PATH/scripts/core/_main.sh"
 
 ##? Usage:
 ##?    dot
@@ -53,5 +53,12 @@ else
     exit 1
   fi
 
-  "${script_path}/scripts/${context}/${script}" "$@"
+  script_full_path="${script_path}/scripts/${context}/${script}"
+  if grep -q "FORCE_DOT_LEGACY" "$script_full_path" ||
+      grep -q "docs::parse" "$script_full_path" || 
+      grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "$script_full_path"; then
+    "${script_path}/scripts/${context}/${script}" "$@"
+  else
+    "${script_path}/scripts/core/sloth_script" "${script_path}/scripts/${context}/${script}" "$@"
+  fi
 fi
