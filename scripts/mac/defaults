@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$DOTLY_PATH/scripts/core/_main.sh"
+. "$DOTLY_PATH/scripts/core/_main.sh"
 
 DOTLY_MACOS_SETTINGS_PATH=${DOTLY_MACOS_SETTINGS_PATH:-"${DOTFILES_PATH}/os/mac/settings"}
 

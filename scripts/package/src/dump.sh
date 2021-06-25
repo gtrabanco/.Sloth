@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#. "$DOTLY_PATH/scripts/core/platform.sh"
 
 apt_title='@ APT'
 brew_title='🍺 Brew'
