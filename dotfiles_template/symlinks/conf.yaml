@@ -8,9 +8,15 @@
 - create:
     - $DOTFILES_PATH/shell/bash/completions
     - $DOTFILES_PATH/shell/bash/themes
+<<<<<<< HEAD
     - $DOTLY_PATH/shell/init-scripts
     - $DOTFILES_PATH/shell/init-scripts
     - $DOTFILES_PATH/shell/init-scripts.enabled
+=======
+    - $DOTLY_PATH/shell/init.scripts
+    - $DOTFILES_PATH/shell/init.scripts
+    - $DOTFILES_PATH/shell/init.scripts-enabled
+>>>>>>> master
 
 - link:
     ~/.bash_profile: shell/bash/.bash_profile
