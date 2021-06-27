@@ -4,7 +4,7 @@
 if [ -z "${GITHUB_API_URL:-}" ]; then
   readonly GITHUB_API_URL="https://api.github.com/repos"
   readonly GITHUB_RAW_FILES_URL="https://raw.githubusercontent.com"
-  readonly GITHUB_DOTLY_REPOSITORY="codelytv/dotly"
+  readonly GITHUB_SLOTH_REPOSITORY="gtrabanco/sloth"
   readonly GITHUB_DOTLY_CACHE_PETITIONS="$DOTFILES_PATH/.cached_github_api_calls"
   GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-1}"
 
@@ -39,7 +39,7 @@ github::get_api_url() {
   done
 
   if [[ -z "$user" ]] && [[ -z "$repository" ]]; then
-    user_repo_arg="${1:-$GITHUB_DOTLY_REPOSITORY}"
+    user_repo_arg="${1:-$GITHUB_SLOTH_REPOSITORY}"
 
     if [[ "${user_repo_arg:-}" =~ [\/] ]]; then
       user="$(echo "${1:-}" | awk -F '/' '{print $1}')"
@@ -85,7 +85,7 @@ github::branch_raw_url() {
   done
 
   if [[ -z "$user" ]] && [[ -z "$repository" ]]; then
-    user_repo_arg="${1:-$GITHUB_DOTLY_REPOSITORY}"
+    user_repo_arg="${1:-$GITHUB_SLOTH_REPOSITORY}"
 
     if [[ "${user_repo_arg:-}" =~ [\/] ]]; then
       user="$(echo "${1:-}" | awk -F '/' '{print $1}')"
@@ -166,26 +166,37 @@ github::curl() {
   fi
 }
 
-github::get_latest_dotly_tag() {
-  github::curl "$(github::get_api_url "$GITHUB_DOTLY_REPOSITORY" "tags")" | jq -r '.[0].name' | uniq
+github::get_latest_sloth_tag() {
+  github::curl "$(github::get_api_url "$GITHUB_SLOTH_REPOSITORY" "tags")" | jq -r '.[0].name' | uniq
 }
 
 github::get_remote_file_path_json() {
   local file_paths url json GITHUB_REPOSITORY
-  GITHUB_REPOSITORY="${2:-$GITHUB_DOTLY_REPOSITORY}"
 
-  if [[ "$#" -eq 2 ]]; then
-    url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq '.commit.commit.tree.url' 2>/dev/null)"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --url)
+        url="$2"
+        shift 2
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
 
-    [[ -n "$url" ]] && github::get_remote_file_path_json "$1" "$GITHUB_REPOSITORY" "$url" && return $?
-  elif [[ "$#" -gt 2 ]]; then
+  GITHUB_REPOSITORY="${2:-$GITHUB_SLOTH_REPOSITORY}"
+
+  if [[ -z "$url" ]]; then
+    url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq -r '.commit.commit.tree.url' 2>/dev/null)"
+    [[ -n "$url" ]] && "$0" --url "$url" "$1" "$GITHUB_REPOSITORY" && return $?
+  else
     file_paths=($(echo "${1:-}" | tr "/" "\n"))
-    url="${3:-}"
 
-    json="$(github::curl "$url" | jq --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2>/dev/null)"
+    json="$(github::curl "$url" | jq -r --arg file_path "${file_paths[1]}" '.tree[] | select(.path == $file_path)' 2>/dev/null)"
 
     if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
-      github::get_remote_file_path_json "$(str::join / "${file_paths[@]:1}")" "$GITHUB_REPOSITORY" "$(echo "$json" | jq '.url')"
+      "$0" --url "$(echo "$json" | jq -r '.url')" "$(str::join / "${file_paths[@]:1}")" "$GITHUB_REPOSITORY"
     elif [[ -n "$json" ]]; then
       echo "$json" | jq -r '.url' | github::curl
       return $?

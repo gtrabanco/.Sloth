@@ -5,9 +5,9 @@ if [ -z "$DOTFILES_SCRIPTS_PATH" ]; then
   readonly DOTFILES_SCRIPTS_PATH="${DOTFILES_SCRIPTS_PATH:-$DOTFILES_PATH/scripts}"
 
   # Variables
-  MARKETPLACE_REPOSITORY="${MARKETPLACE_REPOSITORY:-gtrabanco/dotly_marketplace}"
+  MARKETPLACE_REPOSITORY="${MARKETPLACE_REPOSITORY:-gtrabanco/sloth_marketplace}"
   MARKETPLACE_MAX_CACHE_PERIOD_IN_DAYS="${MARKETPLACE_MAX_CACHE_PERIOD_IN_DAYS:-7}"
-  MARKETPLACE_CACHE_PATH="${MARKETPLACE_CACHE_PATH:-$DOTFILES_PATH/.marketplace-cache}"
+  MARKETPLACE_CACHE_PATH="${MARKETPLACE_CACHE_PATH:-$DOTFILES_PATH/.marketplace_cache}"
 fi
 
 # Clean cache to search
@@ -335,13 +335,13 @@ marketplace::install_from_search() {
   scripts_cache_path="$(marketplace::get_scripts_cache_path)"
   full_cache_path="$(marketplace::get_scripts_cache_path)/$search"
 
-  ! marketplace::check_remote_exists $search && output::error "Script or context \"$search\" does not exists" && return
+  ! marketplace::check_remote_exists "$search" && output::error "Script or context \"$search\" does not exists" && return
   
-  output::answer "Installing $(echo $search | tr '/' ' ')"
+  output::answer "Installing $(echo "$search" | tr '/' ' ')"
 
   # If it is a file is a script, then grab the context
   if [[ -f "$full_cache_path" ]]; then
-    context="$(echo $search | awk -F '/' '{print $1}')"
+    context="$(echo "$search" | awk -F '/' '{print $1}')"
   else
     context="$search"
   fi
@@ -356,7 +356,7 @@ marketplace::install_from_search() {
   if [[ -d "$full_cache_path" ]]; then
     marketplace::install_from_cache_folder "$full_cache_path"
   else
-    marketplace::install_file_from_cache "$full_cache_path" "$(basename $full_cache_path)"
+    marketplace::install_file_from_cache "$full_cache_path" "$(basename "$full_cache_path")"
   fi
 
   # Recursive resolve search results. Because we want to resolve all in given order

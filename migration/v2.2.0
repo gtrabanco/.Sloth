@@ -1,0 +1,32 @@
+GITIGNORE_FILE="$DOTFILES_PATH/.gitignore"
+
+call_sed() {
+  local SED_BIN
+  if command -v gsed &>/dev/null; then
+    SED_BIN="$(command -v gsed)"
+  elif [[ -f "/usr/local/opt/gnu-sed/libexec/gnubin/sed" ]]; then
+    SED_BIN="/usr/local/opt/gnu-sed/libexec/gnubin/sed"
+  elif command -v sed &>/dev/null; then
+    SED_BIN="$(command -v sed)"
+  else
+    return 1
+  fi
+
+  "$SED_BIN" "$@" 
+}
+
+# 1. Find: "# END OF DOTLY GITIGNORE"
+if [[ ! -f "$GITIGNORE_FILE" ]]; then
+  cp "$DOTLY_PATH/dotfiles_template/.gitignore" "$DOTFILES_PATH/.gitignore"
+elif grep -q '# END OF DOTLY GITIGNORE' "$DOTFILES_PATH/.gitignore"; then
+  call_sed -i '/^# END OF DOTLY GITIGNORE$/i .cached_github_api_calls\n.marketplace_cache' "$DOTFILES_PATH/.gitignore" || {
+    if [[ -n "$(command -v output::error)" ]]; then
+      output::error '.gitignore could not be modified'
+      output::write 'Add these two lines:'
+      output::answer '.cached_github_api_calls'
+      output::answer '.marketplace_cache'
+    fi
+  }
+else
+  cat "$DOTLY_PATH/dotfiles_template/.gitignore" >> "$DOTFILES_PATH/.gitignore"
+fi
