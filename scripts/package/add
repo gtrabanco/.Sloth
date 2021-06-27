@@ -45,7 +45,9 @@ else
   done
 fi
 
-SCRIPT_NAME="dot package add"
+export PATH="$HOME/.cargo/bin:$PATH"
+
+SCRIPT_NAME="lazy package add"
 SCRIPT_VERSION="3.0.0"
 
 if ${version:-}; then
@@ -54,12 +56,10 @@ if ${version:-}; then
 elif ${help:-}; then
   grep '^##?' "$0" | tr '##?' ' '
   exit 0
+elif [[ -z "${package_name:-}" ]]; then
+  output::error "No package name provided"
+  exit 1
 fi
-
-# No package
-[[ -z "${package_name:-}" ]] && exit 1
-
-export PATH="$HOME/.cargo/bin:$PATH"
 
 package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
