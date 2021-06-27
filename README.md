@@ -50,7 +50,14 @@ bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
 ```
 ### Windows
 
-WIP: It will be available soon
+```PowerShell
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/install.ps1"))
+```
+
+<!--
+Source PowerShell:
+ . ([Scriptblock]::Create((([System.Text.Encoding]::ASCII).getString((Invoke-WebRequest -Uri "${FUNCTIONS_URI}").Content))))
+-->
 
 <hr>
 
