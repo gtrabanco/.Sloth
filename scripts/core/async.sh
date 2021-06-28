@@ -51,16 +51,16 @@ killJob() {
     (( __kunk__ == jobToKill )) && {
       read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
         
-      kill -${signal} %${__kunk__}
+      kill -"${signal}" %"${__kunk__[0]}"
         
       status=$?
         
       (( status != 0 )) && {
-        printf "cannot kill %s %d\n" "${JOB_IDS[$job]}" "${__kunk__}"
+        printf "cannot kill %s %d\n" "${JOB_IDS[$job]}" "${__kunk__[0]}"
         return 1;
       }
 
-      printf "%d killed with %s\n" "${__kunk__}" "${signal}" 
+      printf "%d killed with %s\n" "${__kunk__[0]}" "${signal}" 
       
       return 0;
     }

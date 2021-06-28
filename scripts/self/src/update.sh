@@ -39,7 +39,7 @@ update::get_latest_minor_local_head() {
     # Select latest local minor tag taking the current HEAD tag as main
     for tag_version in "${latest_tags_version[@]}"; do
       [[ "$(platform::semver_compare "$current_tag_version" "$tag_version")" -le 0 ]] && break
-      if "$(platform::semver_is_minor_or_patch_update "$current_tag_version" "$tag_version")"; then
+      if platform::semver_is_minor_or_patch_update "$current_tag_version" "$tag_version"; then
         current_tag_version="$tag_version"
         return_code=0
         break
