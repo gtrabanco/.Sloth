@@ -43,12 +43,15 @@ if ${view_remote:-false}; then
   exit 0
 fi
 
-local_tags=($(git::get_all_local_tags) "minor" "stable" "latest")
+declare -a local_tags
+mapfile -t local_tags < <(git::get_all_local_tags)
+local_tags+=("minor" "stable" "latest")
 selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
 
 case "$selected_tag" in
   "minor")
-    current_tag_version="$(update::get_latest_minor_local_head)" # Current HEAD tag or stable
+    # Current HEAD tag or stable
+    current_tag_version="$(update::get_latest_minor_local_head)"
     if [[ -n "$current_tag_version" ]]; then
       git::sloth_repository_exec git checkout -q "$current_tag_version"
       output::solution "Switched to latest Sloth stable version $current_tag_version"
