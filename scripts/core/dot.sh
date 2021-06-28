@@ -36,10 +36,12 @@ dot::list_scripts_path() {
 }
 
 dot::get_script_path() {
+  #shellcheck disable=SC2164
   echo "$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 }
 
 dot::get_full_script_path() {
+  #shellcheck disable=SC2164
   echo "$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/$(basename "$0")"
 }
 
