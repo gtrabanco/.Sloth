@@ -31,7 +31,7 @@ killJob() {
     isSig=0;
     for sig in ${__al__signals}; do 
       [[ ! $sig =~ ^[[:digit:]]+\)$ ]] && {
-        [[ $signal == $sig ]] && {
+        [[ "$signal" == "$sig" ]] && {
           isSig=1;
           break;
         }
@@ -45,7 +45,7 @@ killJob() {
     
     
 
-  for job in ${JOB_IDS[@]};do
+  for job in "${JOB_IDS[@]}"; do
     # increment job to 1 since array index starts from 0
     read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
     (( __kunk__ == jobToKill )) && {
