@@ -2,19 +2,20 @@
 
 set -euo pipefail
 
-. "$DOTLY_PATH/scripts/core/_main.sh"
+#shellcheck source=/dev/null
+. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
 
 symlinks::get_files() {
   [[ -d "$DOTLY_PATH/symlinks" ]] &&\
-    find "$DOTLY_PATH/symlinks" -name "*.yaml" -type f,l -print0 -exec echo {} \; |\
-    xargs -I _ basename _ | sort
+    find "$DOTLY_PATH/symlinks" -name "*.yaml" -type f,l -print0 |\
+    xargs -0 -I _ basename _ | sort
 }
 
 symlinks::fzf() {
   local piped_values
-  piped_values="$(</dev/stdin)"
+  piped_values=("$(</dev/stdin)")
 
-  printf "%s\n" ${piped_values[@]} | fzf --extended \
+  printf "%s\n" "${piped_values[@]}" | fzf --extended \
     --header "Select file to apply symlinks update"\
     --preview "echo 'Press Ctrl+C to exit with no selection.'"
 }
