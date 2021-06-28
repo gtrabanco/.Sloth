@@ -4,7 +4,7 @@ set -euo pipefail
 
 [[ -z "$DOTLY_PATH" ]] && exit 1
 
-#shellcheck source=/dev/null
+#shellcheck disable=SC1091
 . "$DOTLY_PATH/scripts/core/_main.sh"
 dot::load_library "templating.sh"
 
