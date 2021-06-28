@@ -12,4 +12,4 @@ if [ "$1" == "-h" ] || [ "$1" = "--help" ]; then
 fi
 script::depends_on shfmt
 
-dotly::list_bash_files | xargs shfmt -i 2 -d
+dotly::list_bash_files | xargs shfmt -ln posix -i 2 -d

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=1091
 . "$DOTLY_PATH/scripts/core/_main.sh"
 dot::load_library "dump.sh" "package"
 
