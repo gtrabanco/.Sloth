@@ -93,11 +93,11 @@ else
   fi
 fi
 
-if [[ "$package_name" == "docpars" ]]; then
+if [[ "$package_name" == "docpars" && ! -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
-if ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; then
+if [[ "$package_name" == "docpars" && ! -f "$HOME/.cargo/env" ]] || ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; then
   output::write "❌ \`$package_name\` could not be installed"
 
   exit 1
