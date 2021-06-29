@@ -12,7 +12,7 @@ dot::list_contexts() {
 dot::list_context_scripts() {
   context="$1"
 
-  dotly_scripts=$(ls -p "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" 2>/dev/null | grep -v '/')
+  dotly_scripts=$(ls -p "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" 2>/dev/null | grep -v '/' | grep -v '^_')
   dotfiles_scripts=$(ls -p "$DOTFILES_PATH/scripts/$context" 2>/dev/null | grep -v '/')
 
   echo "$dotly_scripts" "$dotfiles_scripts" | sort -u
