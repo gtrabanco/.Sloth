@@ -11,7 +11,7 @@ jobs:
     name: 🚀 Build
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       fail-fast: false
       matrix:
         os:
