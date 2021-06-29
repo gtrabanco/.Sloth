@@ -26,7 +26,6 @@ if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
   package_name=""
-  skip_recipe=false
   version=false
   help=false
   recipe_path="$(dot::get_script_path)/recipes/"
@@ -37,10 +36,6 @@ else
         recipe_path="$2"
       fi
       shift 2
-      ;;
-    --skip-recipe)
-      skip_recipe=true
-      shift
       ;;
     --version | -v)
       version=true
@@ -73,9 +68,12 @@ elif [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
+if [[ "$package_name" != "docpars" ]]; then
+  script::depends_on docpars
+fi
+
 if { [[ "$package_name" == "docpars" ]] && registry::is_installed docpars "$recipe_path"; } ||
-   { [[ "$package_name" != "docpars" ]] && package::is_installed "$package_name"; }
-then
+  { [[ "$package_name" != "docpars" ]] && package::is_installed "$package_name"; }; then
   log::success "$package_name already installed" && exit 0
 fi
 

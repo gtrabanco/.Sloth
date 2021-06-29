@@ -77,8 +77,7 @@ package::is_installed "$package_name" "${recipe_path:-}" && log::success "$packa
 if [[ -z "$skip_recipe" ]] &&
   [[ -n "$(registry::recipe_exists "$package_name" "${recipe_path:-}")" ]] &&
   registry::install "$package_name" "${recipe_path:-}" &&
-  registry::is_installed "$package_name" "${recipe_path:-}"
-then
+  registry::is_installed "$package_name" "${recipe_path:-}"; then
   output::write "✅ \`$package_name\` installed"
 
   exit 0
@@ -92,8 +91,8 @@ else
   fi
 fi
 
-if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars "${recipe_path:-}"; } || 
-   { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name" "${recipe_path:-}"; }; then
+if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars "${recipe_path:-}"; } ||
+  { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name" "${recipe_path:-}"; }; then
   output::write "❌ \`$package_name\` could not be installed"
 
   exit 1
