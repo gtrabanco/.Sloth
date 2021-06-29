@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=SC1091
 . "$DOTLY_PATH/scripts/core/_main.sh"
 dot::load_library "package.sh"
 dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
@@ -21,7 +22,7 @@ else
   package_name=""
   skip_recipe=false
   recipe_path="$(dot::get_script_path)/recipes/"
-  while $# -gt 0; do
+  while [[ $# -gt 0 ]]; do
     case "$1" in
     --recipe-path)
       if [[ "$2" != "_registry" ]]; then
@@ -58,7 +59,7 @@ if ${version:-}; then
   output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
   exit 0
 elif ${help:-}; then
-  grep '^##?' "$0" | tr '##?' ' '
+  grep '^##?' "$0" | tr '##? ' ' '
   exit 0
 elif [[ -z "${package_name:-}" ]]; then
   output::error "No package name provided"

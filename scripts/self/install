@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+#shellcheck disable=SC1091
 . "$DOTLY_PATH/scripts/core/_main.sh"
 dot::load_library "install.sh"
 
@@ -21,6 +22,8 @@ script::depends_on docpars fzf zsh python
 ##?    install
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
+elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  grep '^##?' "$0" | tr '##? ' ' '
 fi
 
 output::answer "Creating dotfiles structure"
