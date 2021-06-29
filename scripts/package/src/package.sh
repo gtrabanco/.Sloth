@@ -43,7 +43,7 @@ package::command() {
 package::is_installed() {
   [[ -z "${1:-}" ]] && return 1
 
-  platform::command_exists "$1" ||\
-    package::command is_installed "$1" ||\
+  platform::command_exists "$1" ||
+    package::command is_installed "$1" ||
     registry::is_installed "$1"
 }
