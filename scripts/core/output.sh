@@ -96,7 +96,7 @@ output::question_default() {
   else
     read -rp "🤔 $with_code_parsed ? [$default_value]: " PROMPT_REPLY
   fi
-  
+
   eval "$var_name=\"${PROMPT_REPLY:-$default_value}\""
 }
 
