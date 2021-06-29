@@ -24,20 +24,16 @@ package::command() {
     return 1
   fi
 
-<<<<<<< HEAD
-  local -r file="$DOTLY_PATH/scripts/package/package_managers/$package_manager.sh"
-
-  [[ ! -f "$file" ]] && exit 4
-  . "$file"
-  declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}"
-=======
   local -r package_managers_src="${DOTLY_PATH}/scripts/package/package_managers"
   local -r file="$package_manager.sh"
 
   dot::load_library "$file" "$package_managers_src"
   # If function does not exists for the package manager it will return 0 (true) always
-  declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}" || return
->>>>>>> master
+  if [[ "$command" == "install" ]]; then
+    declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
+  else
+    declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}" || return
+  fi
 }
 
 package::is_installed() {
@@ -45,5 +41,5 @@ package::is_installed() {
 
   platform::command_exists "$1" ||
     package::command is_installed "$1" ||
-    registry::is_installed "$1"
+    registry::is_installed "$1" "${2:-}"
 }
