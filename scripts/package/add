@@ -16,11 +16,13 @@ dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
 ##?    -h --help     Show script help
 ##?    -v --version  Show script version
 ##?
-if ! ${DOTLY_INSTALLER:-false}; then
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
   package_name=""
   skip_recipe=false
+  version=false
+  help=false
   recipe_path="$(dot::get_script_path)/recipes/"
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -48,6 +50,10 @@ else
       ;;
     esac
   done
+
+  if [[ "$package_name" != "docpars" ]] && ! package::is_installed "docpars"; then
+    script::depends_on docpars
+  fi
 fi
 
 export PATH="$HOME/.cargo/bin:$PATH"
