@@ -41,5 +41,5 @@ package::is_installed() {
 
   platform::command_exists "$1" ||
     package::command is_installed "$1" ||
-    registry::is_installed "$1"
+    registry::is_installed "$1" "${2:-}"
 }

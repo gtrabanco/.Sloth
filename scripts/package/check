@@ -73,7 +73,7 @@ elif [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
-if { [[ "$package_name" == "docpars" ]] && registry::is_installed docpars; } ||
+if { [[ "$package_name" == "docpars" ]] && registry::is_installed docpars "$recipe_path"; } ||
    { [[ "$package_name" != "docpars" ]] && package::is_installed "$package_name"; }
 then
   log::success "$package_name already installed" && exit 0

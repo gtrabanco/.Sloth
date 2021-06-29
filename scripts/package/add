@@ -77,7 +77,7 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
-package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+package::is_installed "$package_name" "${recipe_path:-}" && log::success "$package_name already installed" && exit 0
 
 if [[ -z "$skip_recipe" ]] &&
   [[ -n "$(registry::recipe_exists "$package_name" "${recipe_path:-}")" ]] &&
@@ -90,15 +90,15 @@ then
 else
   package::command install "$package_name" 2>&1 || true
 
-  if package::is_installed "$package_name"; then
+  if package::is_installed "$package_name" "${recipe_path:-}"; then
     output::write "✅ \`$package_name\` installed"
 
     exit 0
   fi
 fi
 
-if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars; } || 
-   { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; }; then
+if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars "${recipe_path:-}"; } || 
+   { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name" "${recipe_path:-}"; }; then
   output::write "❌ \`$package_name\` could not be installed"
 
   exit 1
