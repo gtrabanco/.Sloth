@@ -42,9 +42,9 @@ fi
 output::answer "Installing zim"
 zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 
-if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" == true ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] || ! [[ "$SHELL" =~ zsh$ ]]; then
   output::answer "Installing completions"
-  "$DOTLY_PATH/bin/dot" shell zsh reload_completions
+  zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions
 fi
 
 output::answer "Executing custom restoration scripts"
