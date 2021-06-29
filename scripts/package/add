@@ -10,7 +10,7 @@ dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
 ##? Usage:
 ##?    add [-v | --version]
 ##?    add [-h | --help]
-##?    add [--recipe-path <recipe_path>] <package_name> [--skip-recipe]
+##?    add [--recipe-path <recipe_path>] <package_name>
 ##?
 ##? Options:
 ##?    -h --help     Show script help
@@ -20,7 +20,6 @@ if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
   package_name=""
-  skip_recipe=false
   version=false
   help=false
   recipe_path="$(dot::get_script_path)/recipes/"
@@ -31,10 +30,6 @@ else
         recipe_path="$2"
       fi
       shift 2
-      ;;
-    --skip-recipe)
-      skip_recipe=true
-      shift
       ;;
     --version | -v)
       version=true
