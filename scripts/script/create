@@ -8,6 +8,11 @@ set -euo pipefail
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh"
 
+is_invalid_name() {
+  local -r name="${1:-}"
+  ! [[ "$name" =~ ^_ || "$name" == .* ]]
+}
+
 ##? Dotly script creator
 ##?
 ##?
@@ -53,6 +58,12 @@ case "${1:-}" in
     exit 1
   fi
 
+  if is_invalid_name "$name"; then
+    output::error "The given name \`$name\` for binary is wrong. Names can not start with \`.\` or \`_\`."
+    output::answer "These names are restricted for private and non execution or private usage files that should be created manually."
+    exit 1
+  fi
+
   if [[ ! -d "$DOTFILES_PATH" ]]; then
     output::error "❌ Your dotfiles could not be found"
     exit 1
@@ -86,6 +97,18 @@ case "${1:-}" in
   if [[ -z "${context:-}" ]] || [[ -z "${script_name:-}" ]]; then
     output::error "You should provide a context and script name"
     output::write "Use: $0 -h"
+    exit 1
+  fi
+
+  if is_invalid_name "$context"; then
+    output::error "The given name \`$context\` for context is wrong. Names can not start with \`.\` or \`_\`."
+    output::answer "These names are restricted for private and non execution or private usage files that should be created manually."
+    exit 1
+  fi
+
+  if is_invalid_name "$script_name"; then
+    output::error "The given name \`$script_name\` for script is wrong. Names can not start with \`.\` or \`_\`."
+    output::answer "These names are restricted for private and non execution or private usage files that should be created manually."
     exit 1
   fi
 
