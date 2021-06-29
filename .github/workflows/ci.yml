@@ -11,14 +11,11 @@ jobs:
     name: 🚀 Build
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 2
       fail-fast: false
       matrix:
         os:
-          - macos-10.15
-          - macos-11.0
-          - ubuntu-18.04
-          - ubuntu-20.04
+          - macos-latest
+          - ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
