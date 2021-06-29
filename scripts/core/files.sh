@@ -36,55 +36,57 @@ files::fzf() {
 
   while [ ${#:-0} -gt 0 ]; do
     case "${1:-}" in
-      --default-preview)
-        preview=true
-        shift
-        ;;
-      --preview)
-        preview=true
-        preview_args+=("$2;")
-        shift 2
-        ;;
-      -p|--preview-path)
-        [[ -d "${2:-}" ]] && preview_path="${2:-}/"
-        shift 2
-        ;;
-      -m|--multi)
-        multiple=true
-        arguments+=(--multi); shift
+    --default-preview)
+      preview=true
+      shift
+      ;;
+    --preview)
+      preview=true
+      preview_args+=("$2;")
+      shift 2
+      ;;
+    -p | --preview-path)
+      [[ -d "${2:-}" ]] && preview_path="${2:-}/"
+      shift 2
+      ;;
+    -m | --multi)
+      multiple=true
+      arguments+=(--multi)
+      shift
 
-        if [[ "${1:-}" =~ '^[0-9]+$' ]]; then
-          arguments+=("${1:-}"); shift
-        fi
-        ;;
-      -c|--dotly-core)
-        preview=true
-        preview_args=(
-          ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
-          "${preview_args[@]};"
-        )
+      if [[ "${1:-}" =~ '^[0-9]+$' ]]; then
+        arguments+=("${1:-}")
         shift
-        ;;
-      --script-libs)
-        preview=true
-        libraries_to_load=()
-        for dot_lib in "${SCRIPT_LOADED_LIBS[@]}"; do
-          [[ ! -f "$dot_lib" ]] && continue
-          libraries_to_load+=(
-            ". \"$dot_lib\";"
-          )
-        done
+      fi
+      ;;
+    -c | --dotly-core)
+      preview=true
+      preview_args=(
+        ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
+        "${preview_args[@]};"
+      )
+      shift
+      ;;
+    --script-libs)
+      preview=true
+      libraries_to_load=()
+      for dot_lib in "${SCRIPT_LOADED_LIBS[@]}"; do
+        [[ ! -f "$dot_lib" ]] && continue
+        libraries_to_load+=(
+          ". \"$dot_lib\";"
+        )
+      done
 
-        preview_args=(
-          ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
-          "${libraries_to_load[@]}"
-          "${preview_args[@]}"
-        )
-        shift
-        ;;
-      *)
-        break 2
-        ;;
+      preview_args=(
+        ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
+        "${libraries_to_load[@]}"
+        "${preview_args[@]}"
+      )
+      shift
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -103,7 +105,6 @@ files::fzf() {
       '[[ -f "$file_path" ]] && cat "$file_path";'
     )
   fi
-  
 
   # Add the arguments
   if $preview && [[ -n "${preview_args[*]:-}" ]]; then

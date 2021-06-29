@@ -24,14 +24,14 @@ symlinks::realpath() {
 symlinks::resolvedpath() {
   local file_path="${1:-}"
   [[ -z "$file_path" ]] && return
-  file_path="${file_path//\~/$HOME}" # ~ for $HOME
+  file_path="${file_path//\~/$HOME}"      # ~ for $HOME
   file_path="${file_path//\.\//$(pwd)\/}" # ./ for $(pwd)/
 
   if [[ -n "$(command -v greadlink)" ]]; then
     "$(command -v greadlink)" -qzfe "$file_path"
   elif
     { platform::is_macos && [[ "$(command -v readlink)" != "/usr/bin/readlink" ]]; } ||
-    {  ! platform::is_macos && [[ -n "$(command -v readlink)" ]]; }
+      { ! platform::is_macos && [[ -n "$(command -v readlink)" ]]; }
   then
     readlink -qzfe "$file_path"
   elif [[ -n "$(command -v realpath)" ]]; then
@@ -84,7 +84,6 @@ symlinks::link_exists() {
 symlinks::get_all_links() {
   local yaml_file
   yaml_file="${1:-}"
-
 
   if [[ -t 0 && -f "$yaml_file" ]]; then
     dotbot::get_all_keys_in "link" "$yaml_file" || true
@@ -151,7 +150,6 @@ symlinks::get_link_by_linked_path() {
   [[ -n "$link" ]] && dotbot::realpath "$link"
 }
 
-
 #;
 # symlinks::find()
 # Custom find for these scripts context
@@ -161,7 +159,7 @@ symlinks::get_link_by_linked_path() {
 # symlinks::find --exclude "$DOTBOT_BASE_PATH" -maxdepth 1 -name "*"
 # Not valid usage is:
 # symlinks::find -name "*" -maxdepth 1 "$DOTBOT_BASE_PATH"
-# 
+#
 # --exclude must be the first
 # "/some/path/to/find" the second
 # Any other find commands (first global options and later "particular" options)
@@ -171,8 +169,9 @@ symlinks::find() {
   exclude_itself=false
 
   case "${1:-}" in
-    --exclude)
-      exclude_itself=true; shift
+  --exclude)
+    exclude_itself=true
+    shift
     ;;
   esac
 

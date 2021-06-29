@@ -140,7 +140,7 @@ symlinks::restore_by_link() {
   link="$(dotbot::relativepath "${2:-}")"
   dotfiles_file_path="$(dotbot::get_value_of_key_in "link" "$link" "$yaml_file")"
 
-  [[ -z "$link"  || -z "$dotfiles_file_path" ]] && return 1
+  [[ -z "$link" || -z "$dotfiles_file_path" ]] && return 1
 
   # TODO Uncoment on production
   # dotbot::delete_by_key_in "link" "$link" "$yaml_file" || true
@@ -267,7 +267,7 @@ symlinks::delete_link_and_files() {
 
   if [[ -n "$(symlinks::link_exists "$yaml_file" "$link")" ]]; then
     dotbot_file_path="$(dotbot::get_value_of_key_in "link" "$link" "$yaml_file")"
-  
+
     if [[ -n "$dotbot_file_path" ]] && symlinks::delete_link "$yaml_file" "$link"; then
       dotbot::rm --rm-cmd "${delete_cmd[*]}" "$dotbot_file_path" || true
     else
@@ -285,9 +285,9 @@ symlinks::delete_link_by_link_value() {
   link_value="$(dotbot::relativepath "${2:-}")"
 
   [[ ! -f "$yaml_file" || -z "${link_value:-}" ]] && return 1
-  
+
   link="$(dotbot::get_key_by_value_in "link" "$link_value" "$yaml_file")"
-  
+
   if ! { [ -n "$link" ] && symlinks::delete_link "$yaml_file" "$link" "${@:-}"; }; then
     return 1
   fi
@@ -301,9 +301,9 @@ symlinks::delete_link_and_files_by_link_value() {
   shift 2
 
   [[ ! -f "$yaml_file" || -z "${link_value:-}" ]] && return 1
-  
+
   link="$(dotbot::get_key_by_value_in "link" "$link_value" "$yaml_file")"
-  
+
   if ! { [ -n "$link" ] && symlinks::delete_link_and_files "$yaml_file" "$link" "${@:-}"; }; then
     return 1
   fi
@@ -313,7 +313,7 @@ symlinks::delete_link_and_files_by_link_value() {
 # symlinks::find --exclude "$DOTBOT_BASE_PATH" -maxdepth 1 -name "*"
 # Not valid usage is:
 # symlinks::find -name "*" -maxdepth 1 "$DOTBOT_BASE_PATH"
-# 
+#
 # --exclude must be the first
 # "/some/path/to/find" the second
 # Any other find commands (first global options and later "particular" options)
@@ -323,8 +323,9 @@ symlinks::find() {
   exclude_itself=false
 
   case "${1:-}" in
-    --exclude)
-      exclude_itself=true; shift
+  --exclude)
+    exclude_itself=true
+    shift
     ;;
   esac
 
@@ -349,26 +350,30 @@ symlinks::fzf() {
 
   while [ ${#:-0} -gt 0 ]; do
     case "${1:-}" in
-      --preview)
-        preview=true
-        arguments+=("${1:-}"); shift
-        arguments+=("${1:-}"); shift
-        ;;
-      -p|--preview-path)
-        [ -d "${2:-}" ] && preview_path="${2:-}/"
-        shift 2
-        ;;
-      -m|--multi)
-        multiple=true
-        arguments+=(--multi); shift
+    --preview)
+      preview=true
+      arguments+=("${1:-}")
+      shift
+      arguments+=("${1:-}")
+      shift
+      ;;
+    -p | --preview-path)
+      [ -d "${2:-}" ] && preview_path="${2:-}/"
+      shift 2
+      ;;
+    -m | --multi)
+      multiple=true
+      arguments+=(--multi)
+      shift
 
-        if [[ "${1:-}" =~ '^[0-9]+$' ]]; then
-          arguments+=("${1:-}"); shift
-        fi
-        ;;
-      *)
-        break 2
-        ;;
+      if [[ "${1:-}" =~ '^[0-9]+$' ]]; then
+        arguments+=("${1:-}")
+        shift
+      fi
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -381,7 +386,7 @@ symlinks::fzf() {
     arguments+=(--preview)
     arguments+=("$preview_cmd")
   fi
-  
+
   fzf "${arguments[@]}"
 }
 

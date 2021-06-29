@@ -12,10 +12,9 @@ yq::install() {
     return 0
   fi
 
-  if platform::command_exists pip3 &&\
-     pip3 install yq | log::file "Installing yq from pip3" &&\
-     platform::command_exists yq
-  then
+  if platform::command_exists pip3 &&
+    pip3 install yq | log::file "Installing yq from pip3" &&
+    platform::command_exists yq; then
     output::solution "yq installed!"
     return 0
   fi

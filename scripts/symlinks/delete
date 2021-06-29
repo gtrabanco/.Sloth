@@ -62,7 +62,6 @@ preview_cmd+="yaml_file=\"$yaml_file\";"
 preview_cmd+='echo "Press Tab+Shift to select multiple options.\n'
 preview_cmd+='Press Ctrl+C to exit with no selection.\n\n'
 
-
 if [ -z "${links[*]}" ] && ${by_value:-false}; then
   preview_cmd+='Linked in:\n'
   preview_cmd+='\t$(symlinks::get_link_by_linked_path "$yaml_file" {};)";'

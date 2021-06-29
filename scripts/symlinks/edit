@@ -96,11 +96,11 @@ else
 
     output::question_default "Write the new link for '$current_link'" "$current_link" "new_link"
 
-    if [[ -n "$new_link" && "$new_link" != "$current_link" ]]; then 
+    if [[ -n "$new_link" && "$new_link" != "$current_link" ]]; then
       symlinks::edit_link_by_link_path "$yaml_file" "$current_link" "$new_link"
 
       if [[ -n "$(symlinks::link_exists "$yaml_file" "$current_link")" ]]; then
-        if [[ -n "$(symlinks::link_exists "$yaml_file" "$new_link")" ]]; then 
+        if [[ -n "$(symlinks::link_exists "$yaml_file" "$new_link")" ]]; then
           output::error "Link '$new_link' was added to point the same link as '$current_link' but could not be deleted from '$yaml_file'"
           output::error "Delete it manually or you will preserve old and new symlink."
         else

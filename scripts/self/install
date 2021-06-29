@@ -28,8 +28,7 @@ yaml_file_backup() {
 
     if [[ -f "$link" ]]; then
       if ! ${quiet_symlinks:-} &&
-        output::yesno "File '$link' exists. Do you want to backup it"
-      then
+        output::yesno "File '$link' exists. Do you want to backup it"; then
         backup_and_warn_if_exists "$link" "$rename_suffix"
       fi
     fi
@@ -108,10 +107,9 @@ done
 
 if platform::command_exists yq && platform::command_exists jq; then
   # Make a backup of existing current dotfiles
-  if ! ${always_backup:-} &&\
-    ! ${never_backup:-} &&\
-    output::yesno "Do you want to perform a backup of your current existing dotfiles if they exists"
-  then
+  if ! ${always_backup:-} &&
+    ! ${never_backup:-} &&
+    output::yesno "Do you want to perform a backup of your current existing dotfiles if they exists"; then
     always_backup=true
   fi
 
@@ -129,8 +127,7 @@ if platform::command_exists yq && platform::command_exists jq; then
 
         if [[ -f "$link" ]]; then
           if ! ${quiet_symlinks:-} &&
-            ! output::yesno "File '$link' exists. Do you want to backup it"
-          then
+            ! output::yesno "File '$link' exists. Do you want to backup it"; then
             continue
           fi
 
@@ -150,7 +147,7 @@ output::answer "Setting up symlinks"
 if ${quiet_symlinks:-false}; then
   "$DOTLY_PATH/bin/dot" symlinks apply --quiet | log::file "Applying symlinks" || true
 else
-  "$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || output::write "Error applying symlinks, see `dot self backup`"
+  "$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || output::write "Error applying symlinks, see $(dot self backup)"
 fi
 touch "$HOME/.z"
 
@@ -165,7 +162,7 @@ if zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"; then
   output::solution "ZIM Framework Installed"
 else
   output::error "ZIM Framework could not be installed"
-  output::write "Use `dot self debug` to view what happened"
+  output::write "Use $(dot self debug) to view what happened"
   output::write "You will need to run manually the ZIM Framework install command"
   output::write "  zsh \"$ZIM_HOME/zimfw.zsh\" install"
 fi

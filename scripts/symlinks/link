@@ -83,10 +83,10 @@ if [[ -z "$link_dotfile_directory" ]]; then
     output::question "Write the relative path to your DOTFILES_PATH" "link_dotfile_directory"
     output::empty_line
 
-    [[ -z "$link_dotfile_directory" ]] &&\
-      output::yesno "Do you want to store the file in your DOTFILES_PATH root directory" &&\
-      output::empty_line &&\
-      link_dotfile_directory="$DOTFILES_PATH" &&\
+    [[ -z "$link_dotfile_directory" ]] &&
+      output::yesno "Do you want to store the file in your DOTFILES_PATH root directory" &&
+      output::empty_line &&
+      link_dotfile_directory="$DOTFILES_PATH" &&
       break
   done
 fi
