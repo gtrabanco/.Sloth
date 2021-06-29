@@ -137,9 +137,9 @@ package_install() {
   elif command_exists pacman; then
     _a "Installing '${*}' using pacman"
     sudo pacman -S --noconfirm "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using pacman"
-  elif command_exists apt; then
+  elif command_exists apt-get; then
     _a "Installing '${*}' using apt"
-    sudo apt -y install "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using apt"
+    sudo apt-get -y install "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using apt"
   else
     _e "Could not install '${*}', no package provider found"
     return 1
