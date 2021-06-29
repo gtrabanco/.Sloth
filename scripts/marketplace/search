@@ -8,7 +8,7 @@ dot::load_library "github.sh" "core"
 dot::load_library "marketplace.sh"
 
 ##? Search for script in dotly marketplace
-##? 
+##?
 ##?
 ##? Usage:
 ##?   search [-h | --help]
@@ -50,7 +50,7 @@ output::header "Search Results"
 # Remove those scripts that are under selected context from results array
 # don't quote or wont work right
 for i in "${results[@]}"; do
-  [[ $(marketplace::is_script "$i") -eq 1 ]] && results=("${results[@]//$i\/*}")
+  [[ $(marketplace::is_script "$i") -eq 1 ]] && results=("${results[@]//$i\/*/}")
 done
 
 for i in "${results[@]}"; do
@@ -58,13 +58,13 @@ for i in "${results[@]}"; do
   context=""
   script=""
   install_string="\""
-  
+
   # Current values
   context="$(echo "$i" | tr '/' ' ' | awk '{print $1}')"
   script="$(echo "$i" | tr '/' ' ' | awk '{print $2}')"
 
-  [[ "$i" =~ '/' ]] &&\
-    install_string+="$(echo "dot $i"| tr '/' ' ')\" script" ||\
+  [[ "$i" =~ '/' ]] &&
+    install_string+="$(echo "dot $i" | tr '/' ' ')\" script" ||
     install_string+="$i\" context"
 
   output::answer "Trying to install $install_string"

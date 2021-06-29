@@ -34,10 +34,10 @@ if ${version:-}; then
   exit
 fi
 
-{ [[ -z "${context:-}" ]] || [[ -z "${script:-}" ]]; } &&\
-  output::error "Wrong usage" &&\
-  output::empty_line &&\
-  dot::get_full_script_path --help &&\
+{ [[ -z "${context:-}" ]] || [[ -z "${script:-}" ]]; } &&
+  output::error "Wrong usage" &&
+  output::empty_line &&
+  dot::get_full_script_path --help &&
   exit 1
 
 script_remote_sha="$(github::get_remote_file_path_json "$context/$script" "$MARKETPLACE_REPOSITORY" | jq -r '.sha')"
@@ -49,7 +49,6 @@ if [[ -z "$script_remote_sha" ]]; then
 fi
 
 script_local_sha="$(git::file_hash "$DOTFILES_SCRIPTS_PATH/$context/$script")"
-
 
 output::empty_line
 
@@ -66,8 +65,8 @@ else
   cmd_args+=("$context" "${script:-}")
 
   if ! ${yes:-}; then
-    ! output::yesno "There is a newer version. Do you want to update" &&\
-    output::error "Script was not updated"
+    ! output::yesno "There is a newer version. Do you want to update" &&
+      output::error "Script was not updated"
   fi
 
   "$DOTLY_PATH/bin/dot" "${cmd_args[@]}"

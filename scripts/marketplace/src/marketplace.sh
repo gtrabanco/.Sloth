@@ -27,22 +27,22 @@ marketplace::get_scripts_cache_path() {
 # Get url to request api urls or raw files
 marketplace::get_url() {
   case "$1" in
-    raw)
-      shift
-      github::branch_raw_url -b "master" "$MARKETPLACE_REPOSITORY" "$*"
-      ;;
-    tree)
-      branch="${2:-master}"
-      param="${3:-url}"
-      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY" | github::curl | jq -r ".commit.commit.tree.$param"
+  raw)
+    shift
+    github::branch_raw_url -b "master" "$MARKETPLACE_REPOSITORY" "$*"
     ;;
-    branch|branches)
-      branch="${2:master}"
-      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
-      ;;
-    *)
-      branch="${1:master}"
-      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
+  tree)
+    branch="${2:-master}"
+    param="${3:-url}"
+    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY" | github::curl | jq -r ".commit.commit.tree.$param"
+    ;;
+  branch | branches)
+    branch="${2:master}"
+    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
+    ;;
+  *)
+    branch="${1:master}"
+    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
     ;;
   esac
 }
@@ -83,9 +83,9 @@ marketplace::check_cache_folder_should_be_created() {
   cache_path="${1:-$(marketplace::get_scripts_cache_path)}"
 
   {
-    [[ -d "$cache_path" ]] &&\
-    files::check_if_path_is_older "$cache_path" "$MARKETPLACE_MAX_CACHE_PERIOD_IN_DAYS" &&\
-    marketplace::check_newer_version "$cache_path"
+    [[ -d "$cache_path" ]] &&
+      files::check_if_path_is_older "$cache_path" "$MARKETPLACE_MAX_CACHE_PERIOD_IN_DAYS" &&
+      marketplace::check_newer_version "$cache_path"
 
   } || [[ ! -d "$cache_path" ]]
 }
@@ -100,13 +100,13 @@ marketplace::recursive_tree() {
 
   # Check if current cache folder shouldn't be recreated
   # if it should not just exit the function
-  ! marketplace::check_cache_folder_should_be_created "$cache_folder"&& return
-  
+  ! marketplace::check_cache_folder_should_be_created "$cache_folder" && return
+
   # Recreating cache folder
   rm -rf "$cache_folder" && mkdir -p "$cache_folder"
 
-  github::curl $url | \
-    jq -c '.tree | map({ path: .path, type: .type, url:.url }) | .[]' |\
+  github::curl $url |
+    jq -c '.tree | map({ path: .path, type: .type, url:.url }) | .[]' |
     while read item; do
       item_path="$(echo "$item" | jq -r '.path')"
       item_is_folder="$(echo "$item" | jq '. | select(.type == "tree")')"
@@ -117,9 +117,9 @@ marketplace::recursive_tree() {
       if [[ -n "$item_is_folder" ]]; then
         marketplace::recursive_tree "$item_url" "$cache_folder/$item_path"
       else
-        echo "#!/usr/bin/env bash" > "$cache_folder/$item_path"
-        echo "script_download_url='$item_url'" >> "$cache_folder/$item_path"
-        echo "relative_script_folder_path='${cache_folder#$(marketplace::get_scripts_cache_path)/}'" >> "$cache_folder/$item_path"
+        echo "#!/usr/bin/env bash" >"$cache_folder/$item_path"
+        echo "script_download_url='$item_url'" >>"$cache_folder/$item_path"
+        echo "relative_script_folder_path='${cache_folder#$(marketplace::get_scripts_cache_path)/}'" >>"$cache_folder/$item_path"
       fi
     done
 }
@@ -149,16 +149,16 @@ marketplace::create_cache_tree() {
 
   # Inform the uset about possible long time
   output::answer "This might take some time"
-  
+
   # Check if we got the API calls rate limit
-  github::curl "$url" | jq -r '.message' | grep -qv 'null' &&\
-    output::error "You have reached the GITHUB API calls limit. Consider to get a auth token and" &&\
-    output::error "set it through ENV var GITHUB_TOKEN." &&\
+  github::curl "$url" | jq -r '.message' | grep -qv 'null' &&
+    output::error "You have reached the GITHUB API calls limit. Consider to get a auth token and" &&
+    output::error "set it through ENV var GITHUB_TOKEN." &&
     return 1
-  
+
   # We need url and cache folder if not just exit the function
-  { [[ -z "$url" ]] || [[ -z "$cache_folder" ]]; } &&\
-    output::error "No url or cache folder provided" &&\
+  { [[ -z "$url" ]] || [[ -z "$cache_folder" ]]; } &&
+    output::error "No url or cache folder provided" &&
     return 1
 
   # Create cache recursively if cache_folder does not exists
@@ -177,16 +177,16 @@ marketplace::create_cache_tree() {
 #  -1 is an abort (no script, no context)
 marketplace::is_script() {
   case "$(str::to_lower "$1")" in
-    abort)
-      echo -1
-      ;;
-    */*)
-      echo 0
-      ;;
+  abort)
+    echo -1
+    ;;
+  */*)
+    echo 0
+    ;;
 
-    *)
-      echo 1
-      ;;
+  *)
+    echo 1
+    ;;
   esac
 }
 
@@ -201,21 +201,21 @@ marketplace::preview_search() {
   output::empty_line
 
   case "$(marketplace::is_script "$1")" in
-    -1)
-      output::write "$red${bold}Exit without install anything$normal"
-      output::empty_line
-      return
-      ;;
-    0)
-      output::write "Select to install $bold$green$1$normal script"
-      ;;
+  -1)
+    output::write "$red${bold}Exit without install anything$normal"
+    output::empty_line
+    return
+    ;;
+  0)
+    output::write "Select to install $bold$green$1$normal script"
+    ;;
 
-    *)
-      output::write "Select to install $bold$green$1$normal context"
-      output::empty_line
-      output::write "This will install all these scripts"
-      marketplace::print_tab_find "$2/$1"
-      ;;
+  *)
+    output::write "Select to install $bold$green$1$normal context"
+    output::empty_line
+    output::write "This will install all these scripts"
+    marketplace::print_tab_find "$2/$1"
+    ;;
   esac
 
   output::empty_line
@@ -230,7 +230,8 @@ marketplace::preview_search() {
 # Helper for find
 marketplace::find() {
   local find_path
-  find_path="${1:-$(marketplace::get_scripts_cache_path)}"; shift
+  find_path="${1:-$(marketplace::get_scripts_cache_path)}"
+  shift
   find "$find_path" -mindepth 1 $@ -name '*' | while read item; do
     item="$(echo -n "${item#$find_path/}")"
     echo "$item" | xargs
@@ -245,8 +246,8 @@ marketplace::find_fzf() {
   output=($(marketplace::find "$find_path" -maxdepth 2))
   output+=("Abort")
 
-  printf "%s\n" "${output[@]}" | fzf -m --extended --query "$query"\
-    --header "Choose a script or full context to install"\
+  printf "%s\n" "${output[@]}" | fzf -m --extended --query "$query" \
+    --header "Choose a script or full context to install" \
     --preview "source $(platform::get_script_path)/tools/github.sh >/dev/null 2>&1; marketplace::preview_search {} '$find_path'"
 }
 
@@ -255,17 +256,17 @@ marketplace::search_in_cache() {
   local answer sha query cache_folder
   query="$1"
   cache_folder="$(marketplace::get_scripts_cache_path)"
-  
+
   answer=($(marketplace::find_fzf "$cache_folder" "$query"))
   printf "%s\n" ${answer[@]}
 }
-
 
 # Get all files for specific context by default
 # you can add params after to apply to marketplace::find
 marketplace::get_context() {
   local context context_folder
-  context="$1"; shift
+  context="$1"
+  shift
   context_folder="$(marketplace::get_scripts_cache_path)/$context"
   [[ ! -d "$context_folder" ]] && return
 
@@ -304,14 +305,15 @@ marketplace::install_file_from_cache() {
   script_full_path="$DOTFILES_SCRIPTS_PATH/$relative_script_folder_path/$script_name"
   mkdir -p "$(dirname $script_full_path)"
   touch "$script_full_path"
-  github::curl "$script_download_url" | jq -r '.content' | base64 --decode > "$script_full_path"
+  github::curl "$script_download_url" | jq -r '.content' | base64 --decode >"$script_full_path"
   chmod u+x "$script_full_path"
   unset relative_script_folder_path script_download_url
 }
 
 marketplace::install_from_cache_folder() {
   local item script_name cache_path
-  cache_path="$1"; shift
+  cache_path="$1"
+  shift
 
   # If there is more than one folder to install
   # do it recursively
@@ -331,12 +333,13 @@ marketplace::install_from_cache_folder() {
 # Install script or context
 marketplace::install_from_search() {
   local context context_subfolder dep_path search scripts_cache_path full_cache_path
-  search="$1"; shift
+  search="$1"
+  shift
   scripts_cache_path="$(marketplace::get_scripts_cache_path)"
   full_cache_path="$(marketplace::get_scripts_cache_path)/$search"
 
   ! marketplace::check_remote_exists "$search" && output::error "Script or context \"$search\" does not exists" && return
-  
+
   output::answer "Installing $(echo "$search" | tr '/' ' ')"
 
   # If it is a file is a script, then grab the context

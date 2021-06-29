@@ -20,21 +20,21 @@ github::get_api_url() {
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-      --user|-u|--organization|-o)
-        user="${2:-}"
-        shift 2
-        ;;
-      --repository|-r)
-        repository="${2:-}"
-        shift 2
-        ;;
-      --branch|-b)
-        branch="/branches/${2:-}"
-        shift 2
-        ;;
-      *)
-        break 2
-        ;;
+    --user | -u | --organization | -o)
+      user="${2:-}"
+      shift 2
+      ;;
+    --repository | -r)
+      repository="${2:-}"
+      shift 2
+      ;;
+    --branch | -b)
+      branch="/branches/${2:-}"
+      shift 2
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -53,7 +53,7 @@ github::get_api_url() {
   fi
 
   { [[ -z "$user" ]] || [[ -z "$repository" ]]; } && return 1
-  
+
   [[ $# -gt 0 ]] && arguments="$(str::join '/' "$*")"
 
   echo "$GITHUB_API_URL/$user/$repository${branch:-}${arguments:-}"
@@ -66,21 +66,21 @@ github::branch_raw_url() {
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-      --user|-u|--organization|-o)
-        user="${2:-}"
-        shift 2
-        ;;
-      --repository|-r)
-        repository="${2:-}"
-        shift 2
-        ;;
-      --branch|-b)
-        branch="/branches/${2:-}"
-        shift 2
-        ;;
-      *)
-        break 2
-        ;;
+    --user | -u | --organization | -o)
+      user="${2:-}"
+      shift 2
+      ;;
+    --repository | -r)
+      repository="${2:-}"
+      shift 2
+      ;;
+    --branch | -b)
+      branch="/branches/${2:-}"
+      shift 2
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -99,7 +99,7 @@ github::branch_raw_url() {
   fi
 
   { [[ -z "$user" ]] || [[ -z "$repository" ]]; } && return 1
-  
+
   [[ $# -gt 1 ]] && branch="$1" && shift
   [[ $# -gt 0 ]] && file="/$(str::join '/' "$*")"
 
@@ -112,33 +112,34 @@ github::clean_cache() {
 
 github::_command() {
   local url CURL_BIN
-  url="$1"; shift
+  url="$1"
+  shift
   CURL_BIN="$(which curl)"
 
   params=(-S -s -L -q -f -k "-H 'Accept: application/vnd.github.v3+json'")
   [[ -n "$GITHUB_TOKEN" ]] && params+=("-H 'Authorization: token $GITHUB_TOKEN'")
-  
+
   echo "$CURL_BIN ${params[*]} ${*} $url"
 }
 
 github::curl() {
   local md5command cached_request_file_path _command url cached cache_period
-  
+
   cached=true
   cache_period="$GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS"
 
   case "$1" in
-    --no-cache|-n)
-      cached=false
-      shift
-      ;;
-    --cached|-c)
-      shift
-      ;;
-    --period-in-days|-p)
-      cache_period="$2"
-      shift 2
-      ;;
+  --no-cache | -n)
+    cached=false
+    shift
+    ;;
+  --cached | -c)
+    shift
+    ;;
+  --period-in-days | -p)
+    cache_period="$2"
+    shift 2
+    ;;
   esac
 
   url=${1:-$(</dev/stdin)}
@@ -152,12 +153,12 @@ github::curl() {
     md5command="$(echo "$_command" | md5)"
     cached_request_file_path="$GITHUB_DOTLY_CACHE_PETITIONS/$md5command"
 
-    [[ -f "$cached_request_file_path" ]] &&\
+    [[ -f "$cached_request_file_path" ]] &&
       files::check_if_path_is_older "$cached_request_file_path" "$cache_period"
 
     # Cache result if is not
     if [ ! -f "$cached_request_file_path" ]; then
-      eval "$_command 2>/dev/null" > "$cached_request_file_path"
+      eval "$_command 2>/dev/null" >"$cached_request_file_path"
     fi
 
     cat "$cached_request_file_path"
@@ -175,13 +176,13 @@ github::get_remote_file_path_json() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --url)
-        url="$2"
-        shift 2
-        ;;
-      *)
-        break 2
-        ;;
+    --url)
+      url="$2"
+      shift 2
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -202,6 +203,6 @@ github::get_remote_file_path_json() {
       return $?
     fi
   fi
-  
+
   return 1
 }

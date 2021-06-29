@@ -8,7 +8,7 @@ dot::load_library "github.sh" "core"
 dot::load_library "marketplace.sh"
 
 ##? Install script from dotly marketplace
-##? 
+##?
 ##?
 ##? Usage:
 ##?   install [-h | --help]
@@ -44,9 +44,9 @@ if marketplace::check_cache_folder_should_be_created; then
   output::yesno "Do you want to create synchonously (it could take some time)" && "$DOTLY_PATH/bin/dot" dotly cache --force
 fi
 
-[[ -z "${context:-}" ]] &&\
-  output::error "See usage" &&\
-  dot::get_full_script_path --help &&\
+[[ -z "${context:-}" ]] &&
+  output::error "See usage" &&
+  dot::get_full_script_path --help &&
   exit 1
 
 install="${context:-}"

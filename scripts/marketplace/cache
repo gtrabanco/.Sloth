@@ -8,7 +8,7 @@ dot::load_library "github.sh" "core"
 dot::load_library "marketplace.sh"
 
 ##? Get or delete the cache for searching and installing scripts from marketplace.
-##? 
+##?
 ##?
 ##? Usage:
 ##?   cache [-h | --help]
@@ -48,7 +48,7 @@ success() {
   return # Not message when all work
 }
 
-reject () {
+reject() {
   output::error "Cache could not be created"
 }
 
