@@ -14,7 +14,7 @@ jobs:
       matrix:
         os:
           - macos-10.15
-          - macos-11.0
+          - macos-11
           - ubuntu-18.04
           - ubuntu-20.04
 
@@ -69,5 +69,5 @@ jobs:
       - name: 📥 Install shfmt
         run: go get mvdan.cc/sh/v3/cmd/shfmt
 
-      - name: 💅 Lint bash files
-        run: bash scripts/self/lint
+      - name: 💅 Lint bash files and apply linting patches
+        run: bash scripts/self/lint --patch
