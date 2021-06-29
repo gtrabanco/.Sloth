@@ -56,7 +56,9 @@ else
   fi
 fi
 
-export PATH="$HOME/.cargo/bin:$PATH"
+if [[ -f "$HOME/.cargo/env" ]]; then
+  . "$HOME/.cargo/env"
+fi
 
 SCRIPT_NAME="lazy package add"
 SCRIPT_VERSION="3.0.0"
@@ -82,13 +84,17 @@ if [[ -z "$skip_recipe" ]] &&
 
   exit 0
 else
-  package::command install "$package_name" 2>&1 | log::file "Trying to install $package_name using $package_manager" || true
+  package::command install "$package_name" 2>&1 || true
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
 
     exit 0
   fi
+fi
+
+if [[ "$package_name" == "docpars" ]]; then
+  . "$HOME/.cargo/env"
 fi
 
 if ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; then
