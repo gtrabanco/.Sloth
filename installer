@@ -164,6 +164,8 @@ git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" 
 _a "Installing dotly dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dotly dependencies"
 
+_a "Dotly dependencies installed"
+
 cd "$DOTLY_PATH"
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
