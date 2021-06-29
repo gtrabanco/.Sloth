@@ -331,7 +331,7 @@ cd "${DOTFILES_PATH}"
 # Only dotly submodule must be updated recursively because we do not know if
 # user has added any other submodules that are privated and maybe the user
 # needs to configure something to access those repositories
-git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading dotly and submodules" || {
+git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading sloth and submodules" || {
   _e "Downloading dotly failed. See for more details:"
   _e "  tail -f $HOME/dotly.log"
   _w

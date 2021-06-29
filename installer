@@ -159,12 +159,10 @@ _a "Initializing your dotfiles git repository"
 git init 2>&1 | _log "Initializing repository"
 
 _a "Cloning dotly"
-git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding dotly submodule"
+git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
 
 _a "Installing dotly dependencies"
-git submodule update --init --recursive 2>&1 | _log "Installing dotly dependencies"
-
-_a "Dotly dependencies installed"
+git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
 cd "$DOTLY_PATH"
 
