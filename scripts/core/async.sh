@@ -73,50 +73,45 @@ async() {
   reject="$3"
 
   [[ -z "$cmdToExec" ]] || [[ -z "$reject" ]] || [[ -z "$resolve" ]] && {
-    printf "%s\n" "Insufficient number of arguments";
-    return 1;
+    printf "%s\n" "Insufficient number of arguments"
+    return 1
   }
 
-    
-    
-  __temp=( "$cmdToExec" "$reject" "$resolve" )
-    
-    
+  __temp=("$cmdToExec" "$reject" "$resolve")
+
   for _c in "${__temp[@]}"; do
     read -r -d " " comm <<<"${_c}"
     type "${comm}" &>/dev/null
-	
+
     status=$?
-	
-    (( status != 0 )) && {
-      printf "\"%s\" is neither a function nor a recognized cmd\n" "${_c}";
-	    unset _c
-	    return 1;
+
+    ((status != 0)) && {
+      printf "\"%s\" is neither a function nor a recognized cmd\n" "${_c}"
+      unset _c
+      return 1
     }
   done
-    
+
   unset __temp _c
-    
+
   {
     __result=$($cmdToExec)
     status=$?
-    
-    if (( status == 0 ))
-    then
+
+    if ((status == 0)); then
       $resolve "${__result}"
     else
       $reject "${status}"
     fi
     unset __result
   } &
-  
-  JOB_IDS+=( "${JOBS} ${cmd}" )
-    
-  read -r -d " " -a __kunk__ <<< "${JOB_IDS[$(( ${#JOB_IDS[@]} - 1))]}"
-    
-  #echo ${__kunk__}
-    
 
-  : $(( JOBS++ ))
-    
+  JOB_IDS+=("${JOBS} ${cmd}")
+
+  read -r -d " " -a __kunk__ <<<"${JOB_IDS[$((${#JOB_IDS[@]} - 1))]}"
+
+  #echo ${__kunk__}
+
+  : $((JOBS++))
+
 }
