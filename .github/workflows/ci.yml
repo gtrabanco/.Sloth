@@ -70,4 +70,9 @@ jobs:
         run: go get mvdan.cc/sh/v3/cmd/shfmt
 
       - name: 💅 Lint bash files and apply linting patches
-        run: bash scripts/self/lint --patch
+        run: |
+          bash scripts/self/lint || {
+            . "scripts/core/_main.sh"
+            output::write "Apply patches by using \`lazy self lint\`"
+            exit 1
+          }
