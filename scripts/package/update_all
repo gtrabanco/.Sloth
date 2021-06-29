@@ -52,7 +52,6 @@ output::clarification "If you want to debug what's happening behind the scenes, 
   platform::command_exists cargo && output::h2 '📦 cargo' && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d' ' | xargs -n1 cargo install
 } || update_all_error '📦 cargo'
 
-
 {
   platform::command_exists rustup && output::h2 '☢️ Rust compiler' && rustup update
 } || update_all_error '☢️ Rust compiler'

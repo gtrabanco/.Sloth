@@ -9,7 +9,7 @@ update::check_minor_update() {
   mapfile -n "${tags_number}" -t cremote_sloth_version < <(git::get_all_remote_tags_version_only "$(git::get_submodule_property sloth url)")
 
   [ -n "$local_sloth_version" ] && for tag_version in "${cremote_sloth_version[@]}"; do
-    [ -z "$tag_version" ] && continue # I am not sure if this can happen
+    [ -z "$tag_version" ] && continue                                                      # I am not sure if this can happen
     [ "$(platform::semver_compare "$local_sloth_version" "$tag_version")" -le 0 ] && break # Older version no check
 
     if platform::semver_is_minor_or_patch_update "$local_sloth_version" "$tag_version"; then
@@ -21,7 +21,7 @@ update::check_minor_update() {
   return 1
 }
 
-# Get the latest minor using the HEAD as it could be 
+# Get the latest minor using the HEAD as it could be
 update::get_latest_minor_local_head() {
   local current_tag_version latest_local_tag latest_tags_version tag_version return_code
   declare -a latest_tags_version
@@ -30,9 +30,9 @@ update::get_latest_minor_local_head() {
   return_code=1
 
   if [[ -z "$current_tag_version" ]] && [[ -n "$latest_local_tag" ]]; then
-      echo "$latest_local_tag"
-      return_code=0
-      
+    echo "$latest_local_tag"
+    return_code=0
+
   elif [[ -n "$current_tag_version" ]]; then
     mapfile -t latest_tags_version < <(git::get_all_local_tags)
 
@@ -82,9 +82,9 @@ update::update_sloth_repository() {
     git checkout "$current_branch" >/dev/null 2>&1
     git pull >/dev/null 2>&1
     return_code=$?
-    
+
     if [[ -n "$update_submodules" ]] && [[ $return_code -eq 0 ]]; then
-      git submodule update --init --recursive "$@" > /dev/null 2>&1 # $@ because maybe you want to update specific submodule only
+      git submodule update --init --recursive "$@" >/dev/null 2>&1 # $@ because maybe you want to update specific submodule only
     fi
   fi
 
@@ -98,21 +98,21 @@ update::check_consistency_with_sloth_version() {
   local_commit_tag="$(git::sloth_repository_exec git::get_commit_tag)"
 
   case "$(str::to_lower "$DOTLY_UPDATE_VERSION")" in
-    "stable"|"minor")
-      if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
-        output::error "Error in your Dotly configuration, 'DOTLY_UPDATE_VERSION'"
-        output::empty_line
-        output::answer "You have selected to update to $DOTLY_UPDATE_VERSION but you are not"
-        output::write "\tusing any stable version. Modify DOTLY_UPDATE_VERSION variable or use"
-        output::write "\tthe script:"
-        output::write "\t\tdot self version"
-        output::empty_line
-        output::write "You can also disable updates by using: 'dot self update --disable'"
-        output::empty_line
-        return 1
-      fi
-      ;;
-    *)
+  "stable" | "minor")
+    if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
+      output::error "Error in your Dotly configuration, 'DOTLY_UPDATE_VERSION'"
+      output::empty_line
+      output::answer "You have selected to update to $DOTLY_UPDATE_VERSION but you are not"
+      output::write "\tusing any stable version. Modify DOTLY_UPDATE_VERSION variable or use"
+      output::write "\tthe script:"
+      output::write "\t\tdot self version"
+      output::empty_line
+      output::write "You can also disable updates by using: 'dot self update --disable'"
+      output::empty_line
+      return 1
+    fi
+    ;;
+  *)
     return 0
     ;;
   esac
@@ -144,22 +144,22 @@ update::update_local_sloth_module() {
   fi
 
   case "$(str::to_lower "${DOTLY_AUTO_UPDATE_VERSION:-stable}")" in
-    "latest"|"beta")
-      ;;
-    "minor"|"only_minor")
-      if [ -n "$remote_sloth_minor" ]; then
-        git::sloth_repository_exec git checkout "$remote_sloth_minor"
-      fi
-      ;;
-    *) #Stable
-      git::sloth_repository_exec git checkout -q "$remote_sloth_tag"
-      ;;
+  "latest" | "beta") ;;
+
+  "minor" | "only_minor")
+    if [ -n "$remote_sloth_minor" ]; then
+      git::sloth_repository_exec git checkout "$remote_sloth_minor"
+    fi
+    ;;
+  *) #Stable
+    git::sloth_repository_exec git checkout -q "$remote_sloth_tag"
+    ;;
   esac
 
   rm -f "$DOTFILES_PATH/.sloth_force_current_version"
   rm -f "$DOTFILES_PATH/.sloth_update_available"
   rm -f "$DOTFILES_PATH/.sloth_update_available_is_major"
-  echo "$current_sloth_hash" >| "$DOTFILES_PATH/.sloth_updated"
+  echo "$current_sloth_hash" >|"$DOTFILES_PATH/.sloth_updated"
 }
 
 uptate::migration_script_exits() {
@@ -180,6 +180,6 @@ uptate::migration_script_exits() {
   # Get previous commit and check if was added after
   update_previous_commit="$(cat "$DOTFILES_PATH/.sloth_updated")"
   [[ -z "$update_previous_commit" ]] && return 1 # Could not be checked if migration script should be executed
-  
+
   git::check_file_is_modified_after_commit "$latest_migration_script" "$update_previous_commit" && echo "$latest_migration_script"
 }

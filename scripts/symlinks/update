@@ -71,4 +71,3 @@ output::empty_line
 
 output::write "Remember to merge this symlinks file to yours in:"
 output::answer "$DOTFILES_PATH/symlinks/conf.yaml"
-  

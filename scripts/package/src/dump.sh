@@ -55,9 +55,8 @@ package::common_dump_check() {
   file_path="${2:-}"
 
   if [[ -n "${command_check:-}" ]] &&
-      [[ -n "$file_path" ]] &&
-      platform::command_exists "$command_check"
-  then
+    [[ -n "$file_path" ]] &&
+    platform::command_exists "$command_check"; then
     mkdir -p "$(dirname "$file_path")"
   fi
 }
@@ -67,9 +66,9 @@ package::common_import_check() {
   command_check="${1:-}"
   file_path="${2:-}"
 
-  [[ -n "${command_check:-}" ]] &&\
-    [[ -n "$file_path" ]] &&\
-    platform::command_exists "$command_check" &&\
+  [[ -n "${command_check:-}" ]] &&
+    [[ -n "$file_path" ]] &&
+    platform::command_exists "$command_check" &&
     [[ -f "$file_path" ]]
 }
 
@@ -189,7 +188,7 @@ package::npm_import() {
 
   if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
     output::write "🚀 Importing NPM packages from '$NPM_DUMP_FILE_PATH'"
-    xargs -I_ npm install -g "_" < "$NPM_DUMP_FILE_PATH" | log::file "Importing $npm_title packages"
+    xargs -I_ npm install -g "_" <"$NPM_DUMP_FILE_PATH" | log::file "Importing $npm_title packages"
   fi
 
   return 1
@@ -237,7 +236,7 @@ package::cargo_import() {
   CARGO_DUMP_FILE_PATH="${1:-$VOLTA_DUMP_FILE_PATH}"
 
   if package::common_import_check cargo "$CARGO_DUMP_FILE_PATH"; then
-    xargs -I_ cargo install < "$CARGO_DUMP_FILE_PATH" | log::file "Importing $cargo_title packages"
+    xargs -I_ cargo install <"$CARGO_DUMP_FILE_PATH" | log::file "Importing $cargo_title packages"
 
     return 0
   fi

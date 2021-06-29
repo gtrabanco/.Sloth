@@ -6,65 +6,62 @@
 # set +eu
 
 declare -a JOB_IDS
-declare -i JOBS=1;
+declare -i JOBS=1
 
 killJob() {
-  local jobToKill signal __al__signals isSig 
-  
+  local jobToKill signal __al__signals isSig
+
   jobToKill="$1"
   signal="$2"
   signal=${signal^^}
-    
+
   [[ ! $jobToKill =~ ^[[:digit:]]+$ ]] && {
-    printf "%s\n" "\"$jobToKill\" should be an integer ";
-    return 1;
+    printf "%s\n" "\"$jobToKill\" should be an integer "
+    return 1
   }
-    
-    
+
   {
-    [[ -z "$signal" ]]  && {
-        signal="SIGTERM"
+    [[ -z "$signal" ]] && {
+      signal="SIGTERM"
     }
   } || {
     # for loop worked better than read line in this case
-    __al__signals=$(kill -l);
-    isSig=0;
-    for sig in ${__al__signals}; do 
+    __al__signals=$(kill -l)
+    isSig=0
+    for sig in ${__al__signals}; do
       [[ ! $sig =~ ^[[:digit:]]+\)$ ]] && {
         [[ "$signal" == "$sig" ]] && {
-          isSig=1;
-          break;
+          isSig=1
+          break
         }
       }
     done
-    
-    (( isSig != 1 )) && {
-        signal="SIGTERM"
+
+    ((isSig != 1)) && {
+      signal="SIGTERM"
     }
   }
-    
-    
 
   for job in "${JOB_IDS[@]}"; do
     # increment job to 1 since array index starts from 0
-    read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
-    (( __kunk__ == jobToKill )) && {
-      read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
-        
+    read -r -d " " -a __kunk__ <<<"${JOB_IDS[$job]}"
+    ((__kunk__ == jobToKill)) && {
+      read -r -d " " -a __kunk__ <<<"${JOB_IDS[$job]}"
+
       kill -"${signal}" %"${__kunk__[0]}"
-        
+
       status=$?
-        
-      (( status != 0 )) && {
+
+      ((status != 0)) && {
         printf "cannot kill %s %d\n" "${JOB_IDS[$job]}" "${__kunk__[0]}"
-        return 1;
+        return 1
       }
 
-      printf "%d killed with %s\n" "${__kunk__[0]}" "${signal}" 
-      
-      return 0;
+      printf "%d killed with %s\n" "${__kunk__[0]}" "${signal}"
+
+      return 0
     }
-  done    
+  done
 }
 
 async() {

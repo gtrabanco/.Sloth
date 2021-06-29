@@ -9,7 +9,7 @@ set -euo pipefail
 dot::load_library "templating.sh"
 
 ##? Dotly script creator
-##? 
+##?
 ##?
 ##? Usage:
 ##?   create [-h | --help]
