@@ -50,18 +50,11 @@ else
       ;;
     esac
   done
-
-  if [[ "$package_name" != "docpars" ]] && ! package::is_installed "docpars"; then
-    script::depends_on docpars
-  fi
-fi
-
-if [[ -f "$HOME/.cargo/env" ]]; then
-  . "$HOME/.cargo/env"
 fi
 
 SCRIPT_NAME="lazy package add"
 SCRIPT_VERSION="3.0.0"
+package_name="$(str::to_lower "$package_name")"
 
 if ${version:-}; then
   output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
@@ -74,12 +67,23 @@ elif [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
+# If the package is not docpars and docpars is not installed
+if [[ "$package_name" != "docpars" ]] && ! package::is_installed "docpars"; then
+  script::depends_on docpars
+fi
+
+# Load cargo PATH
+if [[ -f "$HOME/.cargo/env" ]]; then
+  . "$HOME/.cargo/env"
+fi
+
 package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
 if [[ -z "$skip_recipe" ]] &&
   [[ -n "$(registry::recipe_exists "$package_name" "${recipe_path:-}")" ]] &&
   registry::install "$package_name" "${recipe_path:-}" &&
-  registry::is_installed "$package_name" "${recipe_path:-}"; then
+  registry::is_installed "$package_name" "${recipe_path:-}"
+then
   output::write "✅ \`$package_name\` installed"
 
   exit 0
@@ -93,11 +97,8 @@ else
   fi
 fi
 
-if [[ "$package_name" == "docpars" && ! -f "$HOME/.cargo/env" ]]; then
-  . "$HOME/.cargo/env"
-fi
-
-if [[ "$package_name" == "docpars" && ! -f "$HOME/.cargo/env" ]] || [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; then
+if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars; } || 
+   { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name"; }; then
   output::write "❌ \`$package_name\` could not be installed"
 
   exit 1
