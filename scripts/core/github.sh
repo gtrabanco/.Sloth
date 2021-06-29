@@ -173,6 +173,7 @@ github::get_latest_sloth_tag() {
 
 github::get_remote_file_path_json() {
   local file_paths url json GITHUB_REPOSITORY
+  declare -a file_paths
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -192,7 +193,7 @@ github::get_remote_file_path_json() {
     url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq -r '.commit.commit.tree.url' 2>/dev/null)"
     [[ -n "$url" ]] && "$0" --url "$url" "$1" "$GITHUB_REPOSITORY" && return $?
   else
-    file_paths=($(echo "${1:-}" | tr "/" "\n"))
+    mapfile -t file_paths < <(echo "${1:-}" | tr "/" "\n")
 
     json="$(github::curl "$url" | jq -r --arg file_path "${file_paths[1]}" '.tree[] | select(.path == $file_path)' 2>/dev/null)"
 

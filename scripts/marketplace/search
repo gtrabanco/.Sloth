@@ -40,7 +40,7 @@ if marketplace::check_cache_folder_should_be_created; then
   output::yesno "Do you want to create synchonously (it could take some time)" && "$DOTLY_PATH/bin/dot" dotly cache --force
 fi
 
-results=($(marketplace::search_in_cache ${search_query:-" "}))
+mapfile -t results < <(marketplace::search_in_cache "${search_query:-}")
 
 # If user selected Abort or has no result, exit this script
 { [[ " ${results[*]} " == *" Abort "* ]] || [[ -z "${results[*]}" ]]; } && output::error "Operation aborted" && exit

@@ -51,20 +51,20 @@ fi
 for index in $(cat $TMP_FILE | jq 'keys | .[]'); do
   #[ -z $index ] && continue
   login="$(cat $TMP_FILE | jq -r ".[$index].login")"
-  avatar_url="$(cat $TMP_FILE | jq -r ".[$index].avatar_url")"
+  avatar_url="$(cat "$TMP_FILE" | jq -r ".[$index].avatar_url")"
   avatar_file="$TMP_AVATARS/$login.jpg"
-  contributions="$(cat $TMP_FILE | jq -r ".[$index].contributions")"
-  [ ! -f $avatar_file ] && curl -s --create-dirs --output "$avatar_file" "$avatar_url"
+  contributions="$(cat "$TMP_FILE" | jq -r ".[$index].contributions")"
+  [ ! -f "$avatar_file" ] && curl -s --create-dirs --output "$avatar_file" "$avatar_url"
 
   # Formatting stuff
-  center_str_wl="$(((15 - ((${#login} + 1) / 2))))"
+  center_str_wl="$(((15 - ((${#login} + 5) / 2))))"
 
   # Image
   catimg -w 60 "$avatar_file"
 
   # Text
   printf "%${center_str_wl}s"
-  output::write "$login"
+  output::write "$login ($contributions)"
   echo
 done
 

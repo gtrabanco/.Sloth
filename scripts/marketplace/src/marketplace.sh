@@ -232,7 +232,8 @@ marketplace::find() {
   local find_path
   find_path="${1:-$(marketplace::get_scripts_cache_path)}"
   shift
-  find "$find_path" -mindepth 1 $@ -name '*' | while read item; do
+  
+  find "$find_path" -mindepth 1 "$@" -name '*' -print0 | xargs -0 -I _ echo _ | while read -r item; do
     item="$(echo -n "${item#$find_path/}")"
     echo "$item" | xargs
   done
@@ -243,7 +244,7 @@ marketplace::find_fzf() {
   local find_path query output
   find_path="${1:-$(marketplace::get_scripts_cache_path)}"
   query="${2:- }"
-  output=($(marketplace::find "$find_path" -maxdepth 2))
+  mapfile -t output < <(marketplace::find "$find_path" -maxdepth 2)
   output+=("Abort")
 
   printf "%s\n" "${output[@]}" | fzf -m --extended --query "$query" \
@@ -257,8 +258,9 @@ marketplace::search_in_cache() {
   query="$1"
   cache_folder="$(marketplace::get_scripts_cache_path)"
 
-  answer=($(marketplace::find_fzf "$cache_folder" "$query"))
-  printf "%s\n" ${answer[@]}
+  mapfile -t answer < <(marketplace::find_fzf "$cache_folder" "$query")
+
+  printf "%s\n" "${answer[@]}"
 }
 
 # Get all files for specific context by default
@@ -270,7 +272,7 @@ marketplace::get_context() {
   context_folder="$(marketplace::get_scripts_cache_path)/$context"
   [[ ! -d "$context_folder" ]] && return
 
-  marketplace::find "$context_folder" $@
+  marketplace::find "$context_folder" "$@"
 }
 
 # Check if context or script exits
