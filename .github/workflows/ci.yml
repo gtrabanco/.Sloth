@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - master
+      - '!doc/*'
+      - '!documentation/*'
   pull_request:
+    branches-ignore:
+      - doc/*
+      - documentation/*
 
 jobs:
   build:
