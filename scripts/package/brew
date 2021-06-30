@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=1091
-. "$DOTLY_PATH/scripts/core/_main.sh"
-dot::load_library "dump.sh"
+. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+dot::load_library "dump.sh" "package"
 
 ##? Some brew utils.
 ##?   - If cleanup does not receive any param will take your
