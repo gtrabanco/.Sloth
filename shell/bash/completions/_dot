@@ -7,7 +7,7 @@ _dot() {
 
   case "${#COMP_WORDS[@]}" in
   2) suggestions=$(compgen -W "$(dot::list_contexts | tr '\n' ' ')") ;;
-  3) suggestions="$(dot::list_context_scripts ${COMP_WORDS[1]})" ;;
+  3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}")" ;;
   *) suggestions="" ;;
   esac
 
