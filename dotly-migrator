@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+export DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
+export DOTLY_ENV=${DOTLY_ENV:-PROD}
+export DOTLY_INSTALLER=true
+export DOTLY_MIGRATION=true
+export SLOTH_REPOSITORY="${SLOTH_REPOSITORY:-https://github.com/gtrabanco/sloth}"
+export SLOTH_INSTALLER_URL="${SLOTH_INSTALLER_URL:-https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer}"
+
+red='\033[0;31m'
+green='\033[0;32m'
+purple='\033[0;35m'
+normal='\033[0m'
+echo -e "${purple}Purple${normal}"
+
+_w() {
+  local -r text="${1:-}"
+  echo -e "$text"
+}
+_a() { _w " > $1"; }
+_e() { _a "${red}$1${normal}"; }
+_s() { _a "${green}$1${normal}"; }
+_q() { read -rp "🤔 $* : " "REPLY"; echo "${REPLY:-}"; }
+_pk() { read -rp "Press a key to ${1}... 👇" "REPLY"; }
+
+_log() {
+  log_name="$1"
+  current_date=$(date "+%Y-%m-%d %H:%M:%S")
+
+  touch "$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+
+  while IFS= read -r log_message; do
+    echo "$log_message" >>"$DOTLY_LOG_FILE"
+  done
+
+  echo "" >>"$DOTLY_LOG_FILE"
+}
+
+call_sed() {
+  if command -v gsed &>/dev/null; then
+    "$(which gsed)" "$@"
+  elif [[ -f "/usr/local/opt/gnu-sed/libexec/gnubin/sed" ]]; then
+    /usr/local/opt/gnu-sed/libexec/gnubin/sed "$@"
+  elif platform::is_macos; then
+    # Any other BSD should be added to this check
+    "$(which sed)" '' "$@"
+  elif command -v sed &>/dev/null; then
+    "$(which sed)" "$@"
+  else
+    return 1
+  fi
+}
+
+if [[ -z "$DOTLY_PATH" || -z "$DOTFILES_PATH" ]]; then
+  DOTLY_MIGRATION=false
+  _w "You do not have dotly installed"
+  answer_install="$(_q "Do you want to install SLOTH? [Y/n]")"
+  if [[ "${answer_install:-Y}" =~ ^[Yy] ]] && command -v curl &>/dev/null; then
+    bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer)
+  elif [[ "${answer_install:-Y}" =~ ^[Yy] ]] && command -v wget &>/dev/null; then
+    bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer)
+  elif [[ "${answer_install:-Y}" =~ ^[Yy] ]]; then
+    # Error no curl or wget
+    _e "No Dotly, curl or wget so SLOTH could not be installed"
+  else
+    _e "Dotly not found and user abort the installation of SLOTH. Migrator is only for Dotly working installations"
+    exit 1
+  fi
+fi
+
+if $DOTLY_MIGRATION; then
+    cp -R "$DOTFILES_PATH" "$HOME/.dotfiles.back-$(date +%s)"
+    cd "$DOTFILES_PATH"
+    # Move dotly to sloth
+    git mv "modules/dotly" "modules/sloth"
+    # Replace values in .gitmodules: path of module, branch and url
+    call_sed -i 's|modules/dotly|modules/sloth|g' .gitmodules
+    git config -f .gitmodules submodule."modules/sloth".branch "master"
+    git config -f .gitmodules submodule."modules/sloth".url "https://github.com/gtrabanco/sloth"
+    # Select master branch
+    cd modules/sloth || exit 4
+    git checkout --force master
+    cd ../..
+    # Sync submodule
+    git submodule sync --recursive | _log "Sync sloth module"
+    # Define new variables
+    export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"
+    export SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
+    export ZIM_HOME="$SLOTH_PATH/modules/zimfw"
+    # Reinstall zim
+    zsh "$ZIM_HOME/zimfw.zsh" install
+    "$SLOTH_PATH/bin/dot" shell zsh reload_completions
+    #shellcheck disable=SC1091
+    . "$SLOTH_PATH/shell/init-sloth.sh"
+    "$SLOTH_PATH/bin/dot" migration v2.0.0
+    _w "🎉 Restart your terminal"
+fi

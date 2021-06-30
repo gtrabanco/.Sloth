@@ -3,19 +3,19 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(ls "$DOTLY_PATH/scripts")
-  dotfiles_contexts=$(ls "$DOTFILES_PATH/scripts")
+  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
 
-  echo "$dotly_contexts" "$dotfiles_contexts" | grep -v core | sort -u
+  echo "$dotly_contexts" "$dotfiles_contexts" | grep -v "^_" | sort -u
 }
 
 dot::list_context_scripts() {
   context="$1"
 
-  dotly_scripts=$(ls -p "$DOTLY_PATH/scripts/$context" 2>/dev/null | grep -v '/')
-  dotfiles_scripts=$(ls -p "$DOTFILES_PATH/scripts/$context" 2>/dev/null | grep -v '/')
+  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
 
-  echo "$dotly_scripts" "$dotfiles_scripts" | sort -u
+  echo "$dotly_scripts" "$dotfiles_scripts" | grep -v "^_" | sort -u
 }
 
 dot::list_scripts() {
@@ -29,18 +29,26 @@ dot::list_scripts() {
 }
 
 dot::list_scripts_path() {
-  dotly_contexts=$(find "$DOTLY_PATH/scripts" -maxdepth 2 -perm /+111 -type f | grep -v "$DOTLY_PATH/scripts/core")
+  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 2 -perm /+111 -type f | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core")
   dotfiles_contexts=$(find "$DOTFILES_PATH/scripts" -maxdepth 2 -perm /+111 -type f)
 
   printf "%s\n%s" "$dotly_contexts" "$dotfiles_contexts" | sort -u
 }
 
 dot::get_script_path() {
-  echo "$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+  #shellcheck disable=SC2164
+  echo "$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+  )"
 }
 
 dot::get_full_script_path() {
-  echo "$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/$(basename "$0")"
+  #shellcheck disable=SC2164
+  echo "$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+  )/$(basename "$0")"
 }
 
 # Old name: dot::get_script_src_path
@@ -54,25 +62,25 @@ dot::load_library() {
   if [[ -n "${lib:-}" ]]; then
     lib_paths=()
     if [[ -n "${2:-}" ]]; then
-      lib_paths+=("$DOTFILES_PATH/scripts/$2/src" "$DOTLY_PATH/scripts/$2/src" "$2")
+      lib_paths+=("$DOTFILES_PATH/scripts/$2/src" "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$2/src" "$2")
     else
       lib_paths+=(
         "$(dot::get_script_path)/src"
       )
     fi
-    
+
     lib_paths+=(
-      "$DOTLY_PATH/scripts/core"
+      "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src"
       "."
     )
 
     for lib_path in "${lib_paths[@]}"; do
-      [[ -f "$lib_path/$lib" ]] &&\
-        lib_full_path="$lib_path/$lib" &&\
+      [[ -f "$lib_path/$lib" ]] &&
+        lib_full_path="$lib_path/$lib" &&
         break
 
-      [[ -f "$lib_path/$lib.sh" ]] &&\
-        lib_full_path="$lib_path/$lib.sh" &&\
+      [[ -f "$lib_path/$lib.sh" ]] &&
+        lib_full_path="$lib_path/$lib.sh" &&
         break
     done
 
@@ -92,7 +100,7 @@ dot::load_library() {
       exit 4
     fi
   fi
-  
+
   # No arguments
   return 1
 }
