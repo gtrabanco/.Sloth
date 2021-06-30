@@ -3,8 +3,8 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 | xargs -0 -I _ basename _)
-  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 | xargs -0 -I _ basename _)
+  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_contexts" "$dotfiles_contexts" | grep -v "^_" | sort -u
 }
@@ -12,8 +12,8 @@ dot::list_contexts() {
 dot::list_context_scripts() {
   context="$1"
 
-  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 | xargs -0 -I _ basename _)
-  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 | xargs -0 -I _ basename _)
+  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*"  -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_scripts" "$dotfiles_scripts" | grep -v "^_" | sort -u
 }
