@@ -18,7 +18,12 @@
 * Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
 * Non opinionated `git` scripts.
 * Compatibility with all Dotly features and scripts.
-* When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`).
+* When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`). So you won't loose any old data if you migrate to SLOTH.
+* Easy way to create new scripts from Terminal `sloth script create --help`
+* Easy way to install scripts from Terminal `sloth script install_remote --help`
+* Use libraries without download `. <(https://raw.githubusercontent.com/gtrabanco/sloth/master/scripts/core/src/output.sh) && output::write "Using latest output.sh library of SLOTH"`
+* Execute scripts without download (as installer) `bash <(https://raw.githubusercontent.com/gtrabanco/dotfiles/master/restoration_scripts/98-keybase-import-private-key.sh)`
+* Scripts marketplace (Coming soon...)
 * We promise to reply all issues and support messages and review PRs.
 
 ## Migration from Dotly
