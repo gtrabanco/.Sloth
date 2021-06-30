@@ -5,7 +5,7 @@ set -euo pipefail
 
 # TODO Unifi or refactor package_managers and src/package_managers libraries
 PACKAGE_MANAGERS_SRC_PATH="$(dot::get_script_path)/src/package_managers"
-. "$DOTLY_PATH/scripts/core/_main.sh"
+. "$DOTLY_PATH/scripts/core/src/_main.sh"
 
 dot::load_library "brew.sh" "$PACKAGE_MANAGERS_SRC_PATH"
 dot::load_library "cargo.sh" "$PACKAGE_MANAGERS_SRC_PATH"

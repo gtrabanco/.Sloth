@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-. "$DOTLY_PATH/scripts/self/src/update.sh"
+#shellcheck disable=SC1091
+dot::load_library "update.sh"
 
 autoupdate::sloth_updater() {
   local CURRENT_DIR remote_sloth_minor
