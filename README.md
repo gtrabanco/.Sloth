@@ -12,6 +12,29 @@
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
 
+## Main differences and features with Dotly Framework
+* Abstraction from Framework loader you only need to add `source "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"`
+* Init scripts (see (init-scripts)[https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts] in (gtrabanco/dotfiles)[https://github.com/gtrabanco/dotfiles]). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
+* Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
+* Non opinionated `git` scripts.
+* Compatibility with all Dotly features and scripts.
+* When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`).
+* We promise to reply all issues and support messages and review PRs.
+
+## Migration from Dotly
+
+If you have currently dotly in your .dotfiles you can migrate.
+
+Using wget
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
+```
+
+Using curl
+```bash
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
+```
+
 ## INSTALLATION
 
 ### Linux, macOS, FreeBSD
