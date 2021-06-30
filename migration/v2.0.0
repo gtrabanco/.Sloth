@@ -5,6 +5,7 @@ DOTFILES_TEMPLATE_PATH="$DOTLY_PATH/dotfiles_template"
 files_to_backup=(
   "$DOTFILES_PATH/shell/bash/.bashrc"
   "$DOTFILES_PATH/shell/zsh/.zshrc"
+  "$DOTFILES_PATH/shell/zsh/.zshenv"
   "$DOTFILES_PATH/shell/paths.sh"
 )
 

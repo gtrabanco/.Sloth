@@ -2,23 +2,23 @@
 
 # PR annotation
 # If you change this folders you should also change them in init-dotly.sh
-SLOTH_INIT_SCRIPTS_PATH="$DOTLY_PATH/shell/init.scripts"
+SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-$DOTLY_PATH}/shell/init.scripts"
 DOTFILES_INIT_SCRIPTS_PATH="$DOTFILES_PATH/shell/init.scripts"
 ENABLED_INIT_SCRIPTS_PATH="$DOTFILES_PATH/shell/init.scripts-enabled"
 
-[[ ! -d "$ENABLED_INIT_SCRIPTS_PATH" ]] &&\
-  output::error "The folder path to enable scripts does not exists." &&\
-  output::write "If you want to disble init script add in your exports \`export DOTLY_INIT_SCRIPTS=false\` " &&\
-  output::write "If you want to enable. Execute \`dot self migration v2.0.0\` first." &&\
+[[ ! -d "$ENABLED_INIT_SCRIPTS_PATH" ]] &&
+  output::error "The folder path to enable scripts does not exists." &&
+  output::write "If you want to disble init script add in your exports \`export SLOTH_INIT_SCRIPTS=false\` " &&
+  output::write "If you want to enable. Execute \`dot self migration v2.0.0\` first." &&
   exit 1
 
-[[ ! -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&\
-  output::error "The init scripts of DOTLY does not exists." &&\
-  output::write "Try with \`dot self migration v2.0.0\` first." &&\
+[[ ! -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&
+  output::error "The init scripts of SLOTH does not exists." &&
+  output::write "Try with \`dot self migration v2.0.0\` first." &&
   exit 1
 
 init::exists_script() {
-    [[ -e "$SLOTH_INIT_SCRIPTS_PATH/$1" ]] || [[ -e "$DOTFILES_INIT_SCRIPTS_PATH" ]]
+  [[ -e "$SLOTH_INIT_SCRIPTS_PATH/$1" ]] || [[ -e "$DOTFILES_INIT_SCRIPTS_PATH" ]]
 }
 
 init::status() {
@@ -26,16 +26,16 @@ init::status() {
 }
 
 init::get_scripts() {
-  [[ -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&\
-    [[ -d "$DOTFILES_INIT_SCRIPTS_PATH" ]] &&\
+  [[ -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&
+    [[ -d "$DOTFILES_INIT_SCRIPTS_PATH" ]] &&
     find "$SLOTH_INIT_SCRIPTS_PATH" \
-        "$DOTFILES_INIT_SCRIPTS_PATH" -name "*" -type f,l -print0 -exec echo {} \; |\
+      "$DOTFILES_INIT_SCRIPTS_PATH" -name "*" -type f,l -print0 -exec echo {} \; |
     xargs -0 -I _ basename _ | sort | uniq
 }
 
 init::get_enabled() {
-  [[ -d "$ENABLED_INIT_SCRIPTS_PATH" ]] &&\
-    find "$ENABLED_INIT_SCRIPTS_PATH" -name "*" -type l -print0 -exec echo {} \; |\
+  [[ -d "$ENABLED_INIT_SCRIPTS_PATH" ]] &&
+    find "$ENABLED_INIT_SCRIPTS_PATH" -name "*" -type l -print0 -exec echo {} \; |
     xargs -0 -I _ basename _ | sort | uniq
 }
 
@@ -49,26 +49,26 @@ init::fzf() {
   preview_cmd+=("echo 'Init script not found'")
 
   printf "%s\n" "${piped_values[@]}" | fzf -m --extended \
-    --header "$1"\
+    --header "$1" \
     --preview "${preview_cmd[*]}"
 }
 
 init::enable() {
-  local SLOTH_INIT_SCRIPTS_PATH dotfiles_init_scripts_path to item
-  SLOTH_INIT_SCRIPTS_PATH="$SLOTH_INIT_SCRIPTS_PATH"
-  dotfiles_init_scripts_path="$DOTFILES_INIT_SCRIPTS_PATH"
+  local sloth_init_path dotfiles_init_path to item
+  sloth_init_path="$SLOTH_INIT_SCRIPTS_PATH"
+  dotfiles_init_path="$DOTFILES_INIT_SCRIPTS_PATH"
   to="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$SLOTH_INIT_SCRIPTS_PATH/$item" ]] &&\
-      [[ ! -e "$to/$item" ]] &&\
-      rm -f "$to/$item" &&\
-      ln -s "$SLOTH_INIT_SCRIPTS_PATH/$item" "$to/"
-    
-    [[ -e "$dotfiles_init_scripts_path/$item" ]] &&\
-      [[ ! -e "$to/$item" ]] &&\
-      rm -f "$to/$item" &&\
-      ln -s "$dotfiles_init_scripts_path/$item" "$to/"
+    [[ -e "$sloth_init_path/$item" ]] &&
+      [[ ! -e "$to/$item" ]] &&
+      rm -f "$to/$item" &&
+      ln -s "$sloth_init_path/$item" "$to/"
+
+    [[ -e "$dotfiles_init_path/$item" ]] &&
+      [[ ! -e "$to/$item" ]] &&
+      rm -f "$to/$item" &&
+      ln -s "$dotfiles_init_path/$item" "$to/"
   done
 }
 
@@ -77,7 +77,7 @@ init::disable() {
   enabled_path="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$enabled_path/$item" ]] &&\
+    [[ -e "$enabled_path/$item" ]] &&
       rm -f "$enabled_path/$item"
   done
 }

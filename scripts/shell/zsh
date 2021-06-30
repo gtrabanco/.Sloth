@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-. "$DOTLY_PATH/scripts/core/_main.sh"
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 
 ##? ZSH helpers
 ##?
@@ -51,7 +52,7 @@ case $1 in
   ;;
 "fix_permissions")
   sudo -v
-  sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions
+  sudo chown -R "$(whoami)" /usr/local/share/zsh /usr/local/share/zsh/site-functions
   chmod u+w /usr/local/share/zsh /usr/local/share/zsh/site-functions
   ;;
 *)

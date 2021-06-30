@@ -15,7 +15,7 @@ set -euo pipefail
 ##?
 
 # Script variables
-SCRIPT_NAME="Dotly dotfiles recovery"
+SCRIPT_NAME="sloth dotfiles recovery"
 SCRIPT_VERSION="v1.0.0"
 
 # Default values
@@ -59,7 +59,7 @@ IS_ICLOUD_DOTFILES=false
 # Offer restoration from iCloud
 # fzf iCloud subfolders
 # Create a symbolic link in $HOME/.dotfiles
-# Execute dot self install and all other stuff
+# Execute dot core install and all other stuff
 DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
 export DOTLY_ENV=${DOTLY_ENV:-PROD}
 export DOTLY_INSTALLER=true
@@ -137,9 +137,9 @@ package_install() {
   elif command_exists pacman; then
     _a "Installing '${*}' using pacman"
     sudo pacman -S --noconfirm "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using pacman"
-  elif command_exists apt; then
+  elif command_exists apt-get; then
     _a "Installing '${*}' using apt"
-    sudo apt -y install "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using apt"
+    sudo apt-get -y install "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using apt"
   else
     _e "Could not install '${*}', no package provider found"
     return 1
@@ -211,7 +211,7 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
   else
     options=("GitHub" "Keybase" "Other Git alternative" "Quit")
   fi
-  
+
   GIT_URL=""
   select opt in "${options[@]}"; do
     case $opt in
@@ -271,7 +271,7 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
       _q "Which is the name of your iCloud dotfiles folder? [.dotfiles]" "ICLOUD_DOTFILES_PATH_NAME"
       ICLOUD_DOTFILES_PATH="$ICLOUD_PATH/${ICLOUD_DOTFILES_PATH_NAME:-.dotfiles}"
       DOTFILES_PATH="$HOME/$ICLOUD_DOTFILES_PATH_NAME"
-      
+
       if [[ ! -d "$ICLOUD_DOTFILES_PATH" ]]; then
         _e "Dotfiles folder were not found in iCloud Drive"
         exit 5
@@ -326,25 +326,25 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
   fi
 fi
 
-# Update DOTLY submodule
+# Update SLOTH/DOTLY submodule
 cd "${DOTFILES_PATH}"
-# Only dotly submodule must be updated recursively because we do not know if
+# Only sloth/dotly submodule must be updated recursively because we do not know if
 # user has added any other submodules that are privated and maybe the user
 # needs to configure something to access those repositories
-git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading dotly and submodules" || {
+git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading sloth/dotly and submodules" || {
   _e "Downloading dotly failed. See for more details:"
   _e "  tail -f $HOME/dotly.log"
   _w
   exit 1
 }
 
-_w "Installing dotly default tools"
+_w "Installing sloth/dotly default tools"
 _w "Please be patient this could take some time...🙏"
-# Installing default dotly tools
+# Installing default sloth/dotly tools
 PATH="$PATH:/usr/local/bin:$HOME/.cargo/bin"
 sudo -v
-"$DOTLY_PATH/bin/dot" self install || {
-  _e "Dotly Could not be installed but your dotfiles are restored. Use:"
+"$DOTLY_PATH/bin/dot" core install || {
+  _e "SLOTH/Dotly Could not be installed but your dotfiles are restored. Use:"
   _e "  tail -f $HOME/dotly.log"
   _e "To know what happened and where is the point of failure"
   _w
