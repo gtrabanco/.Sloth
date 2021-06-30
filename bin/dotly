@@ -2,6 +2,7 @@
 
 set -o pipefail
 
+#shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 
 ##? Usage:
@@ -11,7 +12,7 @@ docs::parse "$@"
 
 case $1 in
 "self-update")
-  "$DOTLY_PATH/bin/dot" self update
+  "$DOTLY_PATH/bin/dot" core update
   ;;
 *)
   exit 1
