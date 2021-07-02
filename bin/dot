@@ -13,7 +13,7 @@ SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-$DOTLY_PATH}/scripts/${SLOTH_LAZY_SCRIPT_CONTEX
 SLOTH_SCRIPT_BASE_NAME="sloth"
 
 ##? Execute lazy scripts in your dotfiles
-##? 
+##?
 ##? Usage:
 ##?    dot self-update
 ##?    dot autoupdate
@@ -22,17 +22,17 @@ SLOTH_SCRIPT_BASE_NAME="sloth"
 ##?    dot <context> <script> [<args>...]
 ##?    dot <context>
 ##?    dot
-##? 
+##?
 ##? Arguments:
 ##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${DOTLY_PATH:-\$SLOTH_PATH}/scripts"
 ##?    script   Is the script in "\${DOTFILE${SLOTH_PATH:-S_PATH}/scr}ipts/<context>" or "\${DOTLY_PATH:-\$SLOTH_PATH}/scripts/<conte${SLOTH_PATH:-xt>"
-##? 
+##?
 #}#? Options:
 ##?    -h --help     Gives help to the user
 ##?    -v --version  Show the dot command version
-##?    
+##?
 ##?    self-update
-##? 
+##?
 ##? SCRIPT_VERSION 2.0.0
 
 # This script help
@@ -109,14 +109,13 @@ else
 
   script_full_path="${script_path}/scripts/${context}/${script}"
   if grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
-      grep -q "docs::parse" "${script_full_path}" || 
-      grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "${script_full_path}" || 
-      grep -q "\$DOTLY_PATH/scripts/core/src/_main.sh" "${script_full_path}" || 
-      grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" || 
-      grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" || 
-      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" || 
-      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"
-  then
+    grep -q "docs::parse" "${script_full_path}" ||
+    grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "${script_full_path}" ||
+    grep -q "\$DOTLY_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
+    grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" ||
+    grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
+    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" ||
+    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"; then
     if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
       docs::parse_script "${script_full_path}" "--help"
     elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then

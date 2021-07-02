@@ -13,9 +13,8 @@ fi
 SLOTH_LAZY_SCRIPT_BASE_NAME="sloth"
 
 if ! [[ -f "${1:-}" ||
-      "${1:-}" == "-v" || "${1:-}" == "--version" ||
-      "${1:-}" == "-h" || "${1:-}" == "--help" ]]
-then
+  "${1:-}" == "-v" || "${1:-}" == "--version" ||
+  "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   output::error "Wrong params for Sloth script call"
   output::error "This script is not intendeed to be used by user"
   exit 1
@@ -64,8 +63,8 @@ else
 fi
 
 mapfile -d "/" -t _script_paths < <(echo "$SLOTH_SCRIPT_FILE_PATH")
-_last_script_path=$(( ${#_script_paths[@]} - 1 ))
-_previous_script_path=$(( _last_script_path - 1 ))
+_last_script_path=$((${#_script_paths[@]} - 1))
+_previous_script_path=$((_last_script_path - 1))
 SCRIPT_NAME="${SLOTH_LAZY_SCRIPT_BASE_NAME} ${_script_paths[$_previous_script_path]} ${_script_paths[$_last_script_path]}"
 unset _script_paths _last_script_path _previous_script_path
 

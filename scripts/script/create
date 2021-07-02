@@ -31,7 +31,7 @@ is_valid_name() {
 ##?                      in the docopt website: http://docopt.org
 ##?   -c --core          Create the context and script in "$DOTLY_PATH/scripts" instead of
 ##?                      your "$DOTFILES_PATH/scripts" folder
-##?   -d --dotly         Generate a Dotly compatible script 
+##?   -d --dotly         Generate a Dotly compatible script
 ##?   --author <author>  Provide who is the author, if none the default git author will
 ##?                      be used
 ##?   --email <email>    Provide author email, if none the default git author email will
@@ -128,7 +128,7 @@ case "${1:-}" in
   if ${sample:-}; then
     SCRIPT_TEMPLATE_PATH="${SCRIPT_TEMPLATE_PATH}-more"
   fi
-  
+
   if ${dotly:-}; then
     SCRIPT_TEMPLATE_PATH="${SCRIPT_TEMPLATE_PATH}-dotly"
   fi

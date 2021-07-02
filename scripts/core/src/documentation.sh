@@ -3,7 +3,8 @@ docs::parse() {
 }
 
 docs::parse_script() {
-  local -r script_path="${1:-}"; shift
+  local -r script_path="${1:-}"
+  shift
   if ! platform::command_exists docpars; then
     output::error "You need to have docpars installed in order to use dotly"
     output::solution "Run this command to install it:"
