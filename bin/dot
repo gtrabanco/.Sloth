@@ -21,14 +21,17 @@ fi
 
 if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   output::write "dot v${VERSION}"
+  exit
 fi
 
 if [[ "$1" == "self-update" ]]; then
-  output::write "dot v${VERSION}"
+  "$SLOTH_PATH/bin/dot" core update
+  exit
 fi
 
 if [[ "$1" == "autoupdate" ]]; then
-  output::write "dot v${VERSION}"
+  "$SLOTH_PATH/bin/dot" core async-update
+  exit
 fi
 
 
