@@ -104,3 +104,24 @@ dot::load_library() {
   # No arguments
   return 1
 }
+
+dot::parse_script_version() {
+  local SCRIPT_FULL_PATH SCRIPT_VERSION versions v
+  SCRIPT_FULL_PATH="${1:-}"
+
+  [[ ! -f "$SCRIPT_FULL_PATH" ]] && return 1
+  mapfile -t versions < <(sed -n 's/.*SCRIPT_VERSION[=| ]"\?\(.[^";]*\)"\?;\?.*/\1/p' "$SCRIPT_FULL_PATH")
+
+  if [[ "${#versions[@]}" -gt 1 ]]; then
+    for v in "${versions[@]}"; do
+      v="$(echo "$v" | xargs)"
+      if [[ -z "${SCRIPT_VERSION:-}" || "$(platform::semver_compare "$SCRIPT_VERSION" "$v" 2>/dev/null)" -lt 0 ]]; then
+        SCRIPT_VERSION="$v"
+      fi
+    done
+  elif [[ "${#versions[@]}" -gt 0 ]]; then
+    SCRIPT_VERSION="${versions[0]}"
+  fi
+
+  echo "$SCRIPT_VERSION" | xargs
+}

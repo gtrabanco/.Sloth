@@ -39,16 +39,8 @@ is_valid_name() {
 ##? Author:
 ##?   Gabriel Trabanco <gtrabanco@users.noreply.github.com>
 ##?
+##? SCRIPT_VERSION "2.0.0"
 docs::parse "$@"
-
-SCRIPT_NAME="sloth script create"
-SCRIPT_VERSION="1.1.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 case "${1:-}" in
 "bin")

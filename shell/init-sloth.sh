@@ -29,6 +29,7 @@ GPG_TTY="$(tty)"
 export GPG_TTY
 
 # Sloth aliases and functions
+alias dotly='"$SLOTH_PATH/bin/dot"'
 alias sloth='"$SLOTH_PATH/bin/dot"'
 alias lazy='"$SLOTH_PATH/bin/dot"'
 alias s='"$SLOTH_PATH/bin/dot"'

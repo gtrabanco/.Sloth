@@ -1,3 +1,4 @@
+#shellcheck disable=SC1091
 . "$DOTLY_PATH/scripts/package/recipes/_registry.sh"
 
 command_or_package_exists() {
