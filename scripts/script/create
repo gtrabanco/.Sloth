@@ -13,14 +13,14 @@ is_valid_name() {
   ! [[ "${name:0:1}" == "_" || "${name:0:1}" == "." ]]
 }
 
-##? Dotly script creator
+##? Sloth script creator. To generate a Dotly compatible script use \`--dotly\` option.
 ##?
 ##?
 ##? Usage:
 ##?   create [-h | --help]
 ##?   create [-v | --version]
 ##?   create bin <name>
-##?   create [-c | --core] [-s | --sample] [--author <author>] [--email <email>] <context> <script_name> [<script_description>...]
+##?   create [-c | --core] [-d | --dotly] [-s | --sample] [--author <author>] [--email <email>] <context> <script_name> [<script_description>...]
 ##?
 ##? Options:
 ##?   bin                Create a command in $DOTFILES_PATH/bin
@@ -31,6 +31,7 @@ is_valid_name() {
 ##?                      in the docopt website: http://docopt.org
 ##?   -c --core          Create the context and script in "$DOTLY_PATH/scripts" instead of
 ##?                      your "$DOTFILES_PATH/scripts" folder
+##?   -d --dotly         Generate a Dotly compatible script
 ##?   --author <author>  Provide who is the author, if none the default git author will
 ##?                      be used
 ##?   --email <email>    Provide author email, if none the default git author email will
@@ -39,16 +40,9 @@ is_valid_name() {
 ##? Author:
 ##?   Gabriel Trabanco <gtrabanco@users.noreply.github.com>
 ##?
+##? SCRIPT_VERSION 2.0.0
+##?
 docs::parse "$@"
-
-SCRIPT_NAME="sloth script create"
-SCRIPT_VERSION="1.1.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 case "${1:-}" in
 "bin")
@@ -128,11 +122,15 @@ case "${1:-}" in
     script_path="$DOTFILES_PATH/scripts/$context"
   fi
 
-  script_filepath="$script_path/$script_name"
+  script_filepath="${script_path}/${script_name}"
 
   # Which template to use
   if ${sample:-}; then
     SCRIPT_TEMPLATE_PATH="${SCRIPT_TEMPLATE_PATH}-more"
+  fi
+
+  if ${dotly:-}; then
+    SCRIPT_TEMPLATE_PATH="${SCRIPT_TEMPLATE_PATH}-dotly"
   fi
 
   # Create the script context (folder)

@@ -10,7 +10,7 @@ dot::load_library "autoupdate.sh"
 ##? Async autoupdate dotly to avoid load all core functions in default bash
 ##?
 ##? Usage:
-##?    autoupdate
+##?    async-update
 docs::parse "$@"
 
 set +eu # Needed to use async
