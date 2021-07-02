@@ -13,8 +13,7 @@ DOTLY_SCRIPT_PATH="$(dirname "$1")"
 DOTLY_SCRIPT_FILE_PATH="$1"
 shift
 
-# TODO Use directly mapfile instead of tr by providing that separator is "/"
-mapfile -t _script_paths < <(echo "$DOTLY_SCRIPT_FILE_PATH" | tr "/" "\n")
+mapfile -d "/" -t _script_paths < <(echo "$DOTLY_SCRIPT_FILE_PATH")
 _last_script_path=$(( ${#_script_paths[@]} - 1 ))
 _previous_script_path=$(( _last_script_path - 1 ))
 SCRIPT_NAME="dot ${_script_paths[$_previous_script_path]} ${_script_paths[$_last_script_path]}"

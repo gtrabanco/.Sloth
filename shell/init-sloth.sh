@@ -28,6 +28,11 @@ function recent_dirs() {
 GPG_TTY="$(tty)"
 export GPG_TTY
 
+# Sloth aliases and functions
+alias sloth='"$SLOTH_PATH/bin/dot"'
+alias lazy='"$SLOTH_PATH/bin/dot"'
+alias s='"$SLOTH_PATH/bin/dot"'
+
 # shellcheck source=/dev/null
 [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"
 

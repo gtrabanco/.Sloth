@@ -10,11 +10,14 @@ set -o pipefail
 ##?    dotly autoupdate
 docs::parse "$@"
 
-case $1 in
+case "$1" in
 "self-update")
   "$DOTLY_PATH/bin/dot" core update
   ;;
+"autoupdate")
+  "$DOTLY_PATH/bin/dot" core async-update
+  ;;
 *)
-  exit 1
+  "$DOTLY_PATH/bin/dot" "$@"
   ;;
 esac

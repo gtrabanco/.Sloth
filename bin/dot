@@ -7,13 +7,31 @@ set -o pipefail
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 
 ##? Usage:
-##?    dot
-##?    dot <context>
-##?    dot <context> <script> [<args>...]
+##?    dot self-update
+##?    dot autoupdate
 ##?    dot -h | --help
-if [[ "$1" == "-h" || "$1" = "--help" ]]; then
+##?    dot -v | --version
+##?    dot <context> <script> [<args>...]
+##?    dot <context>
+##?    dot
+VERSION="2.0.0"
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   docs::parse "$@"
 fi
+
+if [[ "$1" == "-v" || "$1" == "--version" ]]; then
+  output::write "dot v${VERSION}"
+fi
+
+if [[ "$1" == "self-update" ]]; then
+  output::write "dot v${VERSION}"
+fi
+
+if [[ "$1" == "autoupdate" ]]; then
+  output::write "dot v${VERSION}"
+fi
+
+
 
 fzf_prompt() {
   local paths="$1"
@@ -29,7 +47,7 @@ fzf_prompt() {
   printf "%s" "$script"
   read -r args
 
-  "$DOTLY_PATH/bin/dot" $script $args
+  "$DOTLY_PATH/bin/dot" "$script" "$args"
 }
 
 script_exist() {
