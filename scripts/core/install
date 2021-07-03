@@ -20,6 +20,8 @@ script::depends_on docpars fzf zsh python
 ##?
 ##? Usage:
 ##?    install
+##?
+##? SCRIPT_VERSION "2.0.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
 elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then

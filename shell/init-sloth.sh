@@ -69,12 +69,14 @@ if [[ -x "$UNAME_BIN" && "$("$UNAME_BIN" -s)" == "Darwin" ]]; then
   BREW_BIN="${BREW_BIN:-$(which brew)}"
   [[ ! -x "$BREW_BIN" && -x "/usr/local/bin/brew" ]] && BREW_BIN="/usr/local/bin/brew"
 
-  if [[ -d "$("$BREW_BIN" --prefix)" ]]; then
+  if [[ -x "$BREW_BIN" && -d "$("$BREW_BIN" --prefix)" ]]; then
     export path=(
       "$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnubin"
       "$("$BREW_BIN" --prefix)/opt/findutils/libexec/gnubin"
       "${path[@]}"
     )
+    MANPATH="$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnuman:$MANPATH"
+    export MANPATH
   fi
 fi
 

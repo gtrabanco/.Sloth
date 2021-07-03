@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 brew::install() {
   # Some aliases
   case "$1" in
@@ -5,7 +7,11 @@ brew::install() {
   *) package="$1" ;;
   esac
 
-  brew install "$package"
+  platform::command_exists brew && brew install "$package"
+}
+
+brew::is_installed() {
+  platform::command_exists brew && brew list "$@" &>/dev/null
 }
 
 brew::update_all() {

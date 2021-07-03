@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 pip::update_all() {
   outdated=$(pip3 list --outdated | tail -n +3)
 
