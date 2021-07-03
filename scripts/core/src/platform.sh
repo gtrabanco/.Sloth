@@ -2,20 +2,52 @@ platform::command_exists() {
   type "$1" >/dev/null 2>&1
 }
 
+platform::get_os() {
+  echo "$OSTYPE" | tr '[:upper:]' '[:lower:]'
+}
+
+platform::get_arch() {
+  local architecture=""
+  case $(uname -m) in
+    x86_64)
+      architecture="amd64"
+      ;;
+    arm)
+      architecture="arm"
+      ;;
+    ppc64)
+      architecture="ppc64"
+      ;;
+    i?86)
+      architecture="x86"
+      ;;
+  esac
+
+  echo "$architecture"
+}
+
+platform::is_arm() {
+  [[ "$(platform::get_arch)" == "arm" ]]
+}
+
 platform::is_macos() {
-  [[ $(uname -s) == "Darwin" ]]
+  [[ "$(platform::get_os)" == "Darwin" ]]
 }
 
 platform::is_macos_arm() {
-  [[ $(uname -p) == "arm" ]]
+  platform::is_macos && platform::is_arm
 }
 
 platform::is_linux() {
-  [[ $(uname -s) == "Linux" ]]
+  [[ "$(uname -s)" == "Linux" ]]
 }
 
 platform::is_wsl() {
   grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &>/dev/null
+}
+
+platform::is_bsd() {
+  platform::is_macos || [[ "$OSTYPE" == *"bsd"* ]]
 }
 
 platform::os() {
