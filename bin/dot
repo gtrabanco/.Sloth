@@ -122,7 +122,7 @@ else
       if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
         "${SLOTH_LAZY_SCRIPT}" --version
       else
-        SCRIPT_VERSION="$(dot::parse_script_version "$0")"
+        SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
         SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
         if [[ -n "${SCRIPT_VERSION}" ]]; then
           output::write "${SCRIPT_NAME}"
