@@ -9,18 +9,18 @@ platform::get_os() {
 platform::get_arch() {
   local architecture=""
   case $(uname -m) in
-    x86_64)
-      architecture="amd64"
-      ;;
-    arm)
-      architecture="arm"
-      ;;
-    ppc64)
-      architecture="ppc64"
-      ;;
-    i?86)
-      architecture="x86"
-      ;;
+  x86_64)
+    architecture="amd64"
+    ;;
+  arm)
+    architecture="arm"
+    ;;
+  ppc64)
+    architecture="ppc64"
+    ;;
+  i?86)
+    architecture="x86"
+    ;;
   esac
 
   echo "$architecture"
