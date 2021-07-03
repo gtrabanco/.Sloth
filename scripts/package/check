@@ -7,7 +7,6 @@ set -euo pipefail
 #shellcheck disable=SC1091
 . "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
 dot::load_library "package.sh"
-dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
 
 ##? Install a package
 ##?

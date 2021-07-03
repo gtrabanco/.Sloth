@@ -61,28 +61,44 @@ dot::load_library() {
 
   if [[ -n "${lib:-}" ]]; then
     lib_paths=()
+
+    # If defined a context to find for a library or any valid path
+    # else current context
     if [[ -n "${2:-}" ]]; then
-      lib_paths+=("$DOTFILES_PATH/scripts/$2/src" "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$2/src" "$2")
+      # Context
+      lib_paths+=(
+        "$DOTFILES_PATH/scripts/$2/src"
+        "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$2/src"
+      )
+
+      # Valid path
+      [[ -d "$2" ]] && lib_paths+=("$2")
     else
+      # Current context src
       lib_paths+=(
         "$(dot::get_script_path)/src"
       )
     fi
 
+    # Finally core library
     lib_paths+=(
       "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src"
-      "."
     )
 
-    for lib_path in "${lib_paths[@]}"; do
-      [[ -f "$lib_path/$lib" ]] &&
-        lib_full_path="$lib_path/$lib" &&
-        break
+    # Full path library is preferred
+    if [[ "${lib:0:1}" == "/" && -f "$lib" ]]; then
+      lib_full_path="$lib"
+    else
+      for lib_path in "${lib_paths[@]}"; do
+        [[ -f "$lib_path/$lib" ]] &&
+          lib_full_path="$lib_path/$lib" &&
+          break
 
-      [[ -f "$lib_path/$lib.sh" ]] &&
-        lib_full_path="$lib_path/$lib.sh" &&
-        break
-    done
+        [[ -f "$lib_path/$lib.sh" ]] &&
+          lib_full_path="$lib_path/$lib.sh" &&
+          break
+      done
+    fi
 
     # Library loading
     if [[ -n "${lib_full_path:-}" ]] && [[ -r "${lib_full_path:-}" ]]; then

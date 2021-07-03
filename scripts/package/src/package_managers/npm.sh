@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 npm::update_all() {
   outdated=$(npm -g outdated | tail -n +2)
 

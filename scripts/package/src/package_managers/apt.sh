@@ -1,5 +1,7 @@
+#!/usr/bin/env bash
+
 apt::install() {
-  sudo apt-get -y install "$@"
+  platform::command_exists apt-get && sudo apt-get -y install "$@"
 }
 
 apt::is_installed() {
