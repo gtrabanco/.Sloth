@@ -9,8 +9,7 @@ dnf::is_installed() {
   if [[ $# -gt 1 ]]; then
     for package in "$@"; do
       if platform::command_exists rpm &&
-         ! rpm -qa | grep -qw "$package"
-      then
+        ! rpm -qa | grep -qw "$package"; then
         return 1
       fi
     done

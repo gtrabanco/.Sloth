@@ -8,7 +8,7 @@ export PACKAGE_MANAGERS_SRC=(
 package::load_manager() {
   local package_manager_file_path
   local -r package_manager="${1:-}"
-  
+
   package_manager_file_path="$(package::manager_exists "$package_manager")"
 
   if [[ -n "$package_manager_file_path" ]]; then
@@ -31,7 +31,7 @@ package::manager_exists() {
 
 package::choose_manager() {
   local package_manager="none"
-  if [[ -n "${FORCED_PKGMGR:-}" ]];then
+  if [[ -n "${FORCED_PKGMGR:-}" ]]; then
     package_manager="$FORCED_PKGMGR"
   elif platform::is_macos; then
     for package_manager in brew mas ports cargo none; do
@@ -67,8 +67,7 @@ package::command() {
   fi
 
   if [[ "$package_manager" == "none" ]] ||
-     [[ -z "$(package::manager_exists "$package_manager")" ]]
-  then
+    [[ -z "$(package::manager_exists "$package_manager")" ]]; then
     return 1
   fi
 
