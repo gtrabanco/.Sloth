@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 composer::update_all() {
   script::depends_on jq
 

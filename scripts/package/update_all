@@ -12,7 +12,7 @@ set -euo pipefail
 . "$DOTLY_PATH/scripts/package/src/package_managers/pip.sh"
 
 update_all_error() {
-  [[ -n "${1:-}" ]] && output::clarification "Error updating ${1:-} apps. See \`dot self debug\` for view errors"
+  [[ -n "${1:-}" ]] && output::write "Error updating ${1:-} apps. See \`dot self debug\` for view errors"
 }
 
 ##? Update all packages
@@ -22,7 +22,7 @@ update_all_error() {
 docs::parse "$@"
 
 output::h1_without_margin "♻️  Updating all the apps on your system"
-output::clarification "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
+output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
 
 {
   platform::command_exists mas && output::h2 '🍎 App Store' && mas::update_all
@@ -65,7 +65,8 @@ output::clarification "If you want to debug what's happening behind the scenes, 
 } || update_all_error '📜 tldr database'
 
 {
-  output::h2 "Zim Framework" && sudo zsh "$DOTLY_PATH/modules/zimfw/zimfw.zsh" upgrade 2>&1 | log::file "Updating Zim"
+  output::h2 "Zim Framework" && zsh "$DOTLY_PATH/modules/zimfw/zimfw.zsh" upgrade 2>&1 | log::file "Updating Zim"
 } || update_all_error '(Zim:FW) Zim Framework'
+
 output::empty_line
 output::solution '👌 All your packages have been successfully updated'

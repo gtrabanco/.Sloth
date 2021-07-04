@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 mas::update_all() {
   outdated=$(mas outdated)
 

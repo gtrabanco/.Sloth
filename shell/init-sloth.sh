@@ -28,6 +28,12 @@ function recent_dirs() {
 GPG_TTY="$(tty)"
 export GPG_TTY
 
+# Sloth aliases and functions
+alias dotly='"$SLOTH_PATH/bin/dot"'
+alias sloth='"$SLOTH_PATH/bin/dot"'
+alias lazy='"$SLOTH_PATH/bin/dot"'
+alias s='"$SLOTH_PATH/bin/dot"'
+
 # shellcheck source=/dev/null
 [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"
 
@@ -63,12 +69,14 @@ if [[ -x "$UNAME_BIN" && "$("$UNAME_BIN" -s)" == "Darwin" ]]; then
   BREW_BIN="${BREW_BIN:-$(which brew)}"
   [[ ! -x "$BREW_BIN" && -x "/usr/local/bin/brew" ]] && BREW_BIN="/usr/local/bin/brew"
 
-  if [[ -d "$("$BREW_BIN" --prefix)" ]]; then
+  if [[ -x "$BREW_BIN" && -d "$("$BREW_BIN" --prefix)" ]]; then
     export path=(
       "$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnubin"
       "$("$BREW_BIN" --prefix)/opt/findutils/libexec/gnubin"
       "${path[@]}"
     )
+    MANPATH="$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnuman:$MANPATH"
+    export MANPATH
   fi
 fi
 

@@ -1,4 +1,6 @@
-DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
+#!/usr/bin/env bash
+
+export DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
 
 echoerr() {
   echo "$@" 1>&2
