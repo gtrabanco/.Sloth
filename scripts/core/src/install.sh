@@ -28,7 +28,7 @@ install_macos_custom() {
   brew list gnu-sed || brew install gnu-sed | log::file "Installing brew gnu-sed"
   brew list gawk || brew install gawk | log::file "Installing brew gawk"
   brew list gnutls || brew install gnutls | log::file "Installing brew gnutls"
-  brew list gnu-ident || brew install gnu-ident | log::file "Installing brew gnu-ident"
+  brew list gnu-indent || brew install gnu-indent | log::file "Installing brew gnu-indent"
   brew list gnu-getopt || brew install gnu-getopt | log::file "Installing brew gnu-getopt"
   brew list gnu-which || brew install gnu-which | log::file "Installing brew gnu-which"
   brew list grep || brew install grep | log::file "Installing brew grep"
