@@ -22,7 +22,6 @@ install_macos_custom() {
   output::answer "Installing needed gnu packages"
   brew cleanup -s | log::file "Brew executing cleanup"
   brew cleanup --prune-prefix | log::file "Brew removeing dead symlinks"
-  brew prune | log::file "Brew prune"
   brew update | log::file "Brew update"
   brew list bash || brew install bash | log::file "Installing brew bash"
   brew list zsh || brew install zsh | log::file "Installing brew zsh"
