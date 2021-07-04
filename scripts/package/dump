@@ -4,6 +4,10 @@
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dump.sh"
 
+if platform::command_exists npm; then
+  script::depends_on jq
+fi
+
 ##? Dump all installed packages from:
 ##?  * Brew
 ##?  * Python
