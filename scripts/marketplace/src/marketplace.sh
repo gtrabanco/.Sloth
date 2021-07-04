@@ -232,7 +232,7 @@ marketplace::find() {
   local find_path
   find_path="${1:-$(marketplace::get_scripts_cache_path)}"
   shift
-  
+
   find "$find_path" -mindepth 1 "$@" -name '*' -print0 | xargs -0 -I _ echo _ | while read -r item; do
     item="$(echo -n "${item#$find_path/}")"
     echo "$item" | xargs
