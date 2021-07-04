@@ -171,11 +171,14 @@ package::python_import() {
 }
 
 package::npm_dump() {
+  local npm_prefix node_modules
+  npm_prefix="$(npm config --json -g ls -l | jq -r '.prefix' || echo -n)"
+  node_modules="${npm_prefix:-/usr/local}/lib/node_modules"
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_dump_check npm "$NPM_DUMP_FILE_PATH"; then
     output::write "🚀 Starting NPM dump to '$NPM_DUMP_FILE_PATH'"
-    ls -1 /usr/local/lib/node_modules | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting $npm_title packages"
+    find "$node_modules" -maxdepth 1 -mindepth 1 -type d -print0 | xargs -0 -I _ basename _ | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting $npm_title packages"
 
     return 0
   fi
