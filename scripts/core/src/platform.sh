@@ -29,11 +29,11 @@ platform::get_arch() {
 }
 
 platform::is_arm() {
-  [[ "$(platform::get_arch)" == "arm" ]]
+  [[ $(platform::get_arch) == "arm" ]]
 }
 
 platform::is_macos() {
-  [[ "$(platform::get_os)" == "Darwin" ]]
+  [[ $(platform::get_os) == "darwin"* ]]
 }
 
 platform::is_macos_arm() {
@@ -41,7 +41,7 @@ platform::is_macos_arm() {
 }
 
 platform::is_linux() {
-  [[ "$(uname -s)" == "Linux" ]]
+  [[ $(platform::get_os) == *"linux"* ]]
 }
 
 platform::is_wsl() {
@@ -49,7 +49,7 @@ platform::is_wsl() {
 }
 
 platform::is_bsd() {
-  platform::is_macos || [[ "$OSTYPE" == *"bsd"* ]]
+  platform::is_macos || [[ $(platform::get_os) == *"bsd"* ]]
 }
 
 platform::os() {
@@ -59,6 +59,8 @@ platform::os() {
     os="mac"
   elif platform::is_linux; then
     os="linux"
+  elif platform::is_bsd && ! platform::is_macos; then
+    os="bsd"
   elif platform::is_wsl; then
     os="wsl-linux"
   fi

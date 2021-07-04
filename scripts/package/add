@@ -88,9 +88,8 @@ package::is_installed "$package_name" && log::success "$package_name already ins
 
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
-  registry::install "$package_name"  &&
-  registry::is_installed "$package_name"
-then
+  registry::install "$package_name" &&
+  registry::is_installed "$package_name"; then
   output::write "✅ \`$package_name\` installed"
 
   exit 0

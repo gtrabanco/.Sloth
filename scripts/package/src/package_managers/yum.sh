@@ -9,8 +9,7 @@ yum::is_installed() {
   if [[ $# -gt 1 ]]; then
     for package in "$@"; do
       if platform::command_exists yum &&
-         ! sudo yum list --installed | grep -q "$package"
-      then
+        ! sudo yum list --installed | grep -q "$package"; then
         return 1
       fi
     done

@@ -9,8 +9,7 @@ cargo::is_installed() {
   if [[ $# -gt 1 ]]; then
     for package in "$@"; do
       if ! platform::command_exists cargo &&
-         cargo install --list | grep -q "$package"
-      then
+        cargo install --list | grep -q "$package"; then
         return 1
       fi
     done
