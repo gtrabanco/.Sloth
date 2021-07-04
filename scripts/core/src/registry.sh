@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export SLOTH_RECIPES_PATH=(
+export SLOTH_RECIPES_PATHS=(
   "${SLOTH_RECIPES_PATH[@]:-}"
   "$DOTLY_PATH/scripts/package/src/recipes"
   "$DOTFILES_PATH/package/recipes"
@@ -12,7 +12,7 @@ registry::recipe_exists() {
 
   [[ -z "$recipe" ]] && return
 
-  for recipe_path in "${SLOTH_RECIPES_PATH[@]}"; do
+  for recipe_path in "${SLOTH_RECIPES_PATHS[@]}"; do
     recipe_file_path=""
     recipe_file_path="$recipe_path/$recipe.sh"
     if [[ -f "$recipe_file_path" ]]; then
