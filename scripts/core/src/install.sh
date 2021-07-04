@@ -20,6 +20,13 @@ install_macos_custom() {
   mkdir -p "$HOME/bin"
 
   output::answer "Installing needed gnu packages"
+  brew cleanup -s | log::file "Brew executing cleanup"
+  brew cleanup --prune-prefix | log::file "Brew removeing dead symlinks"
+  # In CI we want to do it all faster so we avoid update & upgrade
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    brew update --force | log::file "Brew update"
+    brew upgrade --force | log::file "Brew upgrade current packages"
+  fi
   brew list bash || brew install bash | log::file "Installing brew bash"
   brew list zsh || brew install zsh | log::file "Installing brew zsh"
   brew list coreutils || brew install coreutils | log::file "Installing brew coreutils"
@@ -28,8 +35,6 @@ install_macos_custom() {
   brew list gnu-sed || brew install gnu-sed | log::file "Installing brew gnu-sed"
   brew list gawk || brew install gawk | log::file "Installing brew gawk"
   brew list gnutls || brew install gnutls | log::file "Installing brew gnutls"
-  brew list gnu-ident || brew install gnu-ident | log::file "Installing brew gnu-ident"
-  brew list gnu-getopt || brew install gnu-getopt | log::file "Installing brew gnu-getopt"
   brew list gnu-which || brew install gnu-which | log::file "Installing brew gnu-which"
   brew list grep || brew install grep | log::file "Installing brew grep"
   brew list make || brew install make | log::file "Installing brew make"
