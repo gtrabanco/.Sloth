@@ -9,7 +9,7 @@ deno::install() {
   if ! platform::command_exists deno &&
      ! platform::command_exists curl
   then
-    script::depends_on curl
+    script::depends_on curl unzip
   fi
 
   if platform::command_exists curl; then
