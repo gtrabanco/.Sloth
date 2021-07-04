@@ -3,7 +3,7 @@
 [[ -z "$DOTLY_PATH" ]] && exit 1
 
 #shellcheck source=/dev/null
-. "$DOTLY_PATH/scripts/core/_main.sh"
+. "$DOTLY_PATH/scripts/core/src/_main.sh"
 dot::load_library "github.sh" "core"
 dot::load_library "marketplace.sh"
 
