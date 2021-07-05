@@ -14,6 +14,10 @@ npm::is_installed() {
   [[ -n "${1:-}" ]] && platform::command_exists npm && npm list --global "$1" &>/dev/null
 }
 
+npm::package_exists() {
+  [[ -n "${1:-}" ]] && npm::is_available && npm search grunt | awk '{print $1}' | tail -n +2 | grep -q "^$1$"
+}
+
 npm::update_all() {
   outdated=$(npm -g outdated | tail -n +2)
 
