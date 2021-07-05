@@ -130,7 +130,6 @@ package::_install() {
     fi
 
   elif
-    package::manager_exists "$package_manager" &&
     package::command_exists "$package_manager" "is_available" &&
     package::command_exists "$package_manager" "install" &&
     package::command "$package_manager" "is_available" &&
@@ -157,11 +156,15 @@ package::install() {
     return $?
   else
     mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
-    eval "$(array::uniq_ordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
-    
+    eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
+
     # Try to install from package managers precedence
     for package_manager in "${uniq_values[@]}"; do
-      if package::_install "$package_manager" "$package"; then
+      if
+        [[ -n "$(package::manager_exists "$package_manager")" ]] &&
+        package::load_manager "$package_manager" &&
+        package::_install "$package_manager" "$package"
+      then
         return
       fi
     done

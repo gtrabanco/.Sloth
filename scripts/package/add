@@ -84,8 +84,10 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
+# Check if package is installed
 package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
+# If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
   registry::install "$package_name" &&
@@ -94,7 +96,7 @@ if ! ${skip_recipe:-false} &&
 
   exit 0
 else
-  package::command install "$package_name" 2>&1 || true
+  package::install "$package_name" "${FORCED_PKGMGR:-}" 2>&1 || true
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
@@ -103,8 +105,5 @@ else
   fi
 fi
 
-if package::is_installed "$package_name"; then
-  output::write "❌ \`$package_name\` could not be installed"
-
-  exit 1
-fi
+# If we are here package could not be installed for sure
+output::write "❌ \`$package_name\` could not be installed" && exit 1
