@@ -6,6 +6,18 @@ snap::is_available() {
   platform::command_exists snap
 }
 
+snap::package_exists() {
+  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" &>/dev/null
+}
+
+snap::is_installed() {
+  [[ -n "${1:-}" ]] && snap::is_available && ! snap list "$1" 2>&1 | grep -q ^'error'
+}
+
+snap::install() {
+  [[ -n "${1:-}" ]] && snap::is_available && snap install -y "${1:-}"
+}
+
 snap::dump() {
   SNAP_DUMP_FILE_PATH="${1:-$SNAP_DUMP_FILE_PATH}"
 
