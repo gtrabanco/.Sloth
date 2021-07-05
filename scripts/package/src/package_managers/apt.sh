@@ -3,29 +3,29 @@
 apt_title='@ APT'
 
 apt::is_available() {
-  platform::command_exists apt-get && platform::command_exists dpkg
+  platform::command_exists apt-get && platform::command_exists apt-cache && platform::command_exists dpkg
 }
 
 apt::install() {
-  platform::command_exists apt-get && sudo apt-get -y install "$@"
+  apt::is_available && sudo apt-get -y install "$@"
 }
 
 apt::is_installed() {
   #apt list -a "$@" | grep -q 'installed'
-  [[ -n "${1:-}" ]] && platform::command_exists dpkg && dpkg --list "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" &>/dev/null
 }
 
 apt::package_exists() {
-  [[ -n "${1:-}" ]] && platform::command_exists apt-cache && apt-cache show "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" &>/dev/null
 }
 
 apt::outdated_list() {
-  platform::command_exists apt-get && apt-get -s dist-upgrade | awk '/^Inst/ {print $2}'
+  apt::is_available && apt-get -s dist-upgrade | awk '/^Inst/ {print $2}'
 }
 
 apt::update_apps() {
   local outdated_app app_old_version app_new_version app_info app_url description_start description_end description_lines
-  if ! platform::command_exists apt-cache || ! platform::command_exists apt-get; then
+  if ! apt::is_available; then
     return 1
   fi
 
@@ -60,7 +60,7 @@ apt::update_apps() {
 }
 
 apt::self_update() {
-  sudo apt-get update
+  apt::is_available && sudo apt-get update
 }
 
 apt::update_all() {
