@@ -6,6 +6,18 @@ pip::is_available() {
   platform::command_exists pip3
 }
 
+pip::is_installed() {
+  [[ -n "${1:-}" ]] && pip3 show "$1" &>/dev/null
+}
+
+pip::package_exists() {
+  return
+}
+
+pip::install() {
+  [[ -n "${1:-}" ]] && pip::is_available && pip3 install "$1"
+}
+
 pip::update_all() {
   outdated=$(pip3 list --outdated | tail -n +3)
 
