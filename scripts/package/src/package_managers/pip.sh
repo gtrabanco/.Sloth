@@ -38,7 +38,7 @@ pip::update_all() {
       output::write "└ $url"
       output::empty_line
 
-      pip install -U "$package" 2>&1 | log::file "Updating pip app: $package"
+      pip install -U "$package" 2>&1 | log::file "Updating pip app: ${package}"
     done
   else
     output::answer "Already up-to-date"
@@ -50,7 +50,7 @@ pip::dump() {
 
   if package::common_dump_check pip3 "$PYTHON_DUMP_FILE_PATH"; then
     output::write "🚀 Starting Python dump to '$PYTHON_DUMP_FILE_PATH'"
-    pip3 freeze | tee "$PYTHON_DUMP_FILE_PATH" | log::file "Exporting $pip_title packages"
+    pip3 freeze | tee "$PYTHON_DUMP_FILE_PATH" | log::file "Exporting ${pip_title} packages"
 
     return 0
   fi
@@ -62,7 +62,7 @@ pip::import() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
   if package::common_import_check pip3 "$PYTHON_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing Python packages from '$PYTHON_DUMP_FILE_PATH'" | log::file "Importing $pip_title packages"
+    output::write "🚀 Importing Python packages from '$PYTHON_DUMP_FILE_PATH'" | log::file "Importing ${pip_title} packages"
     pip3 install -r "$PYTHON_DUMP_FILE_PATH"
 
     return 0

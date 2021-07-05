@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=2034
-yum_title='🧢 yum'
+yum_title='YUM'
 
 yum::is_available() {
   platform::command_exists yum

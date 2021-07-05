@@ -38,7 +38,7 @@ mas::update_all() {
       output::write "├ $app_old_version -> $app_new_version"
       output::write "└ $app_url"
       output::empty_line
-      mas upgrade "$app_id" | log::file "Updating ${mas_title} app: $app_name"
+      mas upgrade "$app_id" | log::file "Updating ${mas_title} app: ${app_name}"
     done
   fi
 }
