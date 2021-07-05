@@ -5,6 +5,18 @@ export PACKAGE_MANAGERS_SRC=(
   "${PACKAGE_MANAGERS_SRC[@]}"
 )
 
+if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
+  if platform::is_macos; then
+    export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
+      brew cargo mas pip volta npm
+    )
+  else
+    export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
+      apt snap brew dnf pacman yum cargo pip gem volta npm
+    )
+  fi
+fi
+
 package::load_manager() {
   local package_manager_file_path
   local -r package_manager="${1:-}"
@@ -24,47 +36,36 @@ package::manager_exists() {
   local -r package_manager="${1:-}"
   for package_manager_src in "${PACKAGE_MANAGERS_SRC[@]}"; do
     [[ -f "${package_manager_src}/${package_manager}.sh" ]] &&
+      head -n 1 "${package_manager_src}/${package_manager}.sh" | grep -q "^#\!/" &&
       echo "${package_manager_src}/${package_manager}.sh" &&
       return
   done
 }
 
-package::choose_manager() {
-  local package_manager="none"
-  if [[ -n "${FORCED_PKGMGR:-}" ]]; then
-    package_manager="$FORCED_PKGMGR"
-  elif platform::is_macos; then
-    for package_manager in brew mas ports cargo none; do
-      if platform::command_exists "$package_manager"; then
-        break
-      fi
-    done
-  else
-    if platform::command_exists apt-get && platform::command_exists dpkg; then
-      package_manager="apt"
-    else
-      for package_manager in dnf yum brew pacman cargo none; do
-        if platform::command_exists "$package_manager"; then
-          break
-        fi
-      done
-    fi
-  fi
+package::get_available_package_managers() {
+  local package_manager_src package_manager
+  find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2>/dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
+    # Get package manager name
+    package_manager="$(basename "$package_manager_src")"
+    package_manager="${package_manager%%.sh}"
 
-  echo "$package_manager"
+    # Check if it is a valid package manager
+    [[ -z "$(package::manager_exists "$package_manager")" ]] && continue
+
+    # Load package manager
+    package::load_manager "$package_manager"
+
+    # Check if package manager is available
+    if command -v "${package_manager}::is_available" &>/dev/null && "${package_manager}::is_available"; then
+      echo "$package_manager"
+    fi
+  done
 }
 
 package::command() {
-  local package_manager
-  local -r command="$1"
-  local -r args=("${@:2}")
-
-  # Package manager
-  if [[ -n "${FORCED_PKGMGR:-}" && "$FORCED_PKGMGR" != "none" ]]; then
-    package_manager="$FORCED_PKGMGR"
-  else
-    package_manager="$(package::choose_manager)"
-  fi
+  local -r package_manager="${1:-}"
+  local -r command="${2:-}"
+  local -r args=("${@:3}")
 
   if [[ "$package_manager" == "none" ]] ||
     [[ -z "$(package::manager_exists "$package_manager")" ]]; then
@@ -75,17 +76,54 @@ package::command() {
 
   # If function does not exists for the package manager it will return 0 (true) always
   if [[ "$command" == "install" ]]; then
-    declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
+    declare -F "${package_manager}::${command}" &>/dev/null && "${package_manager}::${command}" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
   else
-    declare -F "$package_manager::$command" &>/dev/null && "$package_manager::$command" "${args[@]}" || return
+    declare -F "${package_manager}::${command}" &>/dev/null && "${package_manager}::${command}" "${args[@]}"
   fi
 }
 
 package::is_installed() {
+  local package_manager
   [[ -z "${1:-}" ]] && return 1
 
-  package::command is_installed "$1" ||
-    registry::is_installed "$1"
+  for package_manager in $(package::get_available_package_managers); do
+    package::command "$package_manager" is_installed "$1" && return 
+  done
+  
+  registry::is_installed "$1" || return 1
+}
+
+# Try to install with any package manager
+package::install() {
+  local package_manager package
+  [[ -z "${1:-}" ]] && return 1
+  package="$1"
+  
+  # Try to install from package managers precedence
+  for package_manager in "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}"; do
+    if [[ $package_manager == "pip" ]] && package::command "pip" "install"  "$package"; then
+      if package::command "pip" "is_installed" "$package"; then
+        return
+      fi
+    elif package::manager_exists "$package_manager" &&
+       package::command "$package_manager" "is_available" &&
+       package::command "$package_manager" "package_exists" "$package"
+    then
+      package::command "$package_manager" "install" "$package"
+      return
+    fi
+  done
+  unset package_manager
+
+  # Install from any other available package manager
+  for package_manager in $(package::get_available_package_managers); do
+    if package::command "$package_manager" "package_exists" "$package"; then
+      package::command "$package_manager" "install" "$package"
+      return
+    fi
+  done
+
+  return 1
 }
 
 package::clarification() {
