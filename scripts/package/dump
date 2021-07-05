@@ -37,23 +37,23 @@ for package_manager in $(package::get_available_package_managers); do
 
   if
     [[ $package_manager == "npm" ]] &&
-    package::get_available_package_managers | grep -q "^volta$" ||
-    ! package::command_exists "$package_manager" "dump"
+      package::get_available_package_managers | grep -q "^volta$" ||
+      ! package::command_exists "$package_manager" "dump"
   then
     continue
   fi
-  
+
   {
     package::command_exists "$package_manager" "dump" &&
-    package::load_manager "$package_manager" &&
-    output::empty_line &&
-    output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
-    package::command "$package_manager" "dump" "$dump_file_path" &&
-    output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
-    output::empty_line
+      package::load_manager "$package_manager" &&
+      output::empty_line &&
+      output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
+      package::command "$package_manager" "dump" "$dump_file_path" &&
+      output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
+      output::empty_line
   } || {
     output::error "Error while exporting $(eval echo "\$${package_manager}_title") apps see \`dot core debug\`" &&
-    output::empty_line
+      output::empty_line
   }
 
 done

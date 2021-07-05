@@ -105,7 +105,7 @@ package::is_installed() {
       package::command "$package_manager" is_installed "$1" && return
     fi
   done
-  
+
   registry::is_installed "$1" || return 1
 }
 
@@ -115,14 +115,14 @@ package::_install() {
   package="${2:-}"
 
   [[ -z "$package_manager" || -z "$package" ]] && return 1
-  
+
   if
     ! package::command_exists "$package_manager" "package_exists" &&
-    package::command_exists "$package_manager" "is_installed" &&
-    package::command_exists "$package_manager" "is_available" &&
-    package::command_exists "$package_manager" "install" &&
-    package::command "$package_manager" "is_available"  &&
-    package::command "$package_manager" "install"  "$package"
+      package::command_exists "$package_manager" "is_installed" &&
+      package::command_exists "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "install" &&
+      package::command "$package_manager" "is_available" &&
+      package::command "$package_manager" "install" "$package"
   then
 
     if package::command "$package_manager" "is_installed" "$package"; then
@@ -131,14 +131,14 @@ package::_install() {
 
   elif
     package::command_exists "$package_manager" "is_available" &&
-    package::command_exists "$package_manager" "install" &&
-    package::command "$package_manager" "is_available" &&
-    package::command "$package_manager" "package_exists" "$package"
+      package::command_exists "$package_manager" "install" &&
+      package::command "$package_manager" "is_available" &&
+      package::command "$package_manager" "package_exists" "$package"
   then
 
     package::command "$package_manager" "install" "$package"
     return
-  
+
   fi
 
   return 1
@@ -162,8 +162,8 @@ package::install() {
     for package_manager in "${uniq_values[@]}"; do
       if
         [[ -n "$(package::manager_exists "$package_manager")" ]] &&
-        package::load_manager "$package_manager" &&
-        package::_install "$package_manager" "$package"
+          package::load_manager "$package_manager" &&
+          package::_install "$package_manager" "$package"
       then
         return
       fi

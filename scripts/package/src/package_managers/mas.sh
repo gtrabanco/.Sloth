@@ -31,7 +31,7 @@ mas::update_all() {
       app_list_line=$(mas list | awk '{print $1}' | grep -n "^$app_id$" | cut -d ':' -f 1)
       app_old_version=$(mas list | head -n "$app_list_line" | tail -n 1 | awk '{print $NF}' | sed 's/[(|)]//g')
       app_new_version=$(mas info "$app_id" | head -n 1 | awk 'NF{NF--};{print $NF}')
-      
+
       app_url=$(mas info "$app_id" | tail -n 1 | sed 's/From://g' | xargs)
 
       output::write "🍎 $app_name"

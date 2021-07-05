@@ -35,8 +35,8 @@ apt::update_apps() {
     app_url="$(apt-cache show "$outdated_app" | grep 'Homepage' | awk '{print $2}')"
     description_start="$(apt-cache show "$outdated_app" | grep -n 'Description-en' | head -n 1 | awk '{print $1}')"
     description_end="$(apt-cache show "$outdated_app" | grep -n 'Description-md5' | head -n 1 | awk '{print $1}')"
-    description_lines=$(( description_end - description_start ))
-    description_end=$(( description_end - 1 ))
+    description_lines=$((description_end - description_start))
+    description_end=$((description_end - 1))
     app_info="$(apt-cache show "$outdated_app" | head -n "$description_end" | tail -n "$description_lines" | sed 's/Description-en: //g' | xargs)"
 
     output::write "@ $outdated_app"

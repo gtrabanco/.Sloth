@@ -8,7 +8,7 @@ npm::is_available() {
 }
 
 npm::install() {
-  [[ -n "${1:-}" ]] && platform::command_exists npm && npm install --global "$1" 
+  [[ -n "${1:-}" ]] && platform::command_exists npm && npm install --global "$1"
 }
 
 npm::is_installed() {

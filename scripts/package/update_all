@@ -22,9 +22,9 @@ output::write "If you want to debug what's happening behind the scenes, you can 
 for package_manager in $(package::get_available_package_managers); do
   {
     package::load_manager "$package_manager" &&
-    package::command_exists "$package_manager" "update_all" &&
-    output::h2 "$(eval echo "\$${package_manager}_title")" &&
-    package::command "$package_manager" "update_all"
+      package::command_exists "$package_manager" "update_all" &&
+      output::h2 "$(eval echo "\$${package_manager}_title")" &&
+      package::command "$package_manager" "update_all"
   } || update_all_error "$(eval echo "\$${package_manager}_title")"
 done
 

@@ -24,7 +24,6 @@ dot::load_library "dump.sh"
 ##?
 docs::parse "$@"
 
-
 output::write "🎩 Let's import your packages (this could take a while)" && output::empty_line
 
 for package_manager in $(package::get_available_package_managers); do
@@ -39,8 +38,8 @@ for package_manager in $(package::get_available_package_managers); do
   # Continue if is npm and volta is isntalled
   if
     [[ $package_manager == "npm" ]] &&
-    package::get_available_package_managers | grep -q "^volta$" ||
-    ! package::command_exists "$package_manager" "dump"
+      package::get_available_package_managers | grep -q "^volta$" ||
+      ! package::command_exists "$package_manager" "dump"
   then
     continue
   fi
@@ -48,11 +47,10 @@ for package_manager in $(package::get_available_package_managers); do
   # If always prompt or file does not exists and no never prompt ask fot the importing file
   {
     ${prompt:-false} ||
-    [[ ! -f "$file_path" ]] &&
-    ! ${never_prompt:-false} &&
-    file_path=""
+      [[ ! -f "$file_path" ]] &&
+      ! ${never_prompt:-false} &&
+      file_path=""
   } && package::which_file "$directory_file_path" "Select $(eval echo "\$${package_manager}_title") file to import" "file_path"
-
 
   output::empty_line
   output::h2 "🚀 Importing $(eval echo "\$${package_manager}_title") apps"
@@ -61,17 +59,17 @@ for package_manager in $(package::get_available_package_managers); do
     output::answer "Ignoring $(eval echo "\$${package_manager}_title") import" &&
     output::empty_line &&
     continue
-  
+
   {
     [[ -f "$file_path" ]] &&
-    package::command_exists "$package_manager" "import" &&
-    package::load_manager "$package_manager" &&
-    package::command "$package_manager" "import" "$file_path" &&
-    output::answer "$(eval echo "\$${package_manager}_title") apps importing from \`${file_path}\`" &&
-    output::empty_line
+      package::command_exists "$package_manager" "import" &&
+      package::load_manager "$package_manager" &&
+      package::command "$package_manager" "import" "$file_path" &&
+      output::answer "$(eval echo "\$${package_manager}_title") apps importing from \`${file_path}\`" &&
+      output::empty_line
   } || {
     output::error "Error while try to import $(eval echo "\$${package_manager}_title") apps from \`${file_path}\`" &&
-    output::empty_line
+      output::empty_line
   }
 done
 
