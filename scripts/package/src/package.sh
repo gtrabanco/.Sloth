@@ -95,12 +95,15 @@ package::is_installed() {
 
 # Try to install with any package manager
 package::install() {
-  local package_manager package
+  local all_available_pkgmgrs uniq_values package_manager package
   [[ -z "${1:-}" ]] && return 1
   package="$1"
+
+  mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+  eval "$(array::uniq_ordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
   
   # Try to install from package managers precedence
-  for package_manager in "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}"; do
+  for package_manager in "${uniq_values[@]}"; do
     if [[ $package_manager == "pip" ]] && package::command "pip" "install"  "$package"; then
       if package::command "pip" "is_installed" "$package"; then
         return
@@ -109,15 +112,6 @@ package::install() {
        package::command "$package_manager" "is_available" &&
        package::command "$package_manager" "package_exists" "$package"
     then
-      package::command "$package_manager" "install" "$package"
-      return
-    fi
-  done
-  unset package_manager
-
-  # Install from any other available package manager
-  for package_manager in $(package::get_available_package_managers); do
-    if package::command "$package_manager" "package_exists" "$package"; then
       package::command "$package_manager" "install" "$package"
       return
     fi
