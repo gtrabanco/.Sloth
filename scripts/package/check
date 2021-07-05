@@ -71,8 +71,7 @@ if [[ "$package_name" != "docpars" ]]; then
   script::depends_on docpars
 fi
 
-if { [[ "$package_name" == "docpars" ]] && registry::is_installed docpars "$recipe_path"; } ||
-  { [[ "$package_name" != "docpars" ]] && package::is_installed "$package_name"; }; then
+if package::is_installed "$package_name"; then
   log::success "$package_name already installed" && exit 0
 fi
 
