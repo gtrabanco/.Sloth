@@ -16,6 +16,10 @@ brew::install() {
   platform::command_exists brew && brew install "$package"
 }
 
+brew::package_exists() {
+  [[ -n "${1:-}" ]] && brew info "$1" &>/dev/null
+}
+
 brew::is_installed() {
   platform::command_exists brew && brew list "$@" &>/dev/null
 }
@@ -30,6 +34,7 @@ brew::self_update() {
 }
 
 brew::update_apps() {
+  local outdated_apps outdated_app outdated_app_info app_new_version app_old_version app_info app_url
   outdated_apps=$(brew outdated)
 
   if [ -n "$outdated_apps" ]; then
