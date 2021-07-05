@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 pip_title='🐍 pip'
+PYTHON_DUMP_FILE_PATH="$DOTFILES_PATH/langs/python/$(hostname -s).txt"
 
 pip::is_available() {
   platform::command_exists pip3
@@ -49,7 +50,6 @@ pip::dump() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
   if package::common_dump_check pip3 "$PYTHON_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting Python dump to '$PYTHON_DUMP_FILE_PATH'"
     pip3 freeze | tee "$PYTHON_DUMP_FILE_PATH" | log::file "Exporting ${pip_title} packages"
 
     return 0

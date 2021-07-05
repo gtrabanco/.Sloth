@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 snap_title='🦜 Snap'
+SNAP_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/snap/$(hostname -s).txt"
 
 snap::is_available() {
   platform::command_exists snap
@@ -22,7 +23,6 @@ snap::dump() {
   SNAP_DUMP_FILE_PATH="${1:-$SNAP_DUMP_FILE_PATH}"
 
   if package::common_dump_check snap "$SNAP_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting SNAP dump to '$SNAP_DUMP_FILE_PATH'"
     snap list | tail -n +2 | awk '{ print $1 }' | tee "$SNAP_DUMP_FILE_PATH" | log::file "Exporting ${snap_title} containers"
 
     return 0

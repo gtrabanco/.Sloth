@@ -63,8 +63,6 @@ brew::dump() {
   HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
 
   if package::common_dump_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting ${brew_title} dump to '$HOMEBREW_DUMP_FILE_PATH'"
-
     brew bundle dump --file="$HOMEBREW_DUMP_FILE_PATH" --force | log::file "Exporting $brew_title packages"
     brew bundle --file="$HOMEBREW_DUMP_FILE_PATH" --force cleanup || true
 

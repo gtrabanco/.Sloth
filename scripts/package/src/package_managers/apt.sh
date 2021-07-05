@@ -71,7 +71,6 @@ apt::dump() {
   APT_DUMP_FILE_PATH="${1:-$APT_DUMP_FILE_PATH}"
 
   if package::common_dump_check apt "$APT_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting ${apt_title} dump to '$APT_DUMP_FILE_PATH'"
     apt-mark showmanual | tee "$APT_DUMP_FILE_PATH" | log::file "Exporting ${apt_title} packages"
 
     return 0

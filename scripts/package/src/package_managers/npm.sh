@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 npm_title='🌈 npm'
+NPM_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/npm/$(hostname -s).txt"
 
 npm::is_available() {
   platform::command_exists npm
@@ -51,7 +52,6 @@ npm::dump() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_dump_check npm "$NPM_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting ${npm_title} dump to '$NPM_DUMP_FILE_PATH'"
     find "$node_modules" -maxdepth 1 -mindepth 1 -type d -print0 | xargs -0 -I _ basename _ | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting ${npm_title} packages"
 
     return 0
