@@ -177,14 +177,6 @@ package::clarification() {
   output::write "${1:-} could not be updated. Use \`dot self debug\` to view more details."
 }
 
-package::exists_dump_current_machine_file() {
-  local FILES_PATH file_name
-  FILES_PATH="$(realpath -sm "${1:-}")"
-
-  file_name="$(find "$FILES_PATH" -name "*" -not -iname "*lock*" -not -iname ".*" -print0 2>/dev/null | xargs -0 -I _ basename _ | grep -Ei "^$(hostname -s)(.txt|.json)?$" | head -n 1)"
-  [[ -n "$file_name" && -f "$FILES_PATH/$file_name" ]] && echo "$FILES_PATH/$file_name"
-}
-
 package::preview() {
   local filename="$1"
   local FILES_PATH
@@ -205,7 +197,7 @@ package::which_file() {
   var_name="$3"
 
   #shellcheck disable=SC2207
-  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 2>/dev/null | xargs -0 basename | sort -u))
+  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _ | sort -u))
 
   if [[ -d "$FILES_PATH" && ${#files[@]} -gt 0 ]]; then
     answer="$(printf "%s\n" "${files[@]}" | fzf -0 --filepath-word -d ',' --prompt "$(hostname -s) > " --header "$header" --preview "[[ -f $FILES_PATH/{} ]] && cat $FILES_PATH/{} || echo No import a file for this package manager")"

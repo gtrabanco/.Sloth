@@ -76,7 +76,6 @@ brew::import() {
   HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
 
   if package::common_import_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing 🍺 brew from '$HOMEBREW_DUMP_FILE_PATH'"
     brew bundle install --file="$HOMEBREW_DUMP_FILE_PATH" | log::file "Importing $brew_title packages"
 
     return 0

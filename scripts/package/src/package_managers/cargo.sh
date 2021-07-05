@@ -54,7 +54,7 @@ cargo::import() {
   CARGO_DUMP_FILE_PATH="${1:-$VOLTA_DUMP_FILE_PATH}"
 
   if package::common_import_check cargo "$CARGO_DUMP_FILE_PATH"; then
-    xargs -I_ cargo install <"$CARGO_DUMP_FILE_PATH" | log::file "Importing ${cargo_title} packages"
+    xargs -I_ cargo install _ <"$CARGO_DUMP_FILE_PATH" | log::file "Importing ${cargo_title} packages"
 
     return 0
   fi

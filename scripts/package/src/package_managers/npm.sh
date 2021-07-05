@@ -64,8 +64,7 @@ npm::import() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing ${npm_title} packages from '$NPM_DUMP_FILE_PATH'"
-    xargs -I_ npm install -g "_" <"$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
+    xargs -I_ npm install -g _ <"$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
   fi
 
   return 1

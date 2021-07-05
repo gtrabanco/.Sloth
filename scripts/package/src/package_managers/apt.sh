@@ -83,7 +83,6 @@ apt::import() {
   APT_DUMP_FILE_PATH="${1:-$APT_DUMP_FILE_PATH}"
 
   if package::common_import_check apt "$APT_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing ${apt_title} from '$HOMEBREW_DUMP_FILE_PATH'"
     xargs sudo apt-get install -y <"$APT_DUMP_FILE_PATH" | log::file "Importing ${apt_title} packages"
   fi
 }
