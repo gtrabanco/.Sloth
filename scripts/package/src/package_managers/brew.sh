@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+brew_title='🍺 Brew'
+
+brew::is_available() {
+  platform::command_exists brew
+}
+
 brew::install() {
   # Some aliases
   case "$1" in
@@ -8,6 +14,10 @@ brew::install() {
   esac
 
   platform::command_exists brew && brew install "$package"
+}
+
+brew::package_exists() {
+  [[ -n "${1:-}" ]] && brew info "$1" &>/dev/null
 }
 
 brew::is_installed() {
@@ -20,10 +30,11 @@ brew::update_all() {
 }
 
 brew::self_update() {
-  brew update 2>&1 | log::file "Updating brew"
+  brew update 2>&1 | log::file "Updating ${brew_title}"
 }
 
 brew::update_apps() {
+  local outdated_apps outdated_app outdated_app_info app_new_version app_old_version app_info app_url
   outdated_apps=$(brew outdated)
 
   if [ -n "$outdated_apps" ]; then
@@ -41,9 +52,34 @@ brew::update_apps() {
       output::write "└ $app_url"
       output::empty_line
 
-      brew upgrade "$outdated_app" 2>&1 | log::file "Updating brew app: $outdated_app"
+      brew upgrade "$outdated_app" 2>&1 | log::file "Updating ${brew_title} app: $outdated_app"
     done
   else
     output::answer "Already up-to-date"
   fi
+}
+
+brew::dump() {
+  HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
+
+  if package::common_dump_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
+    brew bundle dump --file="$HOMEBREW_DUMP_FILE_PATH" --force | log::file "Exporting $brew_title packages"
+    brew bundle --file="$HOMEBREW_DUMP_FILE_PATH" --force cleanup || true
+
+    return 0
+  fi
+
+  return 1
+}
+
+brew::import() {
+  HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
+
+  if package::common_import_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
+    brew bundle install --file="$HOMEBREW_DUMP_FILE_PATH" | log::file "Importing $brew_title packages"
+
+    return 0
+  fi
+
+  return 1
 }
