@@ -62,10 +62,9 @@ package::get_available_package_managers() {
   done
 }
 
-package::command() {
+package::command_exists() {
   local -r package_manager="${1:-}"
   local -r command="${2:-}"
-  local -r args=("${@:3}")
 
   if [[ "$package_manager" == "none" ]] ||
     [[ -z "$(package::manager_exists "$package_manager")" ]]; then
@@ -75,10 +74,25 @@ package::command() {
   package::load_manager "$package_manager"
 
   # If function does not exists for the package manager it will return 0 (true) always
-  if [[ "$command" == "install" ]]; then
-    declare -F "${package_manager}::${command}" &>/dev/null && "${package_manager}::${command}" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
-  else
-    declare -F "${package_manager}::${command}" &>/dev/null && "${package_manager}::${command}" "${args[@]}"
+  if declare -F "${package_manager}::${command}" &>/dev/null; then
+    return
+  fi
+
+  return 1
+}
+
+package::command() {
+  local -r package_manager="${1:-}"
+  local -r command="${2:-}"
+  local -r args=("${@:3}")
+
+  # If function does not exists for the package manager it will return 0 (true) always
+  if package::command_exists "$package_manager" "${command}"; then
+    if [[ "$command" == "install" ]]; then
+      "${package_manager}::${command}" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
+    else
+      "${package_manager}::${command}" "${args[@]}"
+    fi
   fi
 }
 
@@ -87,10 +101,48 @@ package::is_installed() {
   [[ -z "${1:-}" ]] && return 1
 
   for package_manager in $(package::get_available_package_managers); do
-    package::command "$package_manager" is_installed "$1" && return 
+    if package::command_exists "$package_manager" "is_installed"; then
+      package::command "$package_manager" is_installed "$1" && return
+    fi
   done
   
   registry::is_installed "$1" || return 1
+}
+
+package::_install() {
+  local package_manager package
+  package_manager="${1:-}"
+  package="${2:-}"
+
+  [[ -z "$package_manager" || -z "$package" ]] && return 1
+  
+  if
+    ! package::command_exists "$package_manager" "package_exists" &&
+    package::command_exists "$package_manager" "is_installed" &&
+    package::command_exists "$package_manager" "is_available" &&
+    package::command_exists "$package_manager" "install" &&
+    package::command "$package_manager" "is_available"  &&
+    package::command "$package_manager" "install"  "$package"
+  then
+
+    if package::command "$package_manager" "is_installed" "$package"; then
+      return
+    fi
+
+  elif
+    package::manager_exists "$package_manager" &&
+    package::command_exists "$package_manager" "is_available" &&
+    package::command_exists "$package_manager" "install" &&
+    package::command "$package_manager" "is_available" &&
+    package::command "$package_manager" "package_exists" "$package"
+  then
+
+    package::command "$package_manager" "install" "$package"
+    return
+  
+  fi
+
+  return 1
 }
 
 # Try to install with any package manager
@@ -99,25 +151,23 @@ package::install() {
   [[ -z "${1:-}" ]] && return 1
   package="$1"
 
-  mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
-  eval "$(array::uniq_ordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
-  
-  # Try to install from package managers precedence
-  for package_manager in "${uniq_values[@]}"; do
-    if [[ $package_manager == "pip" ]] && package::command "pip" "install"  "$package"; then
-      if package::command "pip" "is_installed" "$package"; then
+  if [[ -n "${2:-}" ]]; then
+    package_manager="$2"
+    package::_install "$package_manager" "$package"
+    return $?
+  else
+    mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+    eval "$(array::uniq_ordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
+    
+    # Try to install from package managers precedence
+    for package_manager in "${uniq_values[@]}"; do
+      if package::_install "$package_manager" "$package"; then
         return
       fi
-    elif package::manager_exists "$package_manager" &&
-       package::command "$package_manager" "is_available" &&
-       package::command "$package_manager" "package_exists" "$package"
-    then
-      package::command "$package_manager" "install" "$package"
-      return
-    fi
-  done
+    done
 
-  return 1
+    return 1
+  fi
 }
 
 package::clarification() {
