@@ -60,7 +60,7 @@ package::command() {
   local -r args=("${@:2}")
 
   # Package manager
-  if [[ -n "$FORCED_PKGMGR" && "$FORCED_PKGMGR" != "none" ]]; then
+  if [[ -n "${FORCED_PKGMGR:-}" && "$FORCED_PKGMGR" != "none" ]]; then
     package_manager="$FORCED_PKGMGR"
   else
     package_manager="$(package::choose_manager)"
@@ -84,7 +84,6 @@ package::command() {
 package::is_installed() {
   [[ -z "${1:-}" ]] && return 1
 
-  platform::command_exists "$1" ||
-    package::command is_installed "$1" ||
+  package::command is_installed "$1" ||
     registry::is_installed "$1"
 }
