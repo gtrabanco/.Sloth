@@ -120,7 +120,7 @@ package::which_file() {
   var_name="$3"
 
   #shellcheck disable=SC2207
-  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 -exec echo {} \; 2>/dev/null | xargs basename | sort -u))
+  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 2>/dev/null | xargs -0 basename | sort -u))
 
   if [[ -d "$FILES_PATH" && ${#files[@]} -gt 0 ]]; then
     answer="$(printf "%s\n" "${files[@]}" | fzf -0 --filepath-word -d ',' --prompt "$(hostname -s) > " --header "$header" --preview "[[ -f $FILES_PATH/{} ]] && cat $FILES_PATH/{} || echo No import a file for this package manager")"
