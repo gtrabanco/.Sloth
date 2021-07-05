@@ -37,8 +37,7 @@ apt::update_apps() {
     description_end="$(apt-cache show "$outdated_app" | grep -n 'Description-md5' | head -n 1 | awk '{print $1}')"
     description_lines=$(( description_end - description_start ))
     description_end=$(( description_end - 1 ))
-    app_info="$(apt-cache show "$outdated_app" | head -n "$description_end" | tail -n "$description_lines")"
-    app_info="$(echo "${app_info//Description-en:/}" | xargs)"
+    app_info="$(apt-cache show "$outdated_app" | head -n "$description_end" | tail -n "$description_lines" | sed 's/Description-en: //g' | xargs)"
 
     output::write "@ $outdated_app"
     output::write "├ $app_old_version -> $app_new_version"
