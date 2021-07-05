@@ -12,7 +12,60 @@ apt::install() {
 
 apt::is_installed() {
   #apt list -a "$@" | grep -q 'installed'
-  [[ -n "${1:-}" ]] && platform::command_exists dpkg && dpkg -l | awk '{print $2}' | grep -q ^"${1:-}"$
+  [[ -n "${1:-}" ]] && platform::command_exists dpkg && dpkg --list "$1" &>/dev/null
+}
+
+apt::package_exists() {
+  [[ -n "${1:-}" ]] && platform::command_exists apt-cache && apt-cache show "$1" &>/dev/null
+}
+
+apt::outdated_list() {
+  platform::command_exists apt-get && apt-get -s dist-upgrade | awk '/^Inst/ {print $2}'
+}
+
+apt::update_apps() {
+  local outdated_app app_old_version app_new_version app_info app_url description_start description_end description_lines
+  if ! platform::command_exists apt-cache || ! platform::command_exists apt-get; then
+    return 1
+  fi
+
+  apt::outdated_list | while read -r outdated_app; do
+    app_old_version="$(apt-cache policy "$outdated_app" | grep 'Installed' | awk '{print $2}')"
+    app_new_version="$(apt-cache policy "$outdated_app" | grep 'Candidate' | awk '{print $2}')"
+    app_url="$(apt-cache show "$outdated_app" | grep 'Homepage' | awk '{print $2}')"
+    description_start="$(apt-cache show "$outdated_app" | grep -n 'Description-en' | head -n 1 | awk '{print $1}')"
+    description_end="$(apt-cache show "$outdated_app" | grep -n 'Description-md5' | head -n 1 | awk '{print $1}')"
+    description_lines=$(( description_end - description_start ))
+    description_end=$(( description_end - 1 ))
+    app_info="$(apt-cache show "$outdated_app" | head -n "$description_end" | tail -n "$description_lines")"
+    app_info="$(echo "${app_info//Description-en:/}" | xargs)"
+
+    output::write "@ $outdated_app"
+    output::write "├ $app_old_version -> $app_new_version"
+    output::write "├ $app_info"
+    output::write "└ $app_url"
+    output::empty_line
+
+    sudo apt-get --only-upgrade "$outdated_app"
+
+    # Reset variables
+    app_old_version=""
+    app_new_version=""
+    app_url=""
+    app_info=""
+    description_start=""
+    description_end=""
+    description_lines=""
+  done
+}
+
+apt::self_update() {
+  sudo apt-get update
+}
+
+apt::update_all() {
+  apt::self_update
+  apt::update_apps
 }
 
 apt::dump() {
