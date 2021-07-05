@@ -10,9 +10,10 @@ pip::is_installed() {
   [[ -n "${1:-}" ]] && pip3 show "$1" &>/dev/null
 }
 
-pip::package_exists() {
-  return
-}
+# Not define the function because it is not possible to do it with pip
+# pip::package_exists() {
+#   return
+# }
 
 pip::install() {
   [[ -n "${1:-}" ]] && pip::is_available && pip3 install "$1"
