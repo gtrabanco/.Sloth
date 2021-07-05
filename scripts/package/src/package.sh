@@ -93,10 +93,11 @@ package::clarification() {
 }
 
 package::exists_dump_current_machine_file() {
-  local FILES_PATH
+  local FILES_PATH file_name
   FILES_PATH="$(realpath -sm "${1:-}")"
 
-  find "$FILES_PATH" -name "*" -not -iname "*lock*" -not -iname ".*" -print0 2>/dev/null | xargs -0 -I _ basename _ | grep -Ei "^$(hostname -s)(.txt|.json)?$" | head -n 1
+  file_name="$(find "$FILES_PATH" -name "*" -not -iname "*lock*" -not -iname ".*" -print0 2>/dev/null | xargs -0 -I _ basename _ | grep -Ei "^$(hostname -s)(.txt|.json)?$" | head -n 1)"
+  [[ -n "$file_name" && -f "$FILES_PATH/$file_name" ]] && echo "$FILES_PATH/$file_name"
 }
 
 package::preview() {
