@@ -30,6 +30,7 @@ if ! ${silent:-false}; then
 fi
 
 for package_manager in $(package::get_available_package_managers); do
+  dump_file_path=""
   dump_file_path="$(dump::file_path "$package_manager" "${HOSTNAME:-$(hostname -s)}")"
 
   [[ -z "$dump_file_path" ]] && output::error "No dump file for \`$package_manager\`" && continue
