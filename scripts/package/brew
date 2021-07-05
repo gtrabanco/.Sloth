@@ -3,6 +3,7 @@
 #shellcheck disable=1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "package.sh"
+#shellcheck disable=SC2034
 FORCED_PKGMGR="brew"
 
 ##? Some brew utils.
