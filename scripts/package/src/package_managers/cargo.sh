@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 
 cargo_title='📦 Cargo'
+#shellcheck disable=SC2034
+rustup_title='☢️ Rust compiler'
 
 cargo::is_available() {
   platform::command_exists cargo
 }
 
+cargo::is_installed() {
+  [[ -n "${1:-}" ]] && cargo::is_available && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "^${1}$"
+}
+
+cargo::package_exists() {
+  [[ -n "${1:-}" ]] && cargo::is_available && cargo search "$1" | awk '{print $1}' | grep -v '\.\.\.' | xargs -0 | grep -q "^${1}$"
+}
+
 cargo::install() {
   platform::command_exists cargo && cargo install "$@"
+}
+
+cargo::update_all() {
+  platform::command_exists rustup && rustup update
+  cargo::is_available && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d' ' | xargs -n1 cargo install
 }
 
 cargo::is_installed() {
