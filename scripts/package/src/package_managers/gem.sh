@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+gem::::is_available() {
+  platform::command_exists gem
+}
+
 gem::update_all() {
   outdated=$(gem outdated)
 

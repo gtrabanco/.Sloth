@@ -2,6 +2,10 @@
 
 brew_title='🍺 Brew'
 
+brew::is_available() {
+  platform::command_exists brew
+}
+
 brew::install() {
   # Some aliases
   case "$1" in

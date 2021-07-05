@@ -2,6 +2,10 @@
 
 pip_title='🐍 pip'
 
+pip::is_available() {
+  platform::command_exists pip3
+}
+
 pip::update_all() {
   outdated=$(pip3 list --outdated | tail -n +3)
 

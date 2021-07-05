@@ -2,6 +2,10 @@
 
 apt_title='@ APT'
 
+apt::is_available() {
+  platform::command_exists apt-get && platform::command_exists dpkg
+}
+
 apt::install() {
   platform::command_exists apt-get && sudo apt-get -y install "$@"
 }

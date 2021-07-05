@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+mas::is_available() {
+  platform::command_exists mas
+}
+
 mas::update_all() {
   outdated=$(mas outdated)
 

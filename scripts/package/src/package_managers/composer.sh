@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+composer::is_available() {
+  platform::command_exists composer
+}
+
 composer::update_all() {
   script::depends_on jq
 

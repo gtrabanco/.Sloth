@@ -2,6 +2,10 @@
 
 snap_title='Snap'
 
+snap::is_available() {
+  platform::command_exists snap
+}
+
 snap::dump() {
   SNAP_DUMP_FILE_PATH="${1:-$SNAP_DUMP_FILE_PATH}"
 

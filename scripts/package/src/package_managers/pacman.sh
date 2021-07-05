@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+pacman::is_available() {
+  platform::command_exists pacman
+}
+
 pacman::install() {
   if platform::command_exists yay; then
     sudo yay -S --noconfirm "$@"

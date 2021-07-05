@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+yum::is_available() {
+  platform::command_exists yum
+}
+
 yum::install() {
   platform::command_exists yum && yes | sudo yum install "$@"
 }

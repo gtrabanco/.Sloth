@@ -2,6 +2,10 @@
 
 npm_title='🌈 npm'
 
+npm::is_available() {
+  platform::command_exists npm
+}
+
 npm::install() {
   [[ -n "${1:-}" ]] && platform::command_exists npm && npm install --global "$1" 
 }

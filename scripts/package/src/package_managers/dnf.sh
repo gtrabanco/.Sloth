@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+dnf::is_available() {
+  platform::command_exists dnf
+}
+
 dnf::install() {
   platform::command_exists dnf && sudo dnf -y install "$@"
 }

@@ -2,6 +2,10 @@
 
 volta_title='⚡︎⚔️ volta'
 
+volta::is_available() {
+  platform::command_exists volta
+}
+
 volta::dump() {
   VOLTA_DUMP_FILE_PATH="${1:-$VOLTA_DUMP_FILE_PATH}"
 

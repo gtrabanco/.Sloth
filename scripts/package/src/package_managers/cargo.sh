@@ -2,6 +2,10 @@
 
 cargo_title='📦 Cargo'
 
+cargo::is_available() {
+  platform::command_exists cargo
+}
+
 cargo::install() {
   platform::command_exists cargo && cargo install "$@"
 }
