@@ -17,7 +17,7 @@ dump::file_path() {
   volta)
     echo "$DOTFILES_PATH/langs/js/volta/${dump_file_name}.txt"
     ;;
-  python)
+  pip*)
     echo "$DOTFILES_PATH/langs/js/python/${dump_file_name}.txt"
     ;;
   # Please if you are adding a new package manager keep this last name the others
