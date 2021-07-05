@@ -87,3 +87,66 @@ package::is_installed() {
   package::command is_installed "$1" ||
     registry::is_installed "$1"
 }
+
+package::clarification() {
+  output::write "${1:-} could not be updated. Use \`dot self debug\` to view more details."
+}
+
+package::exists_dump_current_machine_file() {
+  local FILES_PATH
+  FILES_PATH="$(realpath -sm "${1:-}")"
+
+  find "$FILES_PATH" -name "*" -not -iname "*lock*" -not -iname ".*" -print0 2>/dev/null | xargs -0 -I _ basename _ | grep -Ei "^$(hostname -s)(.txt|.json)?$" | head -n 1
+}
+
+package::preview() {
+  local filename="$1"
+  local FILES_PATH
+  FILES_PATH="$(realpath -sm $2)"
+
+  if [ "$filename" == "No import" ]; then
+    echo "No import any file for this package manager"
+    return
+  fi
+
+  { [[ -f "$FILES_PATH/$filename" ]] && cat "$FILES_PATH/$filename"; } || "Could not find the file '$FILES_PATH/$filename'"
+}
+
+package::which_file() {
+  local FILES_PATH header var_name answer files
+  FILES_PATH="$(realpath -sm "$1")"
+  header="$2"
+  var_name="$3"
+
+  #shellcheck disable=SC2207
+  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 -exec echo {} \; 2>/dev/null | xargs basename | sort -u))
+
+  if [[ -d "$FILES_PATH" && ${#files[@]} -gt 0 ]]; then
+    answer="$(printf "%s\n" "${files[@]}" | fzf -0 --filepath-word -d ',' --prompt "$(hostname -s) > " --header "$header" --preview "[[ -f $FILES_PATH/{} ]] && cat $FILES_PATH/{} || echo No import a file for this package manager")"
+    [[ -f "$FILES_PATH/$answer" ]] && answer="$FILES_PATH/$answer" || answer=""
+  fi
+  eval "$var_name=${answer:-}"
+}
+
+package::common_dump_check() {
+  local command_check file_path
+  command_check="${1:-}"
+  file_path="${2:-}"
+
+  if [[ -n "${command_check:-}" ]] &&
+    [[ -n "$file_path" ]] &&
+    platform::command_exists "$command_check"; then
+    mkdir -p "$(dirname "$file_path")"
+  fi
+}
+
+package::common_import_check() {
+  local command_check file_path
+  command_check="${1:-}"
+  file_path="${2:-}"
+
+  [[ -n "${command_check:-}" ]] &&
+    [[ -n "$file_path" ]] &&
+    platform::command_exists "$command_check" &&
+    [[ -f "$file_path" ]]
+}

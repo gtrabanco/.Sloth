@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+npm_title='🌈 npm'
+
 npm::update_all() {
   outdated=$(npm -g outdated | tail -n +2)
 
@@ -24,4 +26,31 @@ npm::update_all() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+npm::dump() {
+  local npm_prefix node_modules
+  npm_prefix="$(npm config --json -g ls -l | jq -r '.prefix' || echo -n)"
+  node_modules="${npm_prefix:-/usr/local}/lib/node_modules"
+  NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
+
+  if package::common_dump_check npm "$NPM_DUMP_FILE_PATH"; then
+    output::write "🚀 Starting NPM dump to '$NPM_DUMP_FILE_PATH'"
+    find "$node_modules" -maxdepth 1 -mindepth 1 -type d -print0 | xargs -0 -I _ basename _ | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting $npm_title packages"
+
+    return 0
+  fi
+
+  return 1
+}
+
+npm::import() {
+  NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
+
+  if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
+    output::write "🚀 Importing NPM packages from '$NPM_DUMP_FILE_PATH'"
+    xargs -I_ npm install -g "_" <"$NPM_DUMP_FILE_PATH" | log::file "Importing $npm_title packages"
+  fi
+
+  return 1
 }

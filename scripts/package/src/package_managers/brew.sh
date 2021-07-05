@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+brew_title='🍺 Brew'
+
 brew::install() {
   # Some aliases
   case "$1" in
@@ -46,4 +48,32 @@ brew::update_apps() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+brew::dump() {
+  HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
+
+  if package::common_dump_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
+    output::write "🚀 Starting Brew dump to '$HOMEBREW_DUMP_FILE_PATH'"
+
+    brew bundle dump --file="$HOMEBREW_DUMP_FILE_PATH" --force | log::file "Exporting $brew_title packages"
+    brew bundle --file="$HOMEBREW_DUMP_FILE_PATH" --force cleanup || true
+
+    return 0
+  fi
+
+  return 1
+}
+
+brew::import() {
+  HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
+
+  if package::common_import_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
+    output::write "🚀 Importing 🍺 brew from '$HOMEBREW_DUMP_FILE_PATH'"
+    brew bundle install --file="$HOMEBREW_DUMP_FILE_PATH" | log::file "Importing $brew_title packages"
+
+    return 0
+  fi
+
+  return 1
 }
