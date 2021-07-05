@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+mas_title='🍎 App Store'
+
 mas::is_available() {
   platform::command_exists mas
 }
@@ -32,10 +34,11 @@ mas::update_all() {
       
       app_url=$(mas info "$app_id" | tail -n 1 | sed 's/From://g' | xargs)
 
-      output::write "🍺 $app_name"
+      output::write "🍎 $app_name"
       output::write "├ $app_old_version -> $app_new_version"
       output::write "└ $app_url"
       output::empty_line
+      mas upgrade "$app_id" | log::file "Updating ${mas_title} app: $app_name"
     done
   fi
 }
