@@ -5,14 +5,15 @@ mas::is_available() {
 }
 
 mas::is_installed() {
-  if
-    [[ -z "${1:-}" ]] ||
-    ! mas::is_available
-  then
-    return 1
-  fi
+  [[ -n "${1:-}" ]] && mas::is_available && mas list | awk '{print $2}' | grep -qi "^${1}$"
+}
 
-  mas list | awk '{print $2}' | grep -qi "^xcode$"
+mas::package_exists() {
+  [[ -n "${1:-}" ]] && mas::is_available && mas search "$1" | awk '{NF--; $1=""};$NF' | sed 's/^ //g' | grep -i "^${1}$"
+}
+
+mas::install() {
+  [[ -n "${1:-}" ]] && mas::is_available && mas lucky "$1"
 }
 
 mas::update_all() {
@@ -27,7 +28,7 @@ mas::update_all() {
       app_name="${row//$app_id /}"
       app_list_line=$(mas list | awk '{print $1}' | grep -n "^$app_id$" | cut -d ':' -f 1)
       app_old_version=$(mas list | head -n "$app_list_line" | tail -n 1 | awk '{print $NF}' | sed 's/[(|)]//g')
-      app_new_version=$(mas info "$app_id" | head -n 1 | awk 'NF{NF-=1};{print $NF}')
+      app_new_version=$(mas info "$app_id" | head -n 1 | awk 'NF{NF--};{print $NF}')
       
       app_url=$(mas info "$app_id" | tail -n 1 | sed 's/From://g' | xargs)
 
