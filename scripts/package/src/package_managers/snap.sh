@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-snap_title='Snap'
+snap_title='🦜 Snap'
 
 snap::is_available() {
   platform::command_exists snap

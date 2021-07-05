@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+composer_title='🐘 Composer'
+
 composer::is_available() {
   platform::command_exists composer
 }
@@ -32,5 +34,5 @@ composer::update() {
   output::write "└ $url"
   output::empty_line
 
-  composer global require -W "$name" 2>&1 | log::file "Updating composer app: $name"
+  composer global require -W "$name" 2>&1 | log::file "Updating ${composer_title} app: $name"
 }

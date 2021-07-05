@@ -45,7 +45,7 @@ apt::update_apps() {
     output::write "└ $app_url"
     output::empty_line
 
-    sudo apt-get --only-upgrade "$outdated_app"
+    sudo apt-get --only-upgrade "$outdated_app" | log::file "Updating ${apt_title} app: $outdated_app"
 
     # Reset variables
     app_old_version=""
@@ -71,8 +71,8 @@ apt::dump() {
   APT_DUMP_FILE_PATH="${1:-$APT_DUMP_FILE_PATH}"
 
   if package::common_dump_check apt "$APT_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting APT dump to '$APT_DUMP_FILE_PATH'"
-    apt-mark showmanual | tee "$APT_DUMP_FILE_PATH" | log::file "Exporting $apt_title packages"
+    output::write "🚀 Starting ${apt_title} dump to '$APT_DUMP_FILE_PATH'"
+    apt-mark showmanual | tee "$APT_DUMP_FILE_PATH" | log::file "Exporting ${apt_title} packages"
 
     return 0
   fi
@@ -84,7 +84,7 @@ apt::import() {
   APT_DUMP_FILE_PATH="${1:-$APT_DUMP_FILE_PATH}"
 
   if package::common_import_check apt "$APT_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing APT from '$HOMEBREW_DUMP_FILE_PATH'"
-    xargs sudo apt-get install -y <"$APT_DUMP_FILE_PATH" | log::file "Importing $apt_title packages"
+    output::write "🚀 Importing ${apt_title} from '$HOMEBREW_DUMP_FILE_PATH'"
+    xargs sudo apt-get install -y <"$APT_DUMP_FILE_PATH" | log::file "Importing ${apt_title} packages"
   fi
 }

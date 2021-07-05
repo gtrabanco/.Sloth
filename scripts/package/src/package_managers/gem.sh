@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=SC2034
+gem_title='♦️  gem'
+
 gem::::is_available() {
   platform::command_exists gem
 }
@@ -17,7 +20,7 @@ gem::update_all() {
       output::write "└ $current_version -> $new_version"
       output::empty_line
 
-      gem update "$package" 2>&1 | log::file "Updating gem app: $package"
+      gem update "$package" 2>&1 | log::file "Updating ${gem_title} app: $package"
     done
   else
     output::answer "Already up-to-date"

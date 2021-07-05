@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=2034
+pacman_title='PACMAN'
+
 pacman::is_available() {
   platform::command_exists pacman
 }

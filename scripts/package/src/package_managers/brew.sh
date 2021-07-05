@@ -30,7 +30,7 @@ brew::update_all() {
 }
 
 brew::self_update() {
-  brew update 2>&1 | log::file "Updating brew"
+  brew update 2>&1 | log::file "Updating ${brew_title}"
 }
 
 brew::update_apps() {
@@ -52,7 +52,7 @@ brew::update_apps() {
       output::write "└ $app_url"
       output::empty_line
 
-      brew upgrade "$outdated_app" 2>&1 | log::file "Updating brew app: $outdated_app"
+      brew upgrade "$outdated_app" 2>&1 | log::file "Updating ${brew_title} app: $outdated_app"
     done
   else
     output::answer "Already up-to-date"
@@ -63,7 +63,7 @@ brew::dump() {
   HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
 
   if package::common_dump_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting Brew dump to '$HOMEBREW_DUMP_FILE_PATH'"
+    output::write "🚀 Starting ${brew_title} dump to '$HOMEBREW_DUMP_FILE_PATH'"
 
     brew bundle dump --file="$HOMEBREW_DUMP_FILE_PATH" --force | log::file "Exporting $brew_title packages"
     brew bundle --file="$HOMEBREW_DUMP_FILE_PATH" --force cleanup || true

@@ -45,7 +45,7 @@ cargo::dump() {
   CARGO_DUMP_FILE_PATH="${1:-$CARGO_DUMP_FILE_PATH}"
 
   if package::common_dump_check cargo "$CARGO_DUMP_FILE_PATH"; then
-    cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d' ' | tee "$CARGO_DUMP_FILE_PATH" | log::file "Exporting $cargo_title packages"
+    cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d' ' | tee "$CARGO_DUMP_FILE_PATH" | log::file "Exporting ${cargo_title} packages"
 
     return 0
   fi
@@ -57,7 +57,7 @@ cargo::import() {
   CARGO_DUMP_FILE_PATH="${1:-$VOLTA_DUMP_FILE_PATH}"
 
   if package::common_import_check cargo "$CARGO_DUMP_FILE_PATH"; then
-    xargs -I_ cargo install <"$CARGO_DUMP_FILE_PATH" | log::file "Importing $cargo_title packages"
+    xargs -I_ cargo install <"$CARGO_DUMP_FILE_PATH" | log::file "Importing ${cargo_title} packages"
 
     return 0
   fi

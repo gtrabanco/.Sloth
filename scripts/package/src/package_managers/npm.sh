@@ -47,8 +47,8 @@ npm::dump() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_dump_check npm "$NPM_DUMP_FILE_PATH"; then
-    output::write "🚀 Starting NPM dump to '$NPM_DUMP_FILE_PATH'"
-    find "$node_modules" -maxdepth 1 -mindepth 1 -type d -print0 | xargs -0 -I _ basename _ | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting $npm_title packages"
+    output::write "🚀 Starting ${npm_title} dump to '$NPM_DUMP_FILE_PATH'"
+    find "$node_modules" -maxdepth 1 -mindepth 1 -type d -print0 | xargs -0 -I _ basename _ | grep -v npm | tee "$NPM_DUMP_FILE_PATH" | log::file "Exporting ${npm_title} packages"
 
     return 0
   fi
@@ -60,8 +60,8 @@ npm::import() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
-    output::write "🚀 Importing NPM packages from '$NPM_DUMP_FILE_PATH'"
-    xargs -I_ npm install -g "_" <"$NPM_DUMP_FILE_PATH" | log::file "Importing $npm_title packages"
+    output::write "🚀 Importing ${npm_title} packages from '$NPM_DUMP_FILE_PATH'"
+    xargs -I_ npm install -g "_" <"$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
   fi
 
   return 1
