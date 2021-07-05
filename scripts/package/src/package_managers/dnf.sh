@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=SC2034
+dnf_title='▣ DNF'
+
+dnf::is_available() {
+  platform::command_exists dnf
+}
+
 dnf::install() {
   platform::command_exists dnf && sudo dnf -y install "$@"
 }

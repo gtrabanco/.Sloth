@@ -2,7 +2,9 @@
 
 #shellcheck disable=1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
-dot::load_library "dump.sh" "package"
+dot::load_library "package.sh"
+#shellcheck disable=SC2034
+FORCED_PKGMGR="brew"
 
 ##? Some brew utils.
 ##?   - If cleanup does not receive any param will take your
@@ -26,7 +28,7 @@ case $1 in
   brew leaves
   ;;
 "cleanup")
-  BREW_PATH="${BREW_PATH:-$DOTFILES_PATH/os/mac/brew}"
+  BREW_PATH="${BREW_PATH:-$DOTFILES_PATH/os/$(platform::os)/brew}"
   HOMEBREW_DUMP_FILE_PATH="${optional_path_brewfile:-$(package::exists_dump_current_machine_file "$BREW_PATH")}"
 
   if ! ${never_prompt:-false}; then

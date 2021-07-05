@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=2034
+yum_title='YUM'
+
+yum::is_available() {
+  platform::command_exists yum
+}
+
 yum::install() {
   platform::command_exists yum && yes | sudo yum install "$@"
 }
