@@ -13,7 +13,7 @@ dot::load_library "package.sh"
 ##? Usage:
 ##?    check [-v | --version]
 ##?    check [-h | --help]
-##?    check [--recipe-path <recipe_path>] <package_name> [--skip-recipe]
+##?    check <package_name> [--skip-recipe]
 ##?
 ##? Options:
 ##?    -h --help     Show script help
@@ -27,15 +27,8 @@ else
   package_name=""
   version=false
   help=false
-  recipe_path="$(dot::get_script_path)/recipes/"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --recipe-path)
-      if [[ "$2" != "_registry" ]]; then
-        recipe_path="$2"
-      fi
-      shift 2
-      ;;
     --version | -v)
       version=true
       shift
