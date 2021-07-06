@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
+
+# Default values
+apply=false
+dotfiles=false
 
 ##? Lint all sloth/dotly related bash files
 ##?
@@ -18,10 +24,9 @@ dot::load_library "dotly.sh"
 ##? SCRIPT_VERSION 3.0.0
 if [ "$1" == "-h" ] || [ "$1" = "--help" ]; then
   docs::parse "$@"
-fi
-apply=false
-
-if [[ "${1:-}" == "--patch" || "${1:-}" == "-p" ]]; then
+elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
+  dotfiles=true
+elif [[ "${1:-}" == "--patch" || "${1:-}" == "-p" ]]; then
   apply=true
 fi
 
@@ -30,17 +35,17 @@ script::depends_on shfmt
 # Avoid zsh because shfmt show some errors because it do not understand some
 # valid zsh valid syntax
 if ${dotfiles:-false}; then
-  mapfile -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+  mapfile -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
 else
   mapfile -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
 fi
 
 for file in "${all_files[@]}"; do
-  unset patch_content
-  patch_content="$(shfmt -ln bash -i 2 -d "$file")"
   if [[ $? -eq 1 && -n "$patch_content" ]] && $apply; then
+    unset patch_content
+    patch_content="$(shfmt -ln bash -i 2 "$file")"
     echo "$patch_content" | patch "$file"
   elif [[ $? -eq 1 && -n "$patch_content" ]]; then
-    echo "$patch_content"
+    shfmt -ln bash -i 2 -d "$file"
   fi
 done

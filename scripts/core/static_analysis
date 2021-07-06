@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
+
+# Default values
+dotfiles=false
 
 ##? Static analysis of all sloth/dotly related bash files
 ##?
@@ -14,9 +19,9 @@ dot::load_library "dotly.sh"
 ##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
 ##?
 ##? SCRIPT_VERSION 2.0.0
-if [[ "$1" == "-h" ]] || [[ "$1" = "--help" ]]; then
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" = "--help" ]]; then
   docs::parse "$@"
-elif [[ "$(echo "$1" | str::to_lower)" == "-d" ]] || [[ "$(echo "$1" | str::to_lower)" = "--dotfiles" ]]; then
+elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
   dotfiles=true
 fi
 script::depends_on shellcheck
