@@ -6,9 +6,9 @@ _dot() {
   local suggestions=""
 
   case "${#COMP_WORDS[@]}" in
-  2) suggestions=$(compgen -W "$(dot::list_contexts | tr '\n' ' ')") ;;
-  3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}")" ;;
-  *) suggestions="" ;;
+    2) suggestions=$(compgen -W "$(dot::list_contexts | tr '\n' ' ')") ;;
+    3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}")" ;;
+    *) suggestions="" ;;
   esac
 
   mapfile -t COMPREPLY < <(compgen -W "$suggestions" "${COMP_WORDS[$COMP_CWORD]}")

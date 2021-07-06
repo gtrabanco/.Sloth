@@ -47,7 +47,7 @@ zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && [[ "$SHELL" =~ zsh$ ]]; then
   output::answer "Installing completions"
   {
-    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &>/dev/null &&
+    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
 fi

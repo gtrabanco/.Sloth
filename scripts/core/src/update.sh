@@ -78,13 +78,13 @@ update::update_sloth_repository() {
   { [[ -d "$DOTLY_PATH" ]] && cd "$DOTLY_PATH"; } || return 1
 
   if git::is_in_repo; then
-    git discard >/dev/null 2>&1
-    git checkout "$current_branch" >/dev/null 2>&1
-    git pull >/dev/null 2>&1
+    git discard > /dev/null 2>&1
+    git checkout "$current_branch" > /dev/null 2>&1
+    git pull > /dev/null 2>&1
     return_code=$?
 
     if [[ -n "$update_submodules" ]] && [[ $return_code -eq 0 ]]; then
-      git submodule update --init --recursive "$@" >/dev/null 2>&1 # $@ because maybe you want to update specific submodule only
+      git submodule update --init --recursive "$@" > /dev/null 2>&1 # $@ because maybe you want to update specific submodule only
     fi
   fi
 
@@ -98,23 +98,23 @@ update::check_consistency_with_sloth_version() {
   local_commit_tag="$(git::sloth_repository_exec git::get_commit_tag)"
 
   case "$(str::to_lower "$DOTLY_UPDATE_VERSION")" in
-  "stable" | "minor")
-    if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
-      output::error "Error in your Dotly configuration, 'DOTLY_UPDATE_VERSION'"
-      output::empty_line
-      output::answer "You have selected to update to $DOTLY_UPDATE_VERSION but you are not"
-      output::write "\tusing any stable version. Modify DOTLY_UPDATE_VERSION variable or use"
-      output::write "\tthe script:"
-      output::write "\t\tdot self version"
-      output::empty_line
-      output::write "You can also disable updates by using: 'dot self update --disable'"
-      output::empty_line
-      return 1
-    fi
-    ;;
-  *)
-    return 0
-    ;;
+    "stable" | "minor")
+      if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
+        output::error "Error in your Dotly configuration, 'DOTLY_UPDATE_VERSION'"
+        output::empty_line
+        output::answer "You have selected to update to $DOTLY_UPDATE_VERSION but you are not"
+        output::write "\tusing any stable version. Modify DOTLY_UPDATE_VERSION variable or use"
+        output::write "\tthe script:"
+        output::write "\t\tdot self version"
+        output::empty_line
+        output::write "You can also disable updates by using: 'dot self update --disable'"
+        output::empty_line
+        return 1
+      fi
+      ;;
+    *)
+      return 0
+      ;;
   esac
 }
 
@@ -133,7 +133,7 @@ update::update_local_sloth_module() {
   fi
 
   # Version consistency
-  if ! update::check_consistency_with_sloth_version >/dev/null; then
+  if ! update::check_consistency_with_sloth_version > /dev/null; then
     return 1
   fi
 
@@ -144,22 +144,22 @@ update::update_local_sloth_module() {
   fi
 
   case "$(str::to_lower "${DOTLY_AUTO_UPDATE_VERSION:-stable}")" in
-  "latest" | "beta") ;;
+    "latest" | "beta") ;;
 
-  "minor" | "only_minor")
-    if [ -n "$remote_sloth_minor" ]; then
-      git::sloth_repository_exec git checkout "$remote_sloth_minor"
-    fi
-    ;;
-  *) #Stable
-    git::sloth_repository_exec git checkout -q "$remote_sloth_tag"
-    ;;
+    "minor" | "only_minor")
+      if [ -n "$remote_sloth_minor" ]; then
+        git::sloth_repository_exec git checkout "$remote_sloth_minor"
+      fi
+      ;;
+    *) #Stable
+      git::sloth_repository_exec git checkout -q "$remote_sloth_tag"
+      ;;
   esac
 
   rm -f "$DOTFILES_PATH/.sloth_force_current_version"
   rm -f "$DOTFILES_PATH/.sloth_update_available"
   rm -f "$DOTFILES_PATH/.sloth_update_available_is_major"
-  echo "$current_sloth_hash" >|"$DOTFILES_PATH/.sloth_updated"
+  echo "$current_sloth_hash" >| "$DOTFILES_PATH/.sloth_updated"
 }
 
 uptate::migration_script_exits() {

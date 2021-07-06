@@ -76,7 +76,7 @@ jobs:
       - name: 💅 Lint bash files and apply linting patches
         run: |
           bash scripts/self/lint || {
-            . "scripts/core/_main.sh"
-            output::write "Apply patches by using \`lazy self lint\`"
+            . "scripts/core/src/_main.sh"
+            output::write "Apply patches by using \`dot core lint\`"
             exit 1
           }

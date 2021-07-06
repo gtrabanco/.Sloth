@@ -24,7 +24,7 @@ volta::import() {
 
   if package::common_import_check volta "$VOLTA_DUMP_FILE_PATH"; then
     output::write "🚀 Importing ${volta_title} packages from '$VOLTA_DUMP_FILE_PATH'"
-    xargs -I_ volta install "_" <"$VOLTA_DUMP_FILE_PATH" | log::file "Importing ${volta_title} packages"
+    xargs -I_ volta install "_" < "$VOLTA_DUMP_FILE_PATH" | log::file "Importing ${volta_title} packages"
 
     return 0
   fi

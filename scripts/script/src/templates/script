@@ -27,8 +27,8 @@ fi
 # Here begin your script
 
 case ${1-} in
-# Any subcommand should be here
-*)
-  exit 1
-  ;;
+  # Any subcommand should be here
+  *)
+    exit 1
+    ;;
 esac

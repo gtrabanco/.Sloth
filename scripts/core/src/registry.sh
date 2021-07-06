@@ -3,7 +3,7 @@
 export SLOTH_RECIPES_PATHS=(
   "${SLOTH_RECIPES_PATH[@]:-}"
   "$DOTLY_PATH/scripts/package/src/recipes"
-  "$DOTFILES_PATH/package/recipes"
+  "${DOTFILES_PATH:-}/package/recipes"
 )
 
 registry::recipe_exists() {

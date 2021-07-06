@@ -29,18 +29,18 @@ else
   help=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --version | -v)
-      version=true
-      shift
-      ;;
-    --help | -h)
-      help=true
-      shift
-      ;;
-    *)
-      package_name="$1"
-      shift
-      ;;
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      *)
+        package_name="$1"
+        shift
+        ;;
     esac
   done
 fi
