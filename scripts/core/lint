@@ -55,6 +55,9 @@ fi
 # No color for shfmt
 TERM=dumb
 
+# exit code
+exit_code=0
+
 for file in "${all_files[@]}"; do
   if ${patch:-false}; then
     unset patch_content
@@ -64,7 +67,7 @@ for file in "${all_files[@]}"; do
       [[ -n "$patch_content" ]] &&
         output::answer "Linting \`$file\`" &&
         echo "$patch_content" | patch "$file" &> /dev/null
-    } || true
+    } || exit_code=1
     # } || {
     #   if [[ -f "${file}.orig" ]]; then
     #     patch "$file" < "${file}.orig"
@@ -72,6 +75,10 @@ for file in "${all_files[@]}"; do
     #   fi
     # }
   else
-    shfmt -ln bash -sr -ci -i 2 -d "$file"
+    if ! shfmt -ln bash -sr -ci -i 2 -d "$file"; then
+      exit_code=1
+    fi
   fi
 done
+
+exit $exit_code
