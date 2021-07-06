@@ -68,12 +68,6 @@ for file in "${all_files[@]}"; do
         output::answer "Linting \`$file\`" &&
         echo "$patch_content" | patch "$file" &> /dev/null
     } || exit_code=1
-    # } || {
-    #   if [[ -f "${file}.orig" ]]; then
-    #     patch "$file" < "${file}.orig"
-    #     rm -f "${file}.orig"
-    #   fi
-    # }
   else
     if ! shfmt -ln bash -sr -ci -i 2 -d "$file"; then
       exit_code=1
