@@ -7,7 +7,7 @@ set -euo pipefail
 dot::load_library "dotly.sh"
 
 # Default values
-apply=false
+patch=false
 dotfiles=false
 
 ##? Lint all sloth/dotly related bash files
@@ -24,10 +24,22 @@ dotfiles=false
 ##? SCRIPT_VERSION 3.0.0
 if [ "${1:-}" == "-h" ] || [ "${1:-}" = "--help" ]; then
   docs::parse "$@"
-elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
-  dotfiles=true
-elif [[ "${1:-}" == "--patch" || "${1:-}" == "-p" ]]; then
-  apply=true
+else
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dotfiles | -d)
+        dotfiles=true
+        shift
+        ;;
+      --patch | -p)
+        patch=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
 fi
 
 script::depends_on shfmt
@@ -40,12 +52,25 @@ else
   mapfile -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
 fi
 
+# No color for shfmt
+TERM=dumb
+
 for file in "${all_files[@]}"; do
-  if ${apply:-false}; then
+  if ${patch:-false}; then
     unset patch_content
-    patch_content="$(shfmt -ln bash -i 2 "$file")"
-    [[ -n "$patch_content" ]] && echo "$patch_content" | patch "$file"
+    patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" || true)"
+
+    {
+      [[ -n "$patch_content" ]] &&
+        output::answer "Linting \`$file\`" &&
+        echo "$patch_content" | patch "$file" &> /dev/null
+    } || {
+      if [[ -f "${file}.orig" ]]; then
+        patch "$file" < "${file}.orig"
+        rm -f "${file}.orig"
+      fi
+    }
   else
-    shfmt -ln bash -i 2 -d "$file"
+    shfmt -ln bash -sr -ci -i 2 -d "$file"
   fi
 done
