@@ -24,8 +24,8 @@ continue=false
 # Arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-  --help | -h)
-    cat <<EOF
+    --help | -h)
+      cat << EOF
 Usage:
    install [-c | --continue]
 
@@ -36,17 +36,17 @@ Options:
                   dotfiles if they exists. Useful if previous restore fails.
 
 EOF
-    exit 0
-    ;;
-  --version | -v)
-    echo "$SCRIPT_NAME $SCRIPT_VERSION"
-    echo
-    exit 0
-    ;;
-  --continue | -c)
-    continue=true
-    ;;
-  *) ;;
+      exit 0
+      ;;
+    --version | -v)
+      echo "$SCRIPT_NAME $SCRIPT_VERSION"
+      echo
+      exit 0
+      ;;
+    --continue | -c)
+      continue=true
+      ;;
+    *) ;;
 
   esac
 done
@@ -84,13 +84,13 @@ _log() {
   current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 
   while IFS= read -r log_message; do
-    echo "$log_message" >>"$DOTLY_LOG_FILE"
+    echo "$log_message" >> "$DOTLY_LOG_FILE"
   done
 
-  echo "" >>"$DOTLY_LOG_FILE"
+  echo "" >> "$DOTLY_LOG_FILE"
 }
 
 current_timestamp() { date +%s; }
@@ -111,7 +111,7 @@ backup_dotfiles_dir() {
 }
 
 command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 install_brew_osx() {
@@ -127,19 +127,19 @@ package_install() {
 
   if command_exists dnf; then
     _a "Installing '${*}' using dnf"
-    sudo dnf -y install "${*}" >/dev/null 2>&1 | _log "Installing '${*}' using dnf"
+    sudo dnf -y install "${*}" > /dev/null 2>&1 | _log "Installing '${*}' using dnf"
   elif command_exists yum; then
     _a "Installing '${*}' using yum"
-    yes | sudo yum install "${*}" >/dev/null 2>&1 | _log "Installing '${*}' using yum"
+    yes | sudo yum install "${*}" > /dev/null 2>&1 | _log "Installing '${*}' using yum"
   elif command_exists brew; then
     _a "Installing '${*}' using brew"
     yes | brew install "${*}" 2>&1 | _log "Installign '${*}' using brew"
   elif command_exists pacman; then
     _a "Installing '${*}' using pacman"
-    sudo pacman -S --noconfirm "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using pacman"
+    sudo pacman -S --noconfirm "${*}" > /dev/null 2>&1 | _log "Installign '${*}' using pacman"
   elif command_exists apt-get; then
     _a "Installing '${*}' using apt"
-    sudo apt-get -y install "${*}" >/dev/null 2>&1 | _log "Installign '${*}' using apt"
+    sudo apt-get -y install "${*}" > /dev/null 2>&1 | _log "Installign '${*}' using apt"
   else
     _e "Could not install '${*}', no package provider found"
     return 1
@@ -159,7 +159,7 @@ _w
 # install CLT.
 
 _w "Checking if Git is installed"
-if [[ "$OSTYPE" =~ ^[darwin] ]] && ! ls /Library/Developer/CommandLineTools >/dev/null 2>&1; then
+if [[ "$OSTYPE" =~ ^[darwin] ]] && ! ls /Library/Developer/CommandLineTools > /dev/null 2>&1; then
   # In macOS if we do not have CLT then we do not have git. This could be wrong
   # but we will want brew later and if we do not have CLT we can not have brew
   #
@@ -215,76 +215,76 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
   GIT_URL=""
   select opt in "${options[@]}"; do
     case $opt in
-    "GitHub")
-      _q "👤 Which is your github user? [$USER]" "GITHUB_USER"
-      GITHUB_USER="${GITHUB_USER:-$USER}"
+      "GitHub")
+        _q "👤 Which is your github user? [$USER]" "GITHUB_USER"
+        GITHUB_USER="${GITHUB_USER:-$USER}"
 
-      _q "📦 Which is your github repository? [dotfiles]" "GITHUB_REPOSITORY_NAME"
-      GITHUB_REPOSITORY_NAME="${GITHUB_REPOSITORY_NAME:-dotfiles}"
+        _q "📦 Which is your github repository? [dotfiles]" "GITHUB_REPOSITORY_NAME"
+        GITHUB_REPOSITORY_NAME="${GITHUB_REPOSITORY_NAME:-dotfiles}"
 
-      GIT_URL="git@github.com:$GITHUB_USER/$GITHUB_REPOSITORY_NAME.git"
-      GIT_URL_MIRROR="https://github.com/$GITHUB_USER/$GITHUB_REPOSITORY_NAME.git"
-      _w "  Remember that if your dotfiles repository is private you"
-      _w "need to generate or restore the ssh key and added to your"
-      _w "github account in:"
-      _w "  - Github > Settings > SSH and GPG Keys > Add new SSH key"
-      _w
-      _pk "continue when ready"
-      break
-      ;;
-    "Keybase")
-      _w "Checking if keybase is installed"
+        GIT_URL="git@github.com:$GITHUB_USER/$GITHUB_REPOSITORY_NAME.git"
+        GIT_URL_MIRROR="https://github.com/$GITHUB_USER/$GITHUB_REPOSITORY_NAME.git"
+        _w "  Remember that if your dotfiles repository is private you"
+        _w "need to generate or restore the ssh key and added to your"
+        _w "github account in:"
+        _w "  - Github > Settings > SSH and GPG Keys > Add new SSH key"
+        _w
+        _pk "continue when ready"
+        break
+        ;;
+      "Keybase")
+        _w "Checking if keybase is installed"
 
-      if ! ls /Applications/Keybase.app >/dev/null 2>&1; then
-        _w "Keybase has not been detected. We will try to install it with the package manager."
-        _w "If the installation finish the script re run it to finish the install"
+        if ! ls /Applications/Keybase.app > /dev/null 2>&1; then
+          _w "Keybase has not been detected. We will try to install it with the package manager."
+          _w "If the installation finish the script re run it to finish the install"
 
-        package_install keybase || { _e "Keybase could not be installed, try by yourself, do a login and re run this script." && exit 1; }
-        _s "Keybase is installed"
-        _pk "continue"
-      fi
+          package_install keybase || { _e "Keybase could not be installed, try by yourself, do a login and re run this script." && exit 1; }
+          _s "Keybase is installed"
+          _pk "continue"
+        fi
 
-      _q "👤 Which is your Keybase user? [$USER]" "KEYBASE_USER"
-      KEYBASE_USER="${KEYBASE_USER:-$USER}"
+        _q "👤 Which is your Keybase user? [$USER]" "KEYBASE_USER"
+        KEYBASE_USER="${KEYBASE_USER:-$USER}"
 
-      KEYBASE_REPOSITORY_NAME=""
-      _q "📦 Which is your Keybase repository name? [dotfiles]" "KEYBASE_REPOSITORY_NAME"
-      KEYBASE_REPOSITORY_NAME="${KEYBASE_REPOSITORY_NAME:-"dotfiles"}"
+        KEYBASE_REPOSITORY_NAME=""
+        _q "📦 Which is your Keybase repository name? [dotfiles]" "KEYBASE_REPOSITORY_NAME"
+        KEYBASE_REPOSITORY_NAME="${KEYBASE_REPOSITORY_NAME:-"dotfiles"}"
 
-      GIT_URL="keybase://private/${KEYBASE_USER}/${KEYBASE_REPOSITORY_NAME}"
-      _w
-      _w "  Remember that you need to start Keybase for the first time and login."
-      _w "  If you don't do this firstly, the installation will fail"
-      _w
-      _pk "continue when ready"
-      _w
+        GIT_URL="keybase://private/${KEYBASE_USER}/${KEYBASE_REPOSITORY_NAME}"
+        _w
+        _w "  Remember that you need to start Keybase for the first time and login."
+        _w "  If you don't do this firstly, the installation will fail"
+        _w
+        _pk "continue when ready"
+        _w
 
-      break
-      ;;
-    "Other Git alternative")
-      while [ -z "$GIT_URL" ]; do
-        _q "👤 Which is your git repo url?" "GIT_URL"
-      done
-      break
-      ;;
-    "iCloud")
-      _q "Which is the name of your iCloud dotfiles folder? [.dotfiles]" "ICLOUD_DOTFILES_PATH_NAME"
-      ICLOUD_DOTFILES_PATH="$ICLOUD_PATH/${ICLOUD_DOTFILES_PATH_NAME:-.dotfiles}"
-      DOTFILES_PATH="$HOME/$ICLOUD_DOTFILES_PATH_NAME"
+        break
+        ;;
+      "Other Git alternative")
+        while [ -z "$GIT_URL" ]; do
+          _q "👤 Which is your git repo url?" "GIT_URL"
+        done
+        break
+        ;;
+      "iCloud")
+        _q "Which is the name of your iCloud dotfiles folder? [.dotfiles]" "ICLOUD_DOTFILES_PATH_NAME"
+        ICLOUD_DOTFILES_PATH="$ICLOUD_PATH/${ICLOUD_DOTFILES_PATH_NAME:-.dotfiles}"
+        DOTFILES_PATH="$HOME/$ICLOUD_DOTFILES_PATH_NAME"
 
-      if [[ ! -d "$ICLOUD_DOTFILES_PATH" ]]; then
-        _e "Dotfiles folder were not found in iCloud Drive"
-        exit 5
-      fi
-      ln -s "$ICLOUD_DOTFILES_PATH" "$DOTFILES_PATH"
-      ;;
-    "Quit")
-      _w "Bye!"
-      exit 0
-      ;;
-    *)
-      echo "invalid option $REPLY"
-      ;;
+        if [[ ! -d "$ICLOUD_DOTFILES_PATH" ]]; then
+          _e "Dotfiles folder were not found in iCloud Drive"
+          exit 5
+        fi
+        ln -s "$ICLOUD_DOTFILES_PATH" "$DOTFILES_PATH"
+        ;;
+      "Quit")
+        _w "Bye!"
+        exit 0
+        ;;
+      *)
+        echo "invalid option $REPLY"
+        ;;
     esac
   done
 
@@ -357,7 +357,7 @@ if [[ "${USER_IMPORT_PACKAGES:-Y}" =~ ^[Yy] ]]; then
   _w "Importing your packages"
   _w "This can take a very long time, be patient...🙏"
   {
-    "$DOTLY_PATH/bin/dot" package import >/dev/null 2>&1 | _log "Importing user packages" &&
+    "$DOTLY_PATH/bin/dot" package import > /dev/null 2>&1 | _log "Importing user packages" &&
       _a "Packages imported 👏" &&
       _w
   } || {
@@ -378,7 +378,7 @@ if [[ "$OSTYPE" =~ ^[darwin] ]]; then
   _q "⚙️ Do you want to import stored macOS configuration? [y/N]" "USER_OSX_SETTINGS"
   {
     [[ "${USER_OSX_SETTINGS:-N}" =~ ^[Yy] ]] &&
-      "$DOTLY_PATH/bin/dot" mac defaults import >/dev/null 2>&1 | _log "Importing macOS user defaults" &&
+      "$DOTLY_PATH/bin/dot" mac defaults import > /dev/null 2>&1 | _log "Importing macOS user defaults" &&
       _w "⚙️ Mac defaults imported 🤙" &&
       _w
   } || {

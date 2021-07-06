@@ -12,7 +12,7 @@ npm::install() {
 }
 
 npm::is_installed() {
-  [[ -n "${1:-}" ]] && platform::command_exists npm && npm list --global "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && platform::command_exists npm && npm list --global "$1" &> /dev/null
 }
 
 npm::package_exists() {
@@ -64,7 +64,7 @@ npm::import() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
-    xargs -I_ npm install -g _ <"$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
+    xargs -I_ npm install -g _ < "$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
   fi
 
   return 1

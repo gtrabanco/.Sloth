@@ -35,13 +35,13 @@ _log() {
   current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 
   while IFS= read -r log_message; do
-    echo "$log_message" >>"$DOTLY_LOG_FILE"
+    echo "$log_message" >> "$DOTLY_LOG_FILE"
   done
 
-  echo "" >>"$DOTLY_LOG_FILE"
+  echo "" >> "$DOTLY_LOG_FILE"
 }
 
 current_timestamp() { date +%s; }
@@ -62,7 +62,7 @@ create_dotfiles_dir() {
 }
 
 command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 _w "  ┌──────────────────────────────────────────┐"
@@ -113,20 +113,20 @@ if ! command_exists git; then
     sudo pacman -S --noconfirm git 2>&1 | _log "Installing git"
   else
     case "$OSTYPE" in
-    darwin*)
-      _a "Checking if Command Line Tools are installed 🕵️‍♂️"
+      darwin*)
+        _a "Checking if Command Line Tools are installed 🕵️‍♂️"
 
-      xcode-select --install 2>&1 | grep installed >/dev/null
-      if [[ $? ]]; then
-        _a "Installing Command Line Tools 📺"
-        xcode-select --install
-        _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
-      fi
-      ;;
-    *)
-      _e "Could not install git, no package provider found"
-      exit 1
-      ;;
+        xcode-select --install 2>&1 | grep installed > /dev/null
+        if [[ $? ]]; then
+          _a "Installing Command Line Tools 📺"
+          xcode-select --install
+          _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
+        fi
+        ;;
+      *)
+        _e "Could not install git, no package provider found"
+        exit 1
+        ;;
     esac
   fi
 fi

@@ -12,11 +12,11 @@ apt::install() {
 
 apt::is_installed() {
   #apt list -a "$@" | grep -q 'installed'
-  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" &> /dev/null
 }
 
 apt::package_exists() {
-  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" &> /dev/null
 }
 
 apt::outdated_list() {
@@ -83,6 +83,6 @@ apt::import() {
   APT_DUMP_FILE_PATH="${1:-$APT_DUMP_FILE_PATH}"
 
   if package::common_import_check apt "$APT_DUMP_FILE_PATH"; then
-    xargs sudo apt-get install -y <"$APT_DUMP_FILE_PATH" | log::file "Importing ${apt_title} packages"
+    xargs sudo apt-get install -y < "$APT_DUMP_FILE_PATH" | log::file "Importing ${apt_title} packages"
   fi
 }

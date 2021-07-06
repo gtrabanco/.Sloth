@@ -36,12 +36,12 @@ fi
 # Here begin your script
 
 case $1 in
-"subcommand")
-  output::write "This case is optional and only useful if you want to implement subcommands"
-  output::write "The example repeteable variable value is \`${example_variable[*]:-No value provided}\`"
-  output::write "The optional variable value is \`${example_optional_variable:-No value provided}\`"
-  ;;
-*)
-  exit 1
-  ;;
+  "subcommand")
+    output::write "This case is optional and only useful if you want to implement subcommands"
+    output::write "The example repeteable variable value is \`${example_variable[*]:-No value provided}\`"
+    output::write "The optional variable value is \`${example_optional_variable:-No value provided}\`"
+    ;;
+  *)
+    exit 1
+    ;;
 esac

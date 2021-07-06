@@ -29,7 +29,7 @@ if [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]]; then
 fi
 
 # brew Bash completion
-if type brew &>/dev/null; then
+if type brew &> /dev/null; then
   HOMEBREW_PREFIX="$(brew --prefix)"
   if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]; then
     #shellcheck source=/dev/null
@@ -52,7 +52,7 @@ for THEME_PATH in ${themes_paths[@]}; do
 done
 unset THEME_PATH
 
-find {"$DOTLY_PATH","$DOTFILES_PATH"}"/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2>/dev/null | xargs -0 -I _ echo _ | while read -r completion; do
+find {"$DOTLY_PATH","$DOTFILES_PATH"}"/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _ | while read -r completion; do
   [[ -z "$completion" ]] && continue
   #shellcheck source=/dev/null
   . "$completion" || echo -e "\033[0;31mBASH completion '$completion' could not be loaded\033[0m"
