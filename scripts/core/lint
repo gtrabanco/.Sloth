@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2001
 
 set -euo pipefail
 
@@ -59,17 +60,23 @@ TERM=dumb
 exit_code=0
 
 for file in "${all_files[@]}"; do
-  if ${patch:-false}; then
-    unset patch_content
-    patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" || true)"
+  unset patch_content removed_empty
+  patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" 2>/dev/null || true)"
+  removed_empty="$(echo "$patch_content" | sed 's/[[:space:]]//g')"
 
+  if ${patch:-false}; then
     {
-      [[ -n "$patch_content" ]] &&
+      [[ -n "$removed_empty" ]] &&
         output::answer "Linting \`$file\`" &&
         echo "$patch_content" | patch "$file" &> /dev/null
-    } || exit_code=1
+    } || {
+      if [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
+        exit_code=1
+      fi
+    }
   else
-    if ! shfmt -ln bash -sr -ci -i 2 -d "$file"; then
+    if [[ -n "$removed_empty" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
+      echo "$patch_content"
       exit_code=1
     fi
   fi
