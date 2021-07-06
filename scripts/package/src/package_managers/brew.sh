@@ -21,7 +21,7 @@ brew::package_exists() {
 }
 
 brew::is_installed() {
-  platform::command_exists brew &>/dev/null && { brew list --formula "$@" &> /dev/null || brew list --cask "$@" &> /dev/null; }
+  platform::command_exists brew &> /dev/null && { brew list --formula "$@" &> /dev/null || brew list --cask "$@" &> /dev/null; }
 }
 
 brew::update_all() {
