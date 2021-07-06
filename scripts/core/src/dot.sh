@@ -3,8 +3,8 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
-  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_contexts" "$dotfiles_contexts" | grep -v "^_" | sort -u
 }
@@ -12,8 +12,8 @@ dot::list_contexts() {
 dot::list_context_scripts() {
   context="$1"
 
-  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
-  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _)
+  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_scripts" "$dotfiles_scripts" | grep -v "^_" | sort -u
 }
@@ -38,7 +38,7 @@ dot::list_scripts_path() {
 dot::get_script_path() {
   #shellcheck disable=SC2164
   echo "$(
-    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    cd -- "$(dirname "$0")" > /dev/null 2>&1
     pwd -P
   )"
 }
@@ -46,7 +46,7 @@ dot::get_script_path() {
 dot::get_full_script_path() {
   #shellcheck disable=SC2164
   echo "$(
-    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    cd -- "$(dirname "$0")" > /dev/null 2>&1
     pwd -P
   )/$(basename "$0")"
 }
@@ -131,7 +131,7 @@ dot::parse_script_version() {
   if [[ "${#versions[@]}" -gt 1 ]]; then
     for v in "${versions[@]}"; do
       v="$(echo "$v" | xargs)"
-      if [[ -z "${SCRIPT_VERSION:-}" || "$(platform::semver_compare "$SCRIPT_VERSION" "$v" 2>/dev/null)" -lt 0 ]]; then
+      if [[ -z "${SCRIPT_VERSION:-}" || "$(platform::semver_compare "$SCRIPT_VERSION" "$v" 2> /dev/null)" -lt 0 ]]; then
         SCRIPT_VERSION="$v"
       fi
     done

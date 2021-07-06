@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 platform::command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 platform::get_os() {
@@ -11,18 +11,18 @@ platform::get_os() {
 platform::get_arch() {
   local architecture=""
   case $(uname -m) in
-  x86_64)
-    architecture="amd64"
-    ;;
-  arm)
-    architecture="arm"
-    ;;
-  ppc64)
-    architecture="ppc64"
-    ;;
-  i?86)
-    architecture="x86"
-    ;;
+    x86_64)
+      architecture="amd64"
+      ;;
+    arm)
+      architecture="arm"
+      ;;
+    ppc64)
+      architecture="ppc64"
+      ;;
+    i?86)
+      architecture="x86"
+      ;;
   esac
 
   echo "$architecture"
@@ -45,7 +45,7 @@ platform::is_linux() {
 }
 
 platform::is_wsl() {
-  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &>/dev/null
+  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &> /dev/null
 }
 
 platform::is_bsd() {
@@ -69,7 +69,7 @@ platform::os() {
 }
 
 platform::wsl_home_path() {
-  wslpath "$(wslvar USERPROFILE 2>/dev/null)"
+  wslpath "$(wslvar USERPROFILE 2> /dev/null)"
 }
 
 # It does not support beta, rc and similar suffix
@@ -86,7 +86,7 @@ platform::semver_is_minor_or_patch_update() {
 
 platform::semver() {
   local SEMVER_BIN=""
-  if command -v semver &>/dev/null; then
+  if command -v semver &> /dev/null; then
     SEMVER_BIN="$(command -v "semver")"
   elif [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver" ]]; then
     SEMVER_BIN="${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver"

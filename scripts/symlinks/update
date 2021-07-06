@@ -13,7 +13,7 @@ symlinks::get_files() {
 
 symlinks::fzf() {
   local piped_values
-  piped_values=("$(</dev/stdin)")
+  piped_values=("$(< /dev/stdin)")
 
   printf "%s\n" "${piped_values[@]}" | fzf --extended \
     --header "Select file to apply symlinks update" \

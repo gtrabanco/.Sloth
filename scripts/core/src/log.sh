@@ -9,27 +9,27 @@ echoerr() {
 log::ansi() {
   local bg=false
   case "$@" in
-  *reset*)
-    echo "\e[0m"
-    return 0
-    ;;
-  *black*) color=30 ;;
-  *red*) color=31 ;;
-  *green*) color=32 ;;
-  *yellow*) color=33 ;;
-  *blue*) color=34 ;;
-  *purple*) color=35 ;;
-  *cyan*) color=36 ;;
-  *white*) color=37 ;;
+    *reset*)
+      echo "\e[0m"
+      return 0
+      ;;
+    *black*) color=30 ;;
+    *red*) color=31 ;;
+    *green*) color=32 ;;
+    *yellow*) color=33 ;;
+    *blue*) color=34 ;;
+    *purple*) color=35 ;;
+    *cyan*) color=36 ;;
+    *white*) color=37 ;;
   esac
   case "$@" in
-  *regular*) mod=0 ;;
-  *bold*) mod=1 ;;
-  *underline*) mod=4 ;;
+    *regular*) mod=0 ;;
+    *bold*) mod=1 ;;
+    *underline*) mod=4 ;;
   esac
   case "$@" in
-  *background*) bg=true ;;
-  *bg*) bg=true ;;
+    *background*) bg=true ;;
+    *bg*) bg=true ;;
   esac
 
   if $bg; then
@@ -79,13 +79,13 @@ log::file() {
   local -r current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 
   while IFS= read -r log_message; do
-    echo "$log_message" >>"$DOTLY_LOG_FILE"
+    echo "$log_message" >> "$DOTLY_LOG_FILE"
   done
 
-  echo "" >>"$DOTLY_LOG_FILE"
+  echo "" >> "$DOTLY_LOG_FILE"
 }
 
 log::append() {
@@ -93,7 +93,7 @@ log::append() {
   local -r current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 }
 
 die() {

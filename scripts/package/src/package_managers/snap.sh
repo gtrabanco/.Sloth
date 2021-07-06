@@ -8,7 +8,7 @@ snap::is_available() {
 }
 
 snap::package_exists() {
-  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" &> /dev/null
 }
 
 snap::is_installed() {
@@ -36,6 +36,6 @@ snap::import() {
 
   if package::common_import_check snap "$SNAP_DUMP_FILE_PATH"; then
     output::write "🚀 Importing SNAP from '$HOMEBREW_DUMP_FILE_PATH'"
-    xargs -I_ sudo snap install "_" <"$SNAP_DUMP_FILE_PATH" | log::file "Importing ${snap_title} containers"
+    xargs -I_ sudo snap install "_" < "$SNAP_DUMP_FILE_PATH" | log::file "Importing ${snap_title} containers"
   fi
 }

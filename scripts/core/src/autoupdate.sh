@@ -50,26 +50,26 @@ autoupdate::sloth_success() {
     fi
 
     case "$(str::to_lower "${SLOTH_AUTO_UPDATE_MODE:-auto}")" in
-    "silent")
-      update::update_local_sloth_module
-      rm -f "$DOTFILES_PATH/.sloth_update_available"
-      ;;
-    "info")
-      output::empty_line
-      output::write " ---------------------------------------------"
-      output::write "|  🥳🎉🍾 NEW SLOTH VERSION AVAILABLE 🥳🎉🍾  |"
-      output::write " ---------------------------------------------"
-      output::empty_line
-      ;;
-    "prompt")
-      # Nothing to do here
-      ;;
-    *) # auto
-      output::answer "🚀 Updating SLOTH Automatically"
-      update::update_local_sloth_module
-      output::solution "Updated, restart your terminal."
-      rm -f "$DOTFILES_PATH/.sloth_update_available"
-      ;;
+      "silent")
+        update::update_local_sloth_module
+        rm -f "$DOTFILES_PATH/.sloth_update_available"
+        ;;
+      "info")
+        output::empty_line
+        output::write " ---------------------------------------------"
+        output::write "|  🥳🎉🍾 NEW SLOTH VERSION AVAILABLE 🥳🎉🍾  |"
+        output::write " ---------------------------------------------"
+        output::empty_line
+        ;;
+      "prompt")
+        # Nothing to do here
+        ;;
+      *) # auto
+        output::answer "🚀 Updating SLOTH Automatically"
+        update::update_local_sloth_module
+        output::solution "Updated, restart your terminal."
+        rm -f "$DOTFILES_PATH/.sloth_update_available"
+        ;;
     esac
   fi
 }

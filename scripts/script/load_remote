@@ -56,7 +56,7 @@ fi
 
 if [[ -z "${script_url:-}" ]] ||
   { [[ -z "${curl_bin:-}" ]] && ! platform::command_exists curl; } ||
-  { [[ -n "${curl_bin:-}" ]] && ! command -v "${curl_bin}" &>/dev/null; }; then
+  { [[ -n "${curl_bin:-}" ]] && ! command -v "${curl_bin}" &> /dev/null; }; then
   output::error "No valid url were given or \`curl\` command were not found"
 fi
 

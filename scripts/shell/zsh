@@ -14,48 +14,48 @@
 docs::parse "$@"
 
 case $1 in
-"optimize")
-  asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
-  sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
-  echo "ASL only storing critical files!"
+  "optimize")
+    asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
+    sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
+    echo "ASL only storing critical files!"
 
-  find "$DOTFILES_PATH/shell/zsh" -name '*.zwc' -exec rm -rf {} \;
-  find "$DOTFILES_PATH/shell/zsh" -name '*.old' -exec rm -rf {} \;
-  find "$DOTLY_PATH/modules/zimfw" -name '*.zwc' -exec rm -rf {} \;
-  find "$DOTLY_PATH/modules/zimfw" -name '*.old' -exec rm -rf {} \;
+    find "$DOTFILES_PATH/shell/zsh" -name '*.zwc' -exec rm -rf {} \;
+    find "$DOTFILES_PATH/shell/zsh" -name '*.old' -exec rm -rf {} \;
+    find "$DOTLY_PATH/modules/zimfw" -name '*.zwc' -exec rm -rf {} \;
+    find "$DOTLY_PATH/modules/zimfw" -name '*.old' -exec rm -rf {} \;
 
-  /bin/zsh -c "source ${ZDOTDIR:-${HOME}}/.zlogin"
+    /bin/zsh -c "source ${ZDOTDIR:-${HOME}}/.zlogin"
 
-  "$DOTLY_PATH/bin/dot" shell zsh reload_completions
-  ;;
-"test_performance")
-  script::depends_on hyperfine
+    "$DOTLY_PATH/bin/dot" shell zsh reload_completions
+    ;;
+  "test_performance")
+    script::depends_on hyperfine
 
-  hyperfine '/bin/zsh -i -c exit' '/opt/homebrew/bin/zsh -i -c exit' --warmup 1
+    hyperfine '/bin/zsh -i -c exit' '/opt/homebrew/bin/zsh -i -c exit' --warmup 1
 
-  echo ""
-  echo "ZSH INFO:"
-  echo "  🍎 macOS ZSH 📂 /bin/zsh              - $(/bin/zsh --version)"
-  echo "  🍺 Brew ZSH  📂 /opt/homebrew/bin/zsh - $(/opt/homebrew/bin/zsh --version)"
+    echo ""
+    echo "ZSH INFO:"
+    echo "  🍎 macOS ZSH 📂 /bin/zsh              - $(/bin/zsh --version)"
+    echo "  🍺 Brew ZSH  📂 /opt/homebrew/bin/zsh - $(/opt/homebrew/bin/zsh --version)"
 
-  echo ""
-  echo "✨ Currently using $(command -v zsh) ✨"
-  ;;
-"clean_cache")
-  find "$HOME" -name '*.zwc' -delete
-  ;;
-"reload_completions")
-  zsh -i -c "autoload -U compaudit && autoload -Uz compinit && compinit"
+    echo ""
+    echo "✨ Currently using $(command -v zsh) ✨"
+    ;;
+  "clean_cache")
+    find "$HOME" -name '*.zwc' -delete
+    ;;
+  "reload_completions")
+    zsh -i -c "autoload -U compaudit && autoload -Uz compinit && compinit"
 
-  output::empty_line
-  output::answer 'Now restart your terminal'
-  ;;
-"fix_permissions")
-  sudo -v
-  sudo chown -R "$(whoami)" /usr/local/share/zsh /usr/local/share/zsh/site-functions
-  chmod u+w /usr/local/share/zsh /usr/local/share/zsh/site-functions
-  ;;
-*)
-  exit 1
-  ;;
+    output::empty_line
+    output::answer 'Now restart your terminal'
+    ;;
+  "fix_permissions")
+    sudo -v
+    sudo chown -R "$(whoami)" /usr/local/share/zsh /usr/local/share/zsh/site-functions
+    chmod u+w /usr/local/share/zsh /usr/local/share/zsh/site-functions
+    ;;
+  *)
+    exit 1
+    ;;
 esac

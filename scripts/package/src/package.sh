@@ -44,7 +44,7 @@ package::manager_exists() {
 
 package::get_available_package_managers() {
   local package_manager_src package_manager
-  find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2>/dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
+  find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2> /dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
     # Get package manager name
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
@@ -56,7 +56,7 @@ package::get_available_package_managers() {
     package::load_manager "$package_manager"
 
     # Check if package manager is available
-    if command -v "${package_manager}::is_available" &>/dev/null && "${package_manager}::is_available"; then
+    if command -v "${package_manager}::is_available" &> /dev/null && "${package_manager}::is_available"; then
       echo "$package_manager"
     fi
   done
@@ -74,7 +74,7 @@ package::command_exists() {
   package::load_manager "$package_manager"
 
   # If function does not exists for the package manager it will return 0 (true) always
-  if declare -F "${package_manager}::${command}" &>/dev/null; then
+  if declare -F "${package_manager}::${command}" &> /dev/null; then
     return
   fi
 
@@ -197,7 +197,7 @@ package::which_file() {
   var_name="$3"
 
   #shellcheck disable=SC2207
-  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 2>/dev/null | xargs -0 -I _ basename _ | sort -u))
+  files=($(find "$FILES_PATH" -not -iname ".*" -maxdepth 1 -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _ | sort -u))
 
   if [[ -d "$FILES_PATH" && ${#files[@]} -gt 0 ]]; then
     answer="$(printf "%s\n" "${files[@]}" | fzf -0 --filepath-word -d ',' --prompt "$(hostname -s) > " --header "$header" --preview "[[ -f $FILES_PATH/{} ]] && cat $FILES_PATH/{} || echo No import a file for this package manager")"

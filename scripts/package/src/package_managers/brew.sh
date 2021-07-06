@@ -10,8 +10,8 @@ brew::install() {
   local app_url
   # Some aliases
   case "$1" in
-  "docpars") package="denisidoro/tools/docpars" ;;
-  *) package="$1" ;;
+    "docpars") package="denisidoro/tools/docpars" ;;
+    *) package="$1" ;;
   esac
 
   if platform::command_exists brew && brew list --formulae "$package"; then
@@ -24,11 +24,11 @@ brew::install() {
 }
 
 brew::package_exists() {
-  [[ -n "${1:-}" ]] && brew info "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && brew info "$1" &> /dev/null
 }
 
 brew::is_installed() {
-  platform::command_exists brew && { brew list --formulae "$@" &>/dev/null || brew list --cask "$@" &>/dev/null; }
+  platform::command_exists brew && { brew list --formulae "$@" &> /dev/null || brew list --cask "$@" &> /dev/null; }
 }
 
 brew::update_all() {

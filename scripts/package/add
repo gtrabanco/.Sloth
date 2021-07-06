@@ -28,30 +28,30 @@ else
   package_manager=""
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-    --skipe-recipe | -s)
-      skip_recipe=true
-      shift
-      ;;
-    --pkgmgr)
-      package_manager="$2"
-      shift 2
-      ;;
-    --version | -v)
-      version=true
-      shift
-      ;;
-    --help | -h)
-      help=true
-      shift
-      ;;
-    *)
-      if [[ -n "${1:-}" && -z "$package_name" ]]; then
-        package_name="$1"
+      --skipe-recipe | -s)
+        skip_recipe=true
         shift
-      else
-        break 2
-      fi
-      ;;
+        ;;
+      --pkgmgr)
+        package_manager="$2"
+        shift 2
+        ;;
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      *)
+        if [[ -n "${1:-}" && -z "$package_name" ]]; then
+          package_name="$1"
+          shift
+        else
+          break 2
+        fi
+        ;;
     esac
   done
 fi

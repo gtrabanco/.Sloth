@@ -8,7 +8,7 @@ pip::is_available() {
 }
 
 pip::is_installed() {
-  [[ -n "${1:-}" ]] && pip3 show "$1" &>/dev/null
+  [[ -n "${1:-}" ]] && pip3 show "$1" &> /dev/null
 }
 
 # Not define the function because it is not possible to do it with pip
