@@ -7,13 +7,20 @@ brew::is_available() {
 }
 
 brew::install() {
+  local app_url
   # Some aliases
   case "$1" in
   "docpars") package="denisidoro/tools/docpars" ;;
   *) package="$1" ;;
   esac
 
-  platform::command_exists brew && brew install "$package"
+  if platform::command_exists brew && brew list --formulae "$package"; then
+    brew install "$package"
+  elif platform::command_exists brew && brew list --cask "$package"; then
+    brew install --cask "$package"
+  else
+    return 1
+  fi
 }
 
 brew::package_exists() {
@@ -21,7 +28,7 @@ brew::package_exists() {
 }
 
 brew::is_installed() {
-  platform::command_exists brew && brew list "$@" &>/dev/null
+  platform::command_exists brew && { brew list --formulae "$@" &>/dev/null || brew list --cask "$@" &>/dev/null; }
 }
 
 brew::update_all() {
