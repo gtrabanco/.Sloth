@@ -22,7 +22,7 @@ dotfiles=false
 ##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
 ##?
 ##? SCRIPT_VERSION 3.0.0
-if [ "$1" == "-h" ] || [ "$1" = "--help" ]; then
+if [ "${1:-}" == "-h" ] || [ "${1:-}" = "--help" ]; then
   docs::parse "$@"
 elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
   dotfiles=true
@@ -41,11 +41,11 @@ else
 fi
 
 for file in "${all_files[@]}"; do
-  if [[ $? -eq 1 && -n "$patch_content" ]] && $apply; then
+  if ${apply:-false}; then
     unset patch_content
     patch_content="$(shfmt -ln bash -i 2 "$file")"
-    echo "$patch_content" | patch "$file"
-  elif [[ $? -eq 1 && -n "$patch_content" ]]; then
+    [[ -n "$patch_content" ]] && echo "$patch_content" | patch "$file"
+  else
     shfmt -ln bash -i 2 -d "$file"
   fi
 done
