@@ -61,12 +61,12 @@ exit_code=0
 
 for file in "${all_files[@]}"; do
   unset patch_content removed_empty
-  patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" 2>/dev/null || true)"
+  patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" 2> /dev/null || true)"
   removed_empty="$(echo "$patch_content" | sed 's/[[:space:]]//g')"
 
   if ${patch:-false}; then
     {
-      [[ -n "$removed_empty" ]] &&
+      [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]] &&
         output::answer "Linting \`$file\`" &&
         echo "$patch_content" | patch "$file" &> /dev/null
     } || {
