@@ -105,6 +105,4 @@ else
   fi
 fi
 
-if ! package::is_installed "$package_name"; then
-  output::write "❌ \`$package_name\` could not be installed" && exit 1
-fi
+output::write "❌ \`$package_name\` could not be installed" && exit 1
