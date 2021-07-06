@@ -23,6 +23,11 @@ FORCED_PKGMGR="brew"
 ##?
 docs::parse "$@"
 
+if ! platform::command_exists brew; then
+  output::error "Brew command does not exits"
+  exit 4
+fi
+
 case $1 in
   "list_installed")
     brew leaves

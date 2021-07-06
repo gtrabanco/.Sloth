@@ -105,5 +105,4 @@ else
   fi
 fi
 
-# If we are here package could not be installed for sure
 output::write "❌ \`$package_name\` could not be installed" && exit 1
