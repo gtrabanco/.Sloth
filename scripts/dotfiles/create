@@ -4,7 +4,7 @@ set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
-dot::load_library "templating.sh"
+dot::load_library "templating.sh" "core"
 
 ##? Create the dotfiles structure
 ##?
