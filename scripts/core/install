@@ -36,7 +36,7 @@ output::answer "Setting up symlinks"
 "$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || true
 touch "$HOME/.z"
 
-if ! str::contains zsh "$SHELL"; then
+if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
   output::answer "Setting zsh as the default shell"
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
 fi
