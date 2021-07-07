@@ -10,7 +10,7 @@ install_macos_custom() {
     shift
 
     if [[ $# -gt 0 ]]; then
-      "$0" "$@"
+      brew::install "$@"
     fi
   }
 
@@ -63,7 +63,7 @@ install_linux_custom() {
     shift
 
     if [[ $# -gt 0 ]]; then
-      "$0" "$@"
+      linux::install "$@"
     fi
   }
 
