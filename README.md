@@ -12,6 +12,11 @@
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
 
+## About this
+[Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
+
+Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
+
 ## Main differences and features with Dotly Framework
 * Abstraction from Framework loader you only need to add `source "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"`
 * Init scripts (see (init-scripts)[https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts] in (gtrabanco/dotfiles)[https://github.com/gtrabanco/dotfiles]). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
