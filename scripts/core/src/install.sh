@@ -26,6 +26,7 @@ install_macos_custom() {
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     brew update --force | log::file "Brew update"
     brew upgrade --force | log::file "Brew upgrade current packages"
+    brew list gnutls || brew install gnutls | log::file "Installing brew gnutls"
   fi
   brew list bash || brew install bash | log::file "Installing brew bash"
   brew list zsh || brew install zsh | log::file "Installing brew zsh"
@@ -34,7 +35,6 @@ install_macos_custom() {
   brew list gnu-tar || brew install gnu-tar | log::file "Installing brew gnu-tar"
   brew list gnu-sed || brew install gnu-sed | log::file "Installing brew gnu-sed"
   brew list gawk || brew install gawk | log::file "Installing brew gawk"
-  brew list gnutls || brew install gnutls | log::file "Installing brew gnutls"
   brew list gnu-which || brew install gnu-which | log::file "Installing brew gnu-which"
   brew list grep || brew install grep | log::file "Installing brew grep"
   brew list make || brew install make | log::file "Installing brew make"
