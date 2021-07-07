@@ -13,7 +13,7 @@ dot::load_library "templating.sh" "core"
 ##?
 docs::parse "$@"
 
-DOTFILES_PATH="${2:-$DOTFILES_PATH}"
+DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 
