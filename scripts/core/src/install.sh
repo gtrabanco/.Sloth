@@ -8,7 +8,7 @@ install_macos_custom() {
       "$0" "${@:2}"
     fi
 
-    brew list "$1" 2>/dev/null || brew install "$1" | log::file "Installing brew $1"
+    brew list "$1" 2> /dev/null || brew install "$1" | log::file "Installing brew $1"
   }
 
   if ! platform::command_exists brew; then
