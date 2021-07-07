@@ -60,7 +60,7 @@ git::get_current_latest_tag() {
   for version in $(git::get_all_local_tags); do
     if
       [[ -z "${latest:-}" ]] ||
-      [[ $(platform::semver_compare "$latest" "$version" 2>/dev/null) -eq -1 ]]
+        [[ $(platform::semver_compare "$latest" "$version" 2> /dev/null) -eq -1 ]]
     then
       latest="$version"
     fi
