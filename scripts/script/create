@@ -156,7 +156,7 @@ case "${1:-}" in
     description="${script_description[*]:-}"
 
     # Description can not be empty
-    [[ -z "$description" ]] && output::question "Description can not be empty, describe your script" "description"
+    [[ -z "$description" ]] && description="$(output::question "Description can not be empty, describe your script")"
 
     cp "${SCRIPT_TEMPLATE_PATH}" "$script_filepath"
     templating::replace "$script_filepath" --script-name="$script_name" --script-context="$context" --script-author="$author" --script-author-email="$email" --script-description="$description" > /dev/null
