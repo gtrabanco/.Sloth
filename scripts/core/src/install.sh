@@ -53,7 +53,7 @@ install_macos_custom() {
 }
 
 install_linux_custom() {
-  local -r package_manager="$(package::preferred_manager)"
+  local -r package_manager="$(package::manager_preferred)"
   linux::install() {
     if [[ $# -eq 0 ]]; then
       return

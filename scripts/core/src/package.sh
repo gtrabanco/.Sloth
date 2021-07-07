@@ -144,7 +144,7 @@ package::_install() {
   return 1
 }
 
-package::preferred_manager() {
+package::manager_preferred() {
   local all_available_pkgmgrs
 
   mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
