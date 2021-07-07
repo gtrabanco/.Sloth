@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 export PACKAGE_MANAGERS_SRC=(
   "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
-  "${DOTFILES_PATH}/package_managers"
-  "${PACKAGE_MANAGERS_SRC[@]}"
+  "${DOTFILES_PATH:-}/package_managers"
+  "${PACKAGE_MANAGERS_SRC[@]:-}"
 )
 
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
@@ -142,6 +142,17 @@ package::_install() {
   fi
 
   return 1
+}
+
+package::manager_preferred() {
+  local all_available_pkgmgrs
+
+  mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+  eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
+
+  if [[ ${#uniq_values[@]} -gt 0 ]]; then
+    echo "${uniq_values[0]}"
+  fi
 }
 
 # Try to install with any package manager
