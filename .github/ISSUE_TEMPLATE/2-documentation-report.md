@@ -2,7 +2,7 @@
 name: 📚 Documentation report
 about: Reporting a documentation issue or requesting documentation
 title: 'Discussion: <add some descriptive text about the feature>'
-labels: discuss, new feature
+labels: documentation
 assignees: gtrabanco
 ---
 

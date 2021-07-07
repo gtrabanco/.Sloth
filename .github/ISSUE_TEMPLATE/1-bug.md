@@ -1,8 +1,8 @@
 ---
 name: 🐛 Bug report
-about: Create a report to help us improve
-title: [BUG] <write title here>
-labels: 🔍 open, 🐛 bug
+about: Report an issue
+title: '[BUG] <write title here>'
+labels: open, bug, needs triage
 assignees: gtrabanco
 ---
 
@@ -10,8 +10,8 @@ assignees: gtrabanco
 <!-- Mark something only if you consider necessary -->
 - [ ] I know how to fix.
 - [ ] I will provide a fix later in a PR.
-- [ ] This is minor issue. Dotly can work properly but give some errors.
-- [ ] This is a big issue. Dotly can not work.
+- [ ] This is minor issue. Sloth can work properly but give some errors.
+- [ ] This is a big issue. Sloth can not work.
 
 # How to reproduce
 1. First step
