@@ -55,7 +55,18 @@ git::get_commit_tag() {
 }
 
 git::get_current_latest_tag() {
-  git::get_all_local_tags | head -n1
+  local version latest
+
+  for version in $(git::get_all_local_tags); do
+    if
+      [[ -z "${latest:-}" ]] ||
+      [[ $(platform::semver_compare "$latest" "$version" 2>/dev/null) -eq -1 ]]
+    then
+      latest="$version"
+    fi
+  done
+
+  echo "$latest"
 }
 
 # shellcheck disable=SC2120
