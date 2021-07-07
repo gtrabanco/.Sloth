@@ -41,8 +41,10 @@ if ! str::contains zsh "$SHELL"; then
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
 fi
 
-output::answer "Installing zim"
-zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+if platform::command_exists zsh; then
+  output::answer "Installing zim"
+  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+fi
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && [[ "$SHELL" =~ zsh$ ]]; then
   output::answer "Installing completions"
