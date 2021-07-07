@@ -1,6 +1,16 @@
 #!/bin/user/env bash
 
 install_macos_custom() {
+  brew::install() {
+    if [[ $# -eq 0 ]]; then
+      return
+    elif [[ $# -gt 1 ]]; then
+      "$0" "${@:2}"
+    fi
+
+    brew list "$1" 2>/dev/null || brew install "$1" | log::file "Installing brew $1"
+  }
+
   if ! platform::command_exists brew; then
     output::error "brew not installed, installing"
 
@@ -22,27 +32,21 @@ install_macos_custom() {
   output::answer "Installing needed gnu packages"
   brew cleanup -s | log::file "Brew executing cleanup"
   brew cleanup --prune-prefix | log::file "Brew removeing dead symlinks"
-  # In CI we want to do it all faster so we avoid update & upgrade and some packages
+  # To make CI Cheks faster avoid brew update & upgrade
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     brew update --force | log::file "Brew update"
     brew upgrade --force | log::file "Brew upgrade current packages"
-    brew list gnutls || brew install gnutls | log::file "Installing brew gnutls"
-    brew list gnu-tar || brew install gnu-tar | log::file "Installing brew gnu-tar"
-    brew list bat || brew install bat | log::file "Installing brew bat"
-    brew list hyperfine || brew install hyperfine | log::file "Installing brew hyperfine"
-    brew list gnu-which || brew install gnu-which | log::file "Installing brew gnu-which"
   fi
-  brew list bash || brew install bash | log::file "Installing brew bash"
-  brew list zsh || brew install zsh | log::file "Installing brew zsh"
-  brew list coreutils || brew install coreutils | log::file "Installing brew coreutils"
-  brew list findutils || brew install findutils | log::file "Installing brew findutils"
-  brew list gnu-sed || brew install gnu-sed | log::file "Installing brew gnu-sed"
-  brew list gawk || brew install gawk | log::file "Installing brew gawk"
-  brew list grep || brew install grep | log::file "Installing brew grep"
-  brew list make || brew install make | log::file "Installing brew make"
+
+  brew::install bash zsh coreutils findutils gnu-sed
+
+  # To make CI Checks faster this packages are only installed in production
+  if [[ "${DOTLY_ENV:-PROD}" == "PROD" ]]; then
+    brew::install gnutls gnu-tar gnu-which gawk grep make bat hyperfine
+  fi
 
   output::answer "Installing mas"
-  brew list mas || brew install mas | log::file "Installing mas"
+  brew::install mas
 }
 
 install_linux_custom() {
