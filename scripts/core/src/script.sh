@@ -2,8 +2,8 @@
 
 command_or_package_exists() {
   platform::command_exists "$1" ||
-  package::is_installed "$1" ||
-  registry::is_installed "$1"
+    package::is_installed "$1" ||
+    registry::is_installed "$1"
 }
 
 script::depends_on() {
