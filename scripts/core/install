@@ -12,6 +12,9 @@ export PATH="$HOME/.cargo/bin:$PATH"
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
   install_macos_custom
+elif platform::is_linux; then
+  output::answer "🐧 Setting up Linux Platform"
+  install_linux_custom
 fi
 
 script::depends_on docpars fzf zsh python
