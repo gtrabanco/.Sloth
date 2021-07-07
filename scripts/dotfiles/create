@@ -11,7 +11,11 @@ dot::load_library "templating.sh" "core"
 ##? Usage:
 ##?    create [<dotfiles_path>]
 ##?
-docs::parse "$@"
+if ! ${DOTLY_INSTALLER:-false}; then
+  docs::parse "$@"
+elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  grep '^##?' "$0" | tr '##? ' ' '
+fi
 
 DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
 
