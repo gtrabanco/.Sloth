@@ -53,6 +53,7 @@ install_macos_custom() {
 }
 
 install_linux_custom() {
+  local -r package_manager="$(package::preferred_manager)"
   linux::install() {
     if [[ $# -eq 0 ]]; then
       return
@@ -65,6 +66,11 @@ install_linux_custom() {
       "$0" "$@"
     fi
   }
+
+  # To make CI Cheks faster avoid package manager update & upgrade
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
+  fi
 
   output::answer "Installing needed packages"
   linux::install bash zsh hyperfine

@@ -144,6 +144,17 @@ package::_install() {
   return 1
 }
 
+package::preferred_manager() {
+  local all_available_pkgmgrs
+
+  mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+  eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
+
+  if [[ ${#uniq_values[@]} -gt 0 ]]; then
+    echo "${uniq_values[0]}"
+  fi
+}
+
 # Try to install with any package manager
 package::install() {
   local all_available_pkgmgrs uniq_values package_manager package
