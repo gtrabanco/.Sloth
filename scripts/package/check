@@ -6,7 +6,6 @@ set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
-dot::load_library "package.sh"
 
 ##? Install a package
 ##?
