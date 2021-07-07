@@ -42,15 +42,16 @@ git::current_commit_hash() {
   git rev-parse HEAD "$@"
 }
 
+git::is_valid_commit() {
+  local -r commit="${1:-HEAD}"
+  git::is_in_repo && [[ $(git cat-file -t "$commit") == commit ]]
+}
+
 # shellcheck disable=SC2120
 git::get_commit_tag() {
-  local commit
-  if git::is_in_repo; then
-    commit="${1:-}"
-    { [[ -n "$commit" ]] && shift; } || commit="$(git::current_commit_hash)"
+  local -r commit="${1:-HEAD}"
 
-    git show-ref --tags "$@" | grep "$commit" | awk '{print $2}' | sed 's#refs/tags/##'
-  fi
+  git::is_in_repo && git::is_valid_commit "$commit" && git tag --points-at "$commit"
 }
 
 git::get_current_latest_tag() {
