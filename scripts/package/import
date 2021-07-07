@@ -2,7 +2,6 @@
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
-dot::load_library "package.sh"
 dot::load_library "dump.sh"
 
 ##? Import previously dumped packages from:

@@ -2,7 +2,7 @@
 export PACKAGE_MANAGERS_SRC=(
   "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
   "${DOTFILES_PATH}/package_managers"
-  "${PACKAGE_MANAGERS_SRC[@]}"
+  "${PACKAGE_MANAGERS_SRC[@]:-}"
 )
 
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
