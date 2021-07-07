@@ -4,11 +4,14 @@ install_macos_custom() {
   brew::install() {
     if [[ $# -eq 0 ]]; then
       return
-    elif [[ $# -gt 1 ]]; then
-      "$0" "${@:2}"
     fi
 
     brew list "$1" 2> /dev/null || brew install "$1" | log::file "Installing brew $1"
+    shift
+
+    if [[ $# -gt 0 ]]; then
+      "$0" "$@"
+    fi
   }
 
   if ! platform::command_exists brew; then
