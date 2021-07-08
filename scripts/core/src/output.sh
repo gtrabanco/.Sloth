@@ -8,7 +8,7 @@ normal='\033[0m'
 _output::parse_code() {
   local normal="\033[0m" style="$normal"
   case "${1:-}" in
-    --color|--style)
+    --color | --style)
       style="$2"
       shift 2
       ;;
