@@ -19,6 +19,15 @@ dot::load_library "update.sh"
 ##?
 docs::parse "$@"
 
+if git::is_in_repo; then
+  echo "in"
+  git::current_commit_hash
+fi
+git::get_commit_tag
+#git::sloth_repository_exec git::get_commit_tag
+update::get_latest_minor_local_head
+exit
+
 if ${disable:-enable}; then
   touch "$DOTFILES_PATH/.sloth_force_current_version"
   exit 0
