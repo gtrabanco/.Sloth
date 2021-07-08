@@ -96,17 +96,17 @@ update::check_consistency_with_sloth_version() {
   local local_commit_tag
   local_commit_tag="$(git::sloth_repository_exec git::get_commit_tag)"
 
-  case "$(str::to_lower "${SLOTH_UPDATE_VERSION:-latest}")" in
+  case "$(str::to_lower "${SLOTH_UPDATE_VERSION:-stable}")" in
     "stable" | "minor")
       if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
         output::error "Error in your .Sloth configuration, 'SLOTH_UPDATE_VERSION'"
         output::empty_line
-        output::answer "You have selected to update to $SLOTH_UPDATE_VERSION but you are not"
-        output::write "\tusing any stable version. Modify SLOTH_UPDATE_VERSION variable or use"
-        output::write "\tthe script:"
-        output::write "\t\tdot self version"
+        output::answer "You have selected to update to ${SLOTH_UPDATE_VERSION:-stable} but you are not"
+        output::write "using any stable version. Modify SLOTH_UPDATE_VERSION variable or use"
+        output::write "the script:"
+        output::answer "\`dot core version\`"
         output::empty_line
-        output::write "You can also disable updates by using: 'dot self update --disable'"
+        output::answer "You can also disable updates by using: \`dot core update --disable\`"
         output::empty_line
         return 1
       fi
