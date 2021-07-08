@@ -1,16 +1,33 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
 
-##? Static analysis of all dotly related bash files
+# Default values
+dotfiles=false
+
+##? Static analysis of all sloth/dotly related bash files
 ##?
 ##? Usage:
-##?    lint
-if [ "$1" == "-h" ] || [ "$1" = "--help" ]; then
+##?    static_analysis [--dotfiles | -d]
+##?
+##? Options:
+##?    --help -h      Gives this help
+##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
+##?
+##? SCRIPT_VERSION 2.0.0
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" = "--help" ]]; then
   docs::parse "$@"
+elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
+  dotfiles=true
 fi
 script::depends_on shellcheck
 
-dotly::list_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+if ${dotfiles:-false}; then
+  dotly::list_dotfiles_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+else
+  dotly::list_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+fi

@@ -12,6 +12,9 @@ export PATH="$HOME/.cargo/bin:$PATH"
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
   install_macos_custom
+elif platform::is_linux; then
+  output::answer "🐧 Setting up Linux Platform"
+  install_linux_custom
 fi
 
 script::depends_on docpars fzf zsh python
@@ -20,6 +23,8 @@ script::depends_on docpars fzf zsh python
 ##?
 ##? Usage:
 ##?    install
+##?
+##? SCRIPT_VERSION "2.0.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
 elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -34,18 +39,20 @@ output::answer "Setting up symlinks"
 "$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || true
 touch "$HOME/.z"
 
-if ! str::contains zsh "$SHELL"; then
+if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
   output::answer "Setting zsh as the default shell"
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
 fi
 
-output::answer "Installing zim"
-zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+if platform::command_exists zsh; then
+  output::answer "Installing zim"
+  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+fi
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && [[ "$SHELL" =~ zsh$ ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" && "$SHELL" =~ zsh$ ]]; then
   output::answer "Installing completions"
   {
-    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &>/dev/null &&
+    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
 fi

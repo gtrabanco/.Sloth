@@ -1,21 +1,55 @@
+#!/usr/bin/env bash
+
 platform::command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
+}
+
+platform::get_os() {
+  echo "$OSTYPE" | tr '[:upper:]' '[:lower:]'
+}
+
+platform::get_arch() {
+  local architecture=""
+  case $(uname -m) in
+    x86_64)
+      architecture="amd64"
+      ;;
+    arm)
+      architecture="arm"
+      ;;
+    ppc64)
+      architecture="ppc64"
+      ;;
+    i?86)
+      architecture="x86"
+      ;;
+  esac
+
+  echo "$architecture"
+}
+
+platform::is_arm() {
+  [[ $(platform::get_arch) == "arm" ]]
 }
 
 platform::is_macos() {
-  [[ $(uname -s) == "Darwin" ]]
+  [[ $(platform::get_os) == "darwin"* ]]
 }
 
 platform::is_macos_arm() {
-  [[ $(uname -p) == "arm" ]]
+  platform::is_macos && platform::is_arm
 }
 
 platform::is_linux() {
-  [[ $(uname -s) == "Linux" ]]
+  [[ $(platform::get_os) == *"linux"* ]]
 }
 
 platform::is_wsl() {
-  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &>/dev/null
+  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &> /dev/null
+}
+
+platform::is_bsd() {
+  platform::is_macos || [[ $(platform::get_os) == *"bsd"* ]]
 }
 
 platform::os() {
@@ -25,6 +59,8 @@ platform::os() {
     os="mac"
   elif platform::is_linux; then
     os="linux"
+  elif platform::is_bsd && ! platform::is_macos; then
+    os="bsd"
   elif platform::is_wsl; then
     os="wsl-linux"
   fi
@@ -33,76 +69,30 @@ platform::os() {
 }
 
 platform::wsl_home_path() {
-  wslpath "$(wslvar USERPROFILE 2>/dev/null)"
-}
-
-platform::normalize_ver() {
-  local version
-  version="${1//./ }"
-  echo "${version//v/}"
-}
-
-platform::compare_ver() {
-  [[ $1 -lt $2 ]] && echo -1 && return
-  [[ $1 -gt $2 ]] && echo 1 && return
-
-  echo 0
+  wslpath "$(wslvar USERPROFILE 2> /dev/null)"
 }
 
 # It does not support beta, rc and similar suffix
 platform::semver_compare() {
-  if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+  platform::semver compare "${1//v/}" "${2//v/}"
+}
+
+# Equal version return false because there is not difference
+platform::semver_is_minor_or_patch_update() {
+  local diff_type
+  diff_type="$(platform::semver diff "${1//v/}" "${2//v/}" | tr '[:upper:]' '[:lower:]')"
+  [[ -n "${diff_type}" && "$diff_type" != "major" ]]
+}
+
+platform::semver() {
+  local SEMVER_BIN=""
+  if command -v semver &> /dev/null; then
+    SEMVER_BIN="$(command -v "semver")"
+  elif [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver" ]]; then
+    SEMVER_BIN="${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver"
+  else
     return 1
   fi
 
-  v1="$(platform::normalize_ver "${1:-}")"
-  v2="$(platform::normalize_ver "${2:-}")"
-
-  major1="$(echo "$v1" | awk '{print $1}')"
-  major2="$(echo "$v2" | awk '{print $1}')"
-
-  minor1="$(echo "$v1" | awk '{print $2}')"
-  minor2="$(echo "$v2" | awk '{print $2}')"
-
-  patch1="$(echo "$v1" | awk '{print $3}')"
-  patch2="$(echo "$v2" | awk '{print $3}')"
-
-  compare_major="$(platform::compare_ver "$major1" "$major2")"
-  compare_minor="$(platform::compare_ver "$minor1" "$minor2")"
-  compare_patch="$(platform::compare_ver "$patch1" "$patch2")"
-
-  if [[ $compare_major -ne 0 ]]; then
-    echo "$compare_major"
-  elif [[ $compare_minor -ne 0 ]]; then
-    echo "$compare_minor"
-  else
-    echo "$compare_patch"
-  fi
-}
-
-# It does not support beta, rc and similar suffix
-# First argument is the current version to say if second argument is
-# a version update that is no a major update
-platform::semver_is_minor_or_patch_update() {
-  v1="$(platform::normalize_ver "$1")"
-  v2="$(platform::normalize_ver "$2")"
-
-  major1="$(echo "$v1" | awk '{print $1}')"
-  major2="$(echo "$v2" | awk '{print $1}')"
-
-  minor1="$(echo "$v1" | awk '{print $2}')"
-  minor2="$(echo "$v2" | awk '{print $2}')"
-
-  patch1="$(echo "$v1" | awk '{print $3}')"
-  patch2="$(echo "$v2" | awk '{print $3}')"
-
-  compare_major="$(platform::compare_ver "$major1" "$major2")"
-  compare_minor="$(platform::compare_ver "$minor1" "$minor2")"
-  compare_patch="$(platform::compare_ver "$patch1" "$patch2")"
-
-  [[ $compare_major -eq 0 ]] && {                               # Only equals major are minor or patch updates
-    [[ $compare_minor -eq -1 ]] || {                            # If minor is over current minor is and update
-      [[ $compare_minor -eq 0 ]] && [[ $compare_patch -eq -1 ]] # If minor is equal and patch is greater
-    }
-  }
+  "$SEMVER_BIN" "$@"
 }

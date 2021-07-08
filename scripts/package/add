@@ -2,54 +2,65 @@
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
-dot::load_library "package.sh"
-dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
 
 ##? Install a package
 ##?
 ##? Usage:
-##?    add [-v | --version]
-##?    add [-h | --help]
-##?    add [--recipe-path <recipe_path>] <package_name>
+##?    add -v | --version
+##?    add -h | --help
+##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] <package_name>
 ##?
 ##? Options:
-##?    -h --help     Show script help
-##?    -v --version  Show script version
+##?    -h --help         Show script help
+##?    -v --version      Show script version
+##?    -s --skip-recipe  Skip the receipe and force to use a package manager, this omit any recipe
+##?    --pkgmgr          Force to use a package manager, for example: cargo
 ##?
+##? SCRIPT_VERSION 3.0.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
   package_name=""
   version=false
   help=false
-  recipe_path="$(dot::get_script_path)/recipes/"
+  skip_recipe=false
+  package_manager=""
   while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --recipe-path)
-      if [[ "$2" != "_registry" ]]; then
-        recipe_path="$2"
-      fi
-      shift 2
-      ;;
-    --version | -v)
-      version=true
-      shift
-      ;;
-    --help | -h)
-      help=true
-      shift
-      ;;
-    *)
-      package_name="$1"
-      shift
-      ;;
+    case "${1:-}" in
+      --skipe-recipe | -s)
+        skip_recipe=true
+        shift
+        ;;
+      --pkgmgr)
+        package_manager="$2"
+        shift 2
+        ;;
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      *)
+        if [[ -n "${1:-}" && -z "$package_name" ]]; then
+          package_name="$1"
+          shift
+        else
+          break 2
+        fi
+        ;;
     esac
   done
 fi
+package_name="$(echo "$package_name" | str::to_lower)"
 
-SCRIPT_NAME="sloth package add"
-SCRIPT_VERSION="3.0.0"
-package_name="$(str::to_lower "$package_name")"
+if [[ -z "${FORCED_PKGMGR}" ]]; then
+  # Used in package::command
+  #shellcheck disable=SC2034
+  FORCED_PKGMGR="${package_manager:-}"
+fi
 
 if ${version:-}; then
   output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
@@ -72,28 +83,25 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
-package::is_installed "$package_name" "${recipe_path:-}" && log::success "$package_name already installed" && exit 0
+# Check if package is installed
+package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
-if [[ -z "$skip_recipe" ]] &&
-  [[ -n "$(registry::recipe_exists "$package_name" "${recipe_path:-}")" ]] &&
-  registry::install "$package_name" "${recipe_path:-}" &&
-  registry::is_installed "$package_name" "${recipe_path:-}"; then
+# If there is a recipe for the package use it
+if ! ${skip_recipe:-false} &&
+  [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+  registry::install "$package_name" &&
+  registry::is_installed "$package_name"; then
   output::write "✅ \`$package_name\` installed"
 
   exit 0
 else
-  package::command install "$package_name" 2>&1 || true
+  package::install "$package_name" "${FORCED_PKGMGR:-}" 2>&1 || true
 
-  if package::is_installed "$package_name" "${recipe_path:-}"; then
+  if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
 
     exit 0
   fi
 fi
 
-if { [[ "$package_name" == "docpars" ]] && ! registry::is_installed docpars "${recipe_path:-}"; } ||
-  { [[ "$package_name" != "docpars" ]] && ! platform::command_exists "$package_name" && ! registry::is_installed "$package_name" "${recipe_path:-}"; }; then
-  output::write "❌ \`$package_name\` could not be installed"
-
-  exit 1
-fi
+output::write "❌ \`$package_name\` could not be installed" && exit 1

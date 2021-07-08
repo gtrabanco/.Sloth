@@ -4,6 +4,10 @@
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dump.sh"
 
+if platform::command_exists npm; then
+  script::depends_on jq
+fi
+
 ##? Dump all installed packages from:
 ##?  * Brew
 ##?  * Python
@@ -24,62 +28,33 @@ if ! ${silent:-false}; then
   output::empty_line
 fi
 
-HOMEBREW_DUMP_FILE_PATH="$DOTFILES_PATH/os/$(platform::os)/brew/${HOSTNAME}.txt"
-APT_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/apt/${HOSTNAME}.txt"
-SNAP_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/snap/${HOSTNAME}.txt"
-CARGO_DUMP_FILE_PATH="$DOTFILES_PATH/langs/rust/cargo/${HOSTNAME}.txt"
-PYTHON_DUMP_FILE_PATH="$DOTFILES_PATH/langs/python/${HOSTNAME}.txt"
-NPM_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/npm/${HOSTNAME}.txt"
-VOLTA_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/volta/${HOSTNAME}.txt"
+for package_manager in $(package::get_available_package_managers); do
+  dump_file_path=""
+  dump_file_path="$(dump::file_path "$package_manager" "${HOSTNAME:-$(hostname -s)}")"
 
-{
-  platform::command_exists brew &&
-    package::brew_dump "$HOMEBREW_DUMP_FILE_PATH" &&
-    output::answer "${brew_title:-Brew} apps dumped on $HOMEBREW_DUMP_FILE_PATH" &&
-    output::empty_line
-} || package::clarification "${brew_title:-Brew}"
+  [[ -z "$dump_file_path" ]] && output::error "No dump file for \`$package_manager\`" && continue
 
-{
-  platform::command_exists apt-mark &&
-    package::apt_dump "$APT_DUMP_FILE_PATH" &&
-    output::answer "${apt_title:-APT} apps dumped on $APT_DUMP_FILE_PATH" &&
-    output::empty_line
-} || package::clarification "${apt_title:-APT}"
+  if
+    [[ $package_manager == "npm" ]] &&
+      package::get_available_package_managers | grep -q "^volta$" ||
+      ! package::command_exists "$package_manager" "dump"
+  then
+    continue
+  fi
 
-{
-  platform::command_exists snap &&
-    package::snap_dump "$SNAP_DUMP_FILE_PATH" &&
-    output::answer "${snap_title:-SNAP} apps dumped on $SNAP_DUMP_FILE_PATH" &&
-    output::empty_line
-} || package::clarification "${snap_title:-SNAP}"
-
-{
-  platform::command_exists cargo &&
-    package::cargo_dump "$CARGO_DUMP_FILE_PATH" &&
-    output::answer "${cargo_title:-Cargo} apps dumped on $CARGO_DUMP_FILE_PATH" &&
-    output::empty_line
-} || package::clarification "${cargo_title:-Cargo}"
-
-{
-  platform::command_exists pip3 &&
-    package::python_dump "$PYTHON_DUMP_FILE_PATH" &&
-    output::answer "${pip_title:-Python} apps dumped on $PYTHON_DUMP_FILE_PATH" &&
-    output::empty_line
-} || package::clarification "${pip_title:-Python}"
-
-if platform::command_exists volta; then
   {
-    package::volta_dump "$VOLTA_DUMP_FILE_PATH" &&
-      output::answer "${volta_title:-Volta} apps dumped on $VOLTA_DUMP_FILE_PATH" &&
+    package::command_exists "$package_manager" "dump" &&
+      package::load_manager "$package_manager" &&
+      output::empty_line &&
+      output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
+      package::command "$package_manager" "dump" "$dump_file_path" &&
+      output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
       output::empty_line
-  } || package::clarification "${volta_title:-Volta}"
+  } || {
+    output::error "Error while exporting $(eval echo "\$${package_manager}_title") apps see \`dot core debug\`" &&
+      output::empty_line
+  }
 
-elif platform::command_exists npm; then
-  {
-    package::npm_dump "$NPM_DUMP_FILE_PATH" &&
-      output::answer "${npm_title:-NPM} apps dumped on $NPM_DUMP_FILE_PATH" &&
-      output::empty_line
-  } || package::clarification "${npm_title:-NPM}"
-fi
+done
 
 output::solution 'All packages dumped'

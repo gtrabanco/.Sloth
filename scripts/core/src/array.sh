@@ -15,3 +15,21 @@ array::exists_value() {
 
   return 1
 }
+
+# Always define a variable called uniq_values
+# eval $(array::uniq_ordered "${myarr[@]}")
+# printf "%s\n" "${uniq_values[@]}"
+array::uniq_unordered() {
+  local uniq_values item
+
+  # Variable declarations
+  declare -a uniq_values=()
+
+  if [[ $# -gt 0 ]]; then
+    for item in "$@"; do
+      ! array::exists_value "$item" "${uniq_values[@]}" && uniq_values+=("$item")
+    done
+  fi
+
+  declare -p uniq_values
+}

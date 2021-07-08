@@ -38,7 +38,7 @@ templating::replace_var() {
     var_name="XXX_$(str::to_upper "$1" | tr '-' '_')_XXX"
     shift
     value="${*:-}"
-    sed -e "s|${var_name}|${value}|g" </dev/stdin
+    sed -e "s|${var_name}|${value}|g" < /dev/stdin
   fi
 }
 
@@ -71,7 +71,7 @@ templating::replace_var_join() {
     glue="$1"
     shift
     joined_str="$(str::join "$glue" "$@")"
-    templating::replace_var "$var_name" "$joined_str" </dev/stdin
+    templating::replace_var "$var_name" "$joined_str" < /dev/stdin
   fi
 }
 
@@ -90,35 +90,35 @@ templating::replace_var_join() {
 templating::replace() {
   local var_name var_value output
   case "${1:-}" in
-  --*=* | --*)
-    output=$(</dev/stdin)
-    ;;
-  *)
-    output="$1"
-    shift
-    ;;
+    --*=* | --*)
+      output=$(< /dev/stdin)
+      ;;
+    *)
+      output="$1"
+      shift
+      ;;
   esac
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-    --*=*)
-      var_name="$(echo "$1" | awk -F '=' '{print $1}' | sed 's/^\-\-//')"
-      var_value="$(echo "$1" | awk -F '=' '{print $2}')"
-      shift
-      ;;
-    --*)
-      #shellcheck disable=SC2001
-      var_name="$(echo "$1" | sed 's/\-\-//')"
-      shift
-      var_value="${1:-}"
-      shift
-      ;;
-    *)
-      var_name="${1:-}"
-      shift
-      var_value="${1:-}"
-      shift
-      ;;
+      --*=*)
+        var_name="$(echo "$1" | awk -F '=' '{print $1}' | sed 's/^\-\-//')"
+        var_value="$(echo "$1" | awk -F '=' '{print $2}')"
+        shift
+        ;;
+      --*)
+        #shellcheck disable=SC2001
+        var_name="$(echo "$1" | sed 's/\-\-//')"
+        shift
+        var_value="${1:-}"
+        shift
+        ;;
+      *)
+        var_name="${1:-}"
+        shift
+        var_value="${1:-}"
+        shift
+        ;;
     esac
 
     if [[ -f "$output" ]]; then
