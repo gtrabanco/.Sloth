@@ -96,13 +96,13 @@ update::check_consistency_with_sloth_version() {
   local local_commit_tag
   local_commit_tag="$(git::sloth_repository_exec git::get_commit_tag)"
 
-  case "$(str::to_lower "$DOTLY_UPDATE_VERSION")" in
+  case "$(str::to_lower "${SLOTH_UPDATE_VERSION:-latest}")" in
     "stable" | "minor")
       if [ -z "$local_commit_tag" ] && [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
-        output::error "Error in your Dotly configuration, 'DOTLY_UPDATE_VERSION'"
+        output::error "Error in your .Sloth configuration, 'SLOTH_UPDATE_VERSION'"
         output::empty_line
-        output::answer "You have selected to update to $DOTLY_UPDATE_VERSION but you are not"
-        output::write "\tusing any stable version. Modify DOTLY_UPDATE_VERSION variable or use"
+        output::answer "You have selected to update to $SLOTH_UPDATE_VERSION but you are not"
+        output::write "\tusing any stable version. Modify SLOTH_UPDATE_VERSION variable or use"
         output::write "\tthe script:"
         output::write "\t\tdot self version"
         output::empty_line
@@ -126,7 +126,7 @@ update::update_local_sloth_module() {
   remote_sloth_tag="$(update::check_if_is_stable_update)"
 
   # No update
-  if [ ! -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
+  if [ -f "$DOTFILES_PATH/.sloth_force_current_version" ]; then
     return 1
   fi
 
@@ -134,6 +134,7 @@ update::update_local_sloth_module() {
   if ! update::check_consistency_with_sloth_version > /dev/null; then
     return 1
   fi
+  # TODO Continue here
 
   # Update local repository
   if ! git::check_local_repo_is_updated "origin" "$DOTLY_PATH"; then
@@ -141,7 +142,7 @@ update::update_local_sloth_module() {
     [[ -n "$local_sloth_version" ]] && git checkout "$local_sloth_version" # Keep current tag
   fi
 
-  case "$(str::to_lower "${DOTLY_AUTO_UPDATE_VERSION:-stable}")" in
+  case "$(str::to_lower "${SLOTH_AUTO_UPDATE_VERSION:-stable}")" in
     "latest" | "beta") ;;
 
     "minor" | "only_minor")

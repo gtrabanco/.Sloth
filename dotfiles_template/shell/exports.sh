@@ -11,7 +11,7 @@ export SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS=7
 export SLOTH_AUTO_UPDATE_MODE="auto" # silent, auto (default), info, prompt
 export SLOTH_UPDATE_VERSION="stable" # latest, stable (default), minor
 export SLOTH_INIT_SCRIPTS=true       # Init scripts enabled (only defined false
-                                     # will deactivate this feature)
+# will deactivate this feature)
 
 # ------------------------------------------------------------------------------
 # Codely theme config
