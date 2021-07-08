@@ -160,9 +160,9 @@ git::check_sloth_repo_is_updated() {
   git::sloth_repository_exec git add -A && git::sloth_repository_exec git stash
 
   current_branch="$(git::sloth_repository_exec git branch)"
-
+  git::sloth_repository_exec git branch "$branch"
   # If it is behind, status_code must be != 0
-  git::sloth_repository_exec git status -sb --ignore-submodules --ahead-behind "$branch" 2> /dev/null | grep -q 'behind' && status_code=1
+  git::sloth_repository_exec git status -sb --ignore-submodules --ahead-behind 2> /dev/null | grep -q 'behind' && status_code=1
 
   git::sloth_repository_exec git stash pop && git::sloth_repository_exec git branch "$current_branch"
 
