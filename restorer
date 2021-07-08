@@ -51,7 +51,6 @@ EOF
   esac
 done
 
-# TODO iCloud
 ICLOUD_PATH="$HOME/Library/Mobile\ Documents/com~apple~CloudDocs/"
 IS_ICLOUD_DOTFILES=false
 
@@ -288,7 +287,7 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
     esac
   done
 
-  if [[ ${IS_ICLOUD_DOTFILES:-false} != false ]]; then
+  if ${IS_ICLOUD_DOTFILES:-false}; then
     # Recovering your files
     _w "Installing your dotfiles from $opt"
     _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
