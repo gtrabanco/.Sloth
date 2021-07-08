@@ -137,7 +137,7 @@ update::update_local_sloth_module() {
   # TODO Continue here
 
   # Update local repository
-  if ! git::check_local_repo_is_updated "origin" "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  if ! git::check_sloth_repo_is_updated "origin" "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
     update::update_sloth_repository
     [[ -n "$local_sloth_version" ]] && git checkout "$local_sloth_version" # Keep current tag
   fi

@@ -31,7 +31,7 @@ autoupdate::sloth_updater() {
   [[ -f "$DOTFILES_PATH/.sloth_update_available" ]] && return 0
 
   if files::check_if_path_is_older "$DOTLY_PATH" "${SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS:-7}" "days" &&
-    ! git::check_local_repo_is_updated "origin" "$DOTLY_PATH"; then
+    ! git::check_sloth_repo_is_updated "origin" "$DOTLY_PATH"; then
     touch "$DOTFILES_PATH/.sloth_update_available"
 
     remote_sloth_minor="$(update::check_minor_update)"

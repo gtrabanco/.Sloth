@@ -151,8 +151,22 @@ git::check_file_is_modified_after_commit() {
   [[ "$file_commit_date" -gt "$commit_to_check_date" ]]
 }
 
-git::check_local_repo_is_updated() {
-  git::is_in_repo && ! git status -sb 2> /dev/null | grep -q 'behind'
+git::check_sloth_repo_is_updated() {
+  local current_branch status_code=0 branch="${1:-master}"
+  # No repository return error
+  ! git::sloth_repository_exec git::is_in_repo && return 1
+
+  # Saving working dir changes
+  git::sloth_repository_exec git add . && git::sloth_repository_exec git stash
+
+  current_branch="$(git::sloth_repository_exec git branch)"
+
+  # If it is behind, status_code must be != 0
+  git::sloth_repository_exec git status -sb --ignore-submodules --ahead-behind "$branch" 2> /dev/null | grep -q 'behind' && status_code=1
+
+  git::sloth_repository_exec git stash pop && git::sloth_repository_exec git branch "$current_branch"
+
+  return $status_code
 }
 
 git::sloth_repository_exec() {
