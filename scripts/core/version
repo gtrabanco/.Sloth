@@ -83,6 +83,7 @@ case "$selected_tag" in
 esac
 
 if [[ -n "$selected_tag" ]]; then
-  output::answer "Sloth is update locked. To unlock updates use: dot self update --enable"
+  output::answer ".Sloth is update locked. Which mean that can not be updated."
+  output::answer "To unlock updates type: \`dot self update --enable\` command"
   touch "$DOTFILES_PATH/.sloth_force_current_version"
 fi
