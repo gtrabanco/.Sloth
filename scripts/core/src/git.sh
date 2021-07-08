@@ -157,7 +157,7 @@ git::check_sloth_repo_is_updated() {
   ! git::sloth_repository_exec git::is_in_repo && return 1
 
   # Saving working dir changes
-  git::sloth_repository_exec git add . && git::sloth_repository_exec git stash
+  git::sloth_repository_exec git add -A && git::sloth_repository_exec git stash
 
   current_branch="$(git::sloth_repository_exec git branch)"
 
