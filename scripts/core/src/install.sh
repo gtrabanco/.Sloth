@@ -46,10 +46,10 @@ install_macos_custom() {
   # To make CI Checks faster this packages are only installed in production
   if [[ "${DOTLY_ENV:-PROD}" == "PROD" ]]; then
     brew::install gnutls gnu-tar gnu-which gawk grep make hyperfine
-  fi
 
-  output::answer "Installing mas"
-  brew::install mas
+    output::answer "Installing mas"
+    brew::install mas
+  fi
 }
 
 install_linux_custom() {
