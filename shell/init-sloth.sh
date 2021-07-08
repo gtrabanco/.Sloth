@@ -23,6 +23,21 @@ function recent_dirs() {
   cd "$(echo "$selected" | sed "s/\~/$escaped_home/")" || echo "Invalid directory"
 }
 
+# Advise no vars defines
+if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
+  if [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/dotly" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+    SLOTH_PATH="$DOTFILES_PATH/modules/dotly"
+    DOTLY_PATH="$SLOTH_PATH"
+  elif [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/sloth" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+    SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
+    DOTLY_PATH="$SLOTH_PATH"
+  else
+    echo -e "\033[0;31m\033[1mDOTFILES_PATH or SLOTH_PATH is not defined or is wrong, .Sloth will fail\033[0m"
+  fi
+fi
+
 # Envs
 # GPG TTY
 GPG_TTY="$(tty)"
