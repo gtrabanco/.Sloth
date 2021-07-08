@@ -65,7 +65,6 @@ update::check_if_is_stable_update() {
 # shellcheck disable=SC2120
 update::update_sloth_repository() {
   local current_directory current_branch update_submodules return_code
-  set +e
 
   # Defaults values that are needed here
   current_directory="$(pwd)"
@@ -120,7 +119,6 @@ update::check_consistency_with_sloth_version() {
 
 update::update_local_sloth_module() {
   local current_sloth_hash local_sloth_version remote_sloth_minor remote_sloth_tag
-  set +e # Avoid crash if any function fail
 
   current_sloth_hash="$(git::get_local_HEAD_hash)"
   local_sloth_version="$(git::sloth_repository_exec git::get_commit_tag)"
