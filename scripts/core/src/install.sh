@@ -34,22 +34,23 @@ install_macos_custom() {
 
   output::answer "Installing needed gnu packages"
   brew cleanup -s | log::file "Brew executing cleanup"
-  brew cleanup --prune-prefix | log::file "Brew removeing dead symlinks"
+  brew cleanup --prune-prefix | log::file "Brew removing dead symlinks"
+
   # To make CI Cheks faster avoid brew update & upgrade
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     brew update --force | log::file "Brew update"
     brew upgrade --force | log::file "Brew upgrade current packages"
   fi
 
-  brew::install bash zsh coreutils findutils gnu-sed
+  brew::install coreutils findutils gnu-sed
 
-  # To make CI Checks faster this packages are only installed in production
-  if [[ "${DOTLY_ENV:-PROD}" == "PROD" ]]; then
-    brew::install gnutls gnu-tar gnu-which gawk grep make hyperfine
+  # To make CI Checks faster this packages are only installed if not CI
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine
+
+    output::answer "Installing mas"
+    brew::install mas
   fi
-
-  output::answer "Installing mas"
-  brew::install mas
 }
 
 install_linux_custom() {
