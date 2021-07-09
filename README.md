@@ -5,20 +5,27 @@
 </p>
 
 <h1 align="center">
-  Dotfiles for laziness
+  .Sloth
 </h1>
+
+<p align="center">
+  Dotfiles for laziness
+</p>
 
 <p align="right">
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
 
 ## About this
-[Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
+[.Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
 
 Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
 
 ## Main differences and features with Dotly Framework
-* Abstraction from Framework loader you only need to add `source "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"`
+* Abstraction from Framework loader you only need to add
+ ```bash
+ source "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"
+ ```
 * Init scripts (see (init-scripts)[https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts] in (gtrabanco/dotfiles)[https://github.com/gtrabanco/dotfiles]). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
 * Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
 * Non opinionated `git` scripts.
@@ -26,8 +33,16 @@ Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [Cod
 * When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`). So you won't loose any old data if you migrate to SLOTH.
 * Easy way to create new scripts from Terminal `sloth script create --help`
 * Easy way to install scripts from Terminal `sloth script install_remote --help`
-* Use libraries without download `. <(https://raw.githubusercontent.com/gtrabanco/sloth/master/scripts/core/src/output.sh) && output::write "Using latest output.sh library of SLOTH"`
-* Execute scripts without download (as installer) `bash <(https://raw.githubusercontent.com/gtrabanco/dotfiles/master/restoration_scripts/98-keybase-import-private-key.sh)`
+* Use libraries without download
+```bash
+. <(dot script load_remote "https://raw.githubusercontent.com/gtrabanco/sloth/master/scripts/core/src/output.sh") &&
+output::write "Using latest output.sh library of .Sloth"
+```
+* Execute scripts without download (as installer do)
+```bash
+url="https://raw.githubusercontent.com/gtrabanco/dotfiles/master/restoration_scripts/98-keybase-import-private-key.sh"
+bash <(dot script load_remote "$url")
+```
 * Scripts marketplace (Coming soon...)
 * We promise to reply all issues and support messages and review PRs.
 
