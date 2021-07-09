@@ -41,7 +41,7 @@ init::get_enabled() {
 
 init::fzf() {
   local piped_values preview_cmd
-  piped_values="$(</dev/stdin)"
+  piped_values="$(< /dev/stdin)"
 
   preview_cmd=("echo 'Press Tab+Shift to select multiple options.\nPress Ctrl+C to exit with no selection.\n--\n';")
   preview_cmd+=("{ [[ -f \"$SLOTH_INIT_SCRIPTS_PATH/\$(echo {})\" ]] && cat \"$SLOTH_INIT_SCRIPTS_PATH/\$(echo {})\"; } ||")

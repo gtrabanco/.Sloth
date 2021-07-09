@@ -1,38 +1,85 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2001
+
+set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
 
-##? Lint all dotly related bash files
+# Default values
+patch=false
+dotfiles=false
+
+##? Lint all sloth/dotly related bash files
 ##?
 ##? Usage:
-##?    lint [ --patch | -p ]
-##?    lint
+##?    lint [ --patch | -p ] [--dotfiles | -d]
+##?    lint [--dotfiles | -d]
 ##?
 ##? Options:
-##?    --patch -p  Apply a patch
-if [ "$1" == "-h" ] || [ "$1" = "--help" ]; then
+##?    --help -h      Gives this help
+##?    --patch -p     Apply a patch
+##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
+##?
+##? SCRIPT_VERSION 3.0.0
+if [ "${1:-}" == "-h" ] || [ "${1:-}" = "--help" ]; then
   docs::parse "$@"
-fi
-apply=false
-
-if [[ "${1:-}" == "--patch" || "${1:-}" == "-p" ]]; then
-  apply=true
+else
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dotfiles | -d)
+        dotfiles=true
+        shift
+        ;;
+      --patch | -p)
+        patch=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
 fi
 
 script::depends_on shfmt
 
 # Avoid zsh because shfmt show some errors because it do not understand some
 # valid zsh valid syntax
-mapfile -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+if ${dotfiles:-false}; then
+  mapfile -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
+else
+  mapfile -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+fi
+
+# No color for shfmt
+TERM=dumb
+
+# exit code
+exit_code=0
 
 for file in "${all_files[@]}"; do
-  unset patch_content
-  patch_content="$(shfmt -ln bash -i 2 -d "$file")"
-  if [[ $? -eq 1 && -n "$patch_content" ]] && $apply; then
-    echo "$patch_content" | patch "$file"
-  elif [[ $? -eq 1 && -n "$patch_content" ]]; then
-    echo "$patch_content"
+  unset patch_content removed_empty
+  patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" 2> /dev/null || true)"
+  removed_empty="$(echo "$patch_content" | sed 's/[[:space:]]//g')"
+
+  if ${patch:-false}; then
+    {
+      [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]] &&
+        output::answer "Linting \`$file\`" &&
+        echo "$patch_content" | patch "$file" &> /dev/null
+    } || {
+      if [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
+        exit_code=1
+      fi
+    }
+  else
+    if [[ -n "$removed_empty" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
+      echo "$patch_content"
+      exit_code=1
+    fi
   fi
 done
+
+exit $exit_code

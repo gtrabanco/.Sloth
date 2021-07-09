@@ -6,15 +6,13 @@ set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
-dot::load_library "package.sh"
-dot::load_library "_registry.sh" "$(dot::get_script_path)/recipes/"
 
 ##? Install a package
 ##?
 ##? Usage:
 ##?    check [-v | --version]
 ##?    check [-h | --help]
-##?    check [--recipe-path <recipe_path>] <package_name> [--skip-recipe]
+##?    check <package_name> [--skip-recipe]
 ##?
 ##? Options:
 ##?    -h --help     Show script help
@@ -28,27 +26,20 @@ else
   package_name=""
   version=false
   help=false
-  recipe_path="$(dot::get_script_path)/recipes/"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --recipe-path)
-      if [[ "$2" != "_registry" ]]; then
-        recipe_path="$2"
-      fi
-      shift 2
-      ;;
-    --version | -v)
-      version=true
-      shift
-      ;;
-    --help | -h)
-      help=true
-      shift
-      ;;
-    *)
-      package_name="$1"
-      shift
-      ;;
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      *)
+        package_name="$1"
+        shift
+        ;;
     esac
   done
 fi
@@ -72,8 +63,7 @@ if [[ "$package_name" != "docpars" ]]; then
   script::depends_on docpars
 fi
 
-if { [[ "$package_name" == "docpars" ]] && registry::is_installed docpars "$recipe_path"; } ||
-  { [[ "$package_name" != "docpars" ]] && package::is_installed "$package_name"; }; then
+if package::is_installed "$package_name"; then
   log::success "$package_name already installed" && exit 0
 fi
 

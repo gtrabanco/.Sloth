@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ ! -d "${SLOTH_PATH:-$DOTLY_PATH}" ]]; then
+  echo -e "\033[0;31mSLOTH/DOTLY is not detected\033[0m"
+  exit 1
+fi
+
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+
+SLOTH_LAZY_SCRIPT_BASE_NAME="sloth"
+
+if ! [[ -f "${1:-}" ||
+  "${1:-}" == "-v" || "${1:-}" == "--version" ||
+  "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  output::error "Wrong params for Sloth script call"
+  output::error "This script is not intendeed to be used by user"
+  exit 1
+fi
+
+##? Sloth lazy scripts loader.
+##? This script is not intended to be used by user. It is a core script used by \`dot\` command.
+##?
+##? Usage:
+##?   sloth_lazy_script -h | --help
+##?   sloth_lazy_script -v | --version
+##?   sloth_lazy_script <script> <args>...
+##?
+##? Arguments:
+##?   <script>   Full script path
+##?   <args>     Arguments for the script
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+##? SCRIPT_VERSION "1.0.0"
+firstarg="$(str::to_lower "${1:-}")"
+if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+  docs::parse "$@"
+elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
+  SCRIPT_VERSION="$(dot::parse_script_version "$0")"
+  SCRIPT_NAME="${SLOTH_LAZY_SCRIPT_BASE_NAME} core sloth_lazy_script"
+  if [[ -n "$SCRIPT_VERSION" ]]; then
+    output::write "$SCRIPT_NAME"
+    output::write "\t\`v$SCRIPT_VERSION\`"
+  else
+    output::write "$SCRIPT_NAME"
+    output::error "\t no version provided"
+  fi
+  exit
+else
+  unset firstarg
+  #shellcheck disable=SC2034
+  SLOTH_SCRIPT_PATH="$(dirname "$1")"
+  SLOTH_SCRIPT_FILE_PATH="$1"
+  shift
+fi
+
+mapfile -d "/" -t _script_paths < <(echo "$SLOTH_SCRIPT_FILE_PATH")
+_last_script_path=$((${#_script_paths[@]} - 1))
+_previous_script_path=$((_last_script_path - 1))
+SCRIPT_NAME="${SLOTH_LAZY_SCRIPT_BASE_NAME} ${_script_paths[$_previous_script_path]} ${_script_paths[$_last_script_path]}"
+unset _script_paths _last_script_path _previous_script_path
+
+# Check if first arg is -v or --version
+SCRIPT_VERSION="$(dot::parse_script_version "$SLOTH_SCRIPT_FILE_PATH")"
+firstarg="$(str::to_lower "$1")"
+if [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
+  if [[ -n "$SCRIPT_VERSION" ]]; then
+    output::write "$SCRIPT_NAME \`v$SCRIPT_VERSION\`"
+  else
+    output::write "$SCRIPT_NAME no version provided"
+  fi
+fi
+unset firstarg
+
+# Execute script by loading
+# These vars will be available in the scripts:
+# SLOTH_SCRIPT_PATH, SLOTH_SCRIPT_FILE_PATH, SCRIPT_NAME, SCRIPT_VERSION
+docs::parse "$SLOTH_SCRIPT_FILE_PATH" "$@"
+#shellcheck disable=SC1090
+. "$SLOTH_SCRIPT_FILE_PATH"
