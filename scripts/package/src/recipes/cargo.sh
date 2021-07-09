@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cargo::install() {
   {
     platform::command_exists brew && brew install rust 2>&1 | log::file "Installing build-essential" && return 0
