@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 deno::install() {
   if platform::command_exists cargo; then
     cargo install deno
