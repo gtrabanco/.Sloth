@@ -1,5 +1,7 @@
+#!/usr/bin/env bash
+
 git::is_in_repo() {
-  git rev-parse HEAD >/dev/null 2>&1
+  git rev-parse HEAD > /dev/null 2>&1
 }
 
 # shellcheck disable=SC2120
@@ -40,19 +42,31 @@ git::current_commit_hash() {
   git rev-parse HEAD "$@"
 }
 
+git::is_valid_commit() {
+  local -r commit="${1:-HEAD}"
+  git::is_in_repo && [[ $(git cat-file -t "$commit") == commit ]]
+}
+
 # shellcheck disable=SC2120
 git::get_commit_tag() {
-  local commit
-  if git::is_in_repo; then
-    commit="${1:-}"
-    { [[ -n "$commit" ]] && shift; } || commit="$(git::current_commit_hash)"
+  local -r commit="${1:-HEAD}"
 
-    git show-ref --tags "$@" | grep "$commit" | awk '{print $2}' | sed 's#refs/tags/##'
-  fi
+  git::is_in_repo && git::is_valid_commit "$commit" && git tag --points-at "$commit"
 }
 
 git::get_current_latest_tag() {
-  git::get_all_local_tags | head -n1
+  local version latest
+
+  for version in $(git::get_all_local_tags); do
+    if
+      [[ -z "${latest:-}" ]] ||
+        [[ $(platform::semver_compare "$latest" "$version" 2> /dev/null) -eq -1 ]]
+    then
+      latest="$version"
+    fi
+  done
+
+  echo "$latest"
 }
 
 # shellcheck disable=SC2120
@@ -71,7 +85,7 @@ git::get_all_remote_tags_version_only() {
   local repository
   repository="${1:-}"
   { [[ -n "$repository" ]] && shift; } || repository="origin"
-  git::get_all_remote_tags "$repository" "${@:-*.*.*}" 2>/dev/null | sed 's/.*\///; s/\^{}//' | uniq
+  git::get_all_remote_tags "$repository" "${@:-*.*.*}" 2> /dev/null | sed 's/.*\///; s/\^{}//' | uniq
 }
 
 git::check_local_tag_exists() {
@@ -111,11 +125,11 @@ git::get_submodule_property() {
 }
 
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git rev-parse @~:"${1:-}" >/dev/null 2>&1
+  [[ -n "${1:-}" ]] && ! git rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
 git::get_file_last_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp -1 "${1:-}" 2>/dev/null | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp -1 "${1:-}" 2> /dev/null | awk '{print $1}'
 }
 
 git::get_commit_timestamp() {
@@ -128,7 +142,7 @@ git::check_file_is_modified_after_commit() {
   commit_to_check="${2:-}"
   { [[ -z "$file_path" ]] || [[ -z "${commit_to_check:-}" ]] || [[ ! -e "$file_path" ]]; } && return 1
 
-  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" 2>/dev/null)"
+  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" 2> /dev/null)"
 
   [[ -z "$file_commit_date" ]] && return 0 # File path did not exists previously then
   # it is more recent than any commit 😅
@@ -138,7 +152,7 @@ git::check_file_is_modified_after_commit() {
 }
 
 git::check_local_repo_is_updated() {
-  git::is_in_repo && ! git status -sb 2>/dev/null | grep -q 'behind'
+  git::is_in_repo && ! git status -sb 2> /dev/null | grep -q 'behind'
 }
 
 git::sloth_repository_exec() {

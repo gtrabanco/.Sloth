@@ -15,7 +15,7 @@ remote::require_script() {
   url="${1:-}"
   CURL_BIN="${2:-$(which curl)}"
   http_code="$(curl -o /dev/null -Isw '%{http_code}' "$url")"
-  
+
   [[ "$http_code" != "200" ]] && return 1
   #shellcheck disable=SC1090
   "$CURL_BIN" --silent "$url" || return 1
@@ -54,10 +54,9 @@ if ${version:-}; then
   exit
 fi
 
-if  [[ -z "${script_url:-}" ]] ||
-    { [[ -z "${curl_bin:-}" ]] && ! platform::command_exists curl; } ||
-    { [[ -n "${curl_bin:-}" ]] && ! command -v "${curl_bin}" &>/dev/null; }
-then
+if [[ -z "${script_url:-}" ]] ||
+  { [[ -z "${curl_bin:-}" ]] && ! platform::command_exists curl; } ||
+  { [[ -n "${curl_bin:-}" ]] && ! command -v "${curl_bin}" &> /dev/null; }; then
   output::error "No valid url were given or \`curl\` command were not found"
 fi
 

@@ -57,7 +57,7 @@ cd "$dotfiles_context" || exit 1
 output::write "Downloading the script ⚡️"
 eval "$download_command $script_raw_url"
 if [ ! $? ]; then
-  if [ -z "$(ls -A "$dotfiles_context" 2>/dev/null)" ]; then
+  if [ -z "$(ls -A "$dotfiles_context" 2> /dev/null)" ]; then
     output::error "The context '$dotfiles_context' is empty. File could not be downloaded."
     exit 1
   fi

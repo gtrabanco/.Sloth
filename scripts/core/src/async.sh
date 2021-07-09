@@ -44,9 +44,9 @@ killJob() {
 
   for job in "${JOB_IDS[@]}"; do
     # increment job to 1 since array index starts from 0
-    read -r -d " " -a __kunk__ <<<"${JOB_IDS[$job]}"
+    read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
     ((__kunk__ == jobToKill)) && {
-      read -r -d " " -a __kunk__ <<<"${JOB_IDS[$job]}"
+      read -r -d " " -a __kunk__ <<< "${JOB_IDS[$job]}"
 
       kill -"${signal}" %"${__kunk__[0]}"
 
@@ -80,8 +80,8 @@ async() {
   __temp=("$cmdToExec" "$reject" "$resolve")
 
   for _c in "${__temp[@]}"; do
-    read -r -d " " comm <<<"${_c}"
-    type "${comm}" &>/dev/null
+    read -r -d " " comm <<< "${_c}"
+    type "${comm}" &> /dev/null
 
     status=$?
 
@@ -108,7 +108,7 @@ async() {
 
   JOB_IDS+=("${JOBS} ${cmd}")
 
-  read -r -d " " -a __kunk__ <<<"${JOB_IDS[$((${#JOB_IDS[@]} - 1))]}"
+  read -r -d " " -a __kunk__ <<< "${JOB_IDS[$((${#JOB_IDS[@]} - 1))]}"
 
   #echo ${__kunk__}
 

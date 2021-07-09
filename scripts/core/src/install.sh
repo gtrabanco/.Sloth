@@ -1,6 +1,19 @@
 #!/bin/user/env bash
 
 install_macos_custom() {
+  brew::install() {
+    if [[ $# -eq 0 ]]; then
+      return
+    fi
+
+    brew list "$1" 2> /dev/null || brew install "$1" | log::file "Installing brew $1"
+    shift
+
+    if [[ $# -gt 0 ]]; then
+      brew::install "$@"
+    fi
+  }
+
   if ! platform::command_exists brew; then
     output::error "brew not installed, installing"
 
@@ -20,23 +33,51 @@ install_macos_custom() {
   mkdir -p "$HOME/bin"
 
   output::answer "Installing needed gnu packages"
-  brew list bash || brew install bash | log::file "Installing brew bash"
-  brew list zsh || brew install zsh | log::file "Installing brew zsh"
-  brew list coreutils || brew install coreutils | log::file "Installing brew coreutils"
-  brew list make || brew install make | log::file "Installing brew make"
-  brew list gnu-sed || brew install gnu-sed | log::file "Installing brew gnu-sed"
-  brew list findutils || brew install findutils | log::file "Installing brew findutils"
-  brew list bat || brew install bat | log::file "Installing brew bat"
-  brew list hyperfine || brew install hyperfine | log::file "Installing brew hyperfine"
+  brew cleanup -s | log::file "Brew executing cleanup"
+  brew cleanup --prune-prefix | log::file "Brew removing dead symlinks"
 
-  output::answer "Installing mas"
-  brew list mas || brew install mas | log::file "Installing mas"
+  # To make CI Cheks faster avoid brew update & upgrade
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    brew update --force | log::file "Brew update"
+    brew upgrade --force | log::file "Brew upgrade current packages"
+  fi
+
+  brew::install coreutils findutils gnu-sed
+
+  # To make CI Checks faster this packages are only installed if not CI
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine
+
+    output::answer "Installing mas"
+    brew::install mas
+  fi
 }
 
 install_linux_custom() {
-  "$DOTLY_PATH/bin/dot" package add build-essential
-  "$DOTLY_PATH/bin/dot" package add coreutils
-  "$DOTLY_PATH/bin/dot" package add findutils
-  "$DOTLY_PATH/bin/dot" package add bat
-  "$DOTLY_PATH/bin/dot" package add zsh
+  local -r package_manager="$(package::manager_preferred)"
+  linux::install() {
+    if [[ $# -eq 0 ]]; then
+      return
+    fi
+
+    package::is_installed "$1" || package::install "$1" | log::file "Installing $1"
+    shift
+
+    if [[ $# -gt 0 ]]; then
+      linux::install "$@"
+    fi
+  }
+
+  # To make CI Cheks faster avoid package manager update & upgrade
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
+  fi
+
+  output::answer "Installing needed packages"
+  linux::install build-essential coreutils findutils
+
+  # To make CI Checks faster this packages are only installed if not CI
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    linux::install bash zsh hyperfine
+  fi
 }

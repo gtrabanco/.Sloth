@@ -36,7 +36,7 @@ yaml_file_backup() {
   done
 }
 
-dotly_install_symlinks() {
+sloth_install_symlinks() {
   local -r CONFIG="$DOTLY_PATH/scripts/self/src/symlinks/${1:-}"
   shift
 
@@ -50,15 +50,12 @@ dotly_install_symlinks() {
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
   install_macos_custom
+elif platform::is_linux; then
+  output::answer "🐧 Setting up Linux Platform"
+  install_linux_custom
 fi
 
-script::depends_on docpars fzf zsh python jq
-# PR Review note
-# script::depends_on will fail for `moreutils` package
-# because moreutils is not a binary
-"$DOTLY_PATH/bin/dot" package add moreutils
-# The same for python-yq
-"$DOTLY_PATH/bin/dot" package add python-yq
+script::depends_on docpars zsh fzf python python-yq jq moreutils
 
 ##? Install dotly and setup dotfiles
 ##?
@@ -73,6 +70,8 @@ script::depends_on docpars fzf zsh python jq
 ##?                         without asking.
 ##?
 ##?    install
+##?
+##? SCRIPT_VERSION "2.0.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
 elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -106,9 +105,9 @@ _args+=(
   -c
 )
 
-# Dotly install symlinks
+# Sloth core install symlinks
 for yaml_file in "${yaml_files[@]}"; do
-  dotly_install_symlinks "$yaml_file" "${_args[@]}"
+  sloth_install_symlinks "$yaml_file" "${_args[@]}"
 done
 
 if platform::command_exists yq && platform::command_exists jq; then
@@ -126,7 +125,7 @@ if platform::command_exists yq && platform::command_exists jq; then
       yaml_file="$(symlinks::get_file_path "$yaml_file")"
 
       [[ ! -f "$yaml_file" ]] && continue
-      links=($(dotbot::get_all_keys_in "link" "$(symlinks::get_file_path "$yaml_file")"))
+      maptfile -t links < <(dotbot::get_all_keys_in "link" "$(symlinks::get_file_path "$yaml_file")")
 
       for link in "${links[@]}"; do
         link="$(eval realpath -q -m -s "$link")"
@@ -157,35 +156,28 @@ else
 fi
 touch "$HOME/.z"
 
-if ! str::contains zsh "$SHELL"; then
+if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
   output::answer "Setting zsh as the default shell"
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
 fi
 
-output::empty_line
-output::answer "Installing zim"
-if zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"; then
-  output::solution "ZIM Framework Installed"
+if platform::command_exists zsh; then
+  output::answer "Installing zim"
+  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
   output::error "ZIM Framework could not be installed"
   output::write "Use $(dot self debug) to view what happened"
   output::write "You will need to run manually the ZIM Framework install command"
-  output::write "  zsh \"$ZIM_HOME/zimfw.zsh\" install"
+  output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
 fi
 
-<<<<<<< HEAD
-output::empty_line
-output::answer "Installing completions"
-"$DOTLY_PATH/bin/dot" shell zsh reload_completions || output::error "Error reloading completions"
-=======
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && [[ "$SHELL" =~ zsh$ ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" && "$SHELL" =~ zsh$ ]]; then
   output::answer "Installing completions"
   {
-    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &>/dev/null &&
+    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
 fi
->>>>>>> master
 
 output::answer "Executing custom restoration scripts"
 install_scripts_path="$DOTFILES_PATH/restoration_scripts"
@@ -200,10 +192,6 @@ if [ -d "$install_scripts_path" ]; then
     done
 fi
 
-<<<<<<< HEAD
 output::empty_line
-output::solution "🏁 Now restart your terminal to finish the installation"
-=======
 output::answer '🥳 🎉 SLOTH installed sucessfully'
-output::solution 'Now restart your terminal'
->>>>>>> master
+output::solution "🏁 Now restart your terminal to finish the installation"
