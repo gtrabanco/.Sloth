@@ -46,21 +46,21 @@ dotbot_yaml_file_backup() {
 ##? Usage:
 ##?   apply [-h | --help]
 ##?   apply [-v | --version]
-##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] core
+##?   apply [-q | --quiet] [-Q | --super-quiet] core
 ##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [--after-core] [<dotbot_yaml_file>]
 ##?
 ##? Arguments:
 ##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
-##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. By default does not do a backup.
+##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. Core symlinks never perform a backup.
 ##?
 ##? Options:
 ##?   -h --help             Show this help
 ##?   -v --version          Show the program version
 ##?   -q --quiet            Use quiet with dotbot
 ##?   -Q --super-quiet      Use super quiet with dotbot (overrided --quiet)
-##?   --backup              Always do a backup without prompt
+##?   --backup              Always do a backup without prompt. This option is never applied to core symlinks.
 ##?   --ignore-backup       Ignore backup of files. This can override existing files.
-##?   --interactive-backup  Ask user if wants to do a backup for every file
+##?   --interactive-backup  Ask user if wants to do a backup for every file. This option is never applied to core symlinks.
 ##?   --apply-core          Apply core symlinks as well at the beggining
 ##?
 ##? SCRIPT_VERSION "2.0.0"
@@ -80,7 +80,6 @@ if ${version:-false}; then
 fi
 
 # Vars to be used
-_backup_args=(--ignore-backup)
 _dotbot_args=()
 yaml_files=()
 backup_type="ignore"
@@ -96,10 +95,8 @@ fi
 # Backup type
 if ${backup:-}; then
   backup_type="backup"
-  _backup_args=(--backup)
 elif ${interactive_backup:-}; then
   backup_type="interactive"
-  _backup_args=(--interactive-backup)
 fi
 
 # In core we want to change the paths
@@ -142,11 +139,7 @@ fi
 
 # Apply core symlinks if we have to do it
 if ${after_core:-}; then
-  if [[ ${#_dotbot_args[@]} -gt 0 ]]; then
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" "${_backup_args[@]}" core
-  else
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_backup_args[@]}" core
-  fi
+  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" core
 fi
 
 # Apply symlinks
@@ -162,7 +155,7 @@ for file in "${yaml_files[@]}"; do
 
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
-  dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
+  dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
   output::empty_line
 done
 
