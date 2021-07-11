@@ -25,7 +25,7 @@ python-yq::install() {
 python-yq::is_installed() {
   {
     platform::command_exists brew && {
-      brew list --formula "python-yq" &> /dev/null || brew list --cask "python-yq"
+      brew list --formula "python-yq" &> /dev/null || brew list --cask "python-yq" &>/dev/null
     }
   } || {
     platform::command_exists pip3 && pip3 show "yq" &> /dev/null
