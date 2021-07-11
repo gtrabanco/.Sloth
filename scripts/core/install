@@ -54,15 +54,17 @@ touch "$HOME/.z"
 unset symlinks_args
 
 # ZSH as default shell if we are using zsh
+output::answer "Setting zsh as the default shell"
 if ! str::contains zsh "$SHELL" && platform::command_exists chsh; then
-  output::answer "Setting zsh as the default shell"
   sudo -v
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
+else
+  output::error "ZSH could not be setup as default shell"
 fi
 
 # If exists zsh install ZIMFW
+output::answer "Installing zim"
 if platform::command_exists zsh; then
-  output::answer "Installing zim"
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
   output::error "ZIM Framework could not be installed"
