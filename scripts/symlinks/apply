@@ -86,21 +86,21 @@ backup_type="ignore"
 backup_suffix="$(date +%s)"
 
 # Arguments for dotbot
-if ${quiet:-}; then
+if ${quiet:-false}; then
   _dotbot_args=(--quiet)
-elif ${super_quiet:-}; then
+elif ${super_quiet:-false}; then
   _dotbot_args=(--super-quiet)
 fi
 
 # Backup type
-if ${backup:-}; then
+if ${backup:-false}; then
   backup_type="backup"
-elif ${interactive_backup:-}; then
+elif ${interactive_backup:-false}; then
   backup_type="interactive"
 fi
 
 # In core we want to change the paths
-if ${core:-}; then
+if ${core:-false}; then
   DOTBOT_BASE_PATH="${DOTFILES_PATH}"
   DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
 elif ${apply_core:-}; then
@@ -138,7 +138,7 @@ else
 fi
 
 # Apply core symlinks if we have to do it
-if ${after_core:-}; then
+if ${after_core:-false}; then
   echo "after_core = ${after_core:-null}"
   unset after_core
   output::answer "Detected \`--after-core\`, applying core symlinks at first place"
@@ -147,7 +147,7 @@ if ${after_core:-}; then
 fi
 
 # Apply symlinks
-if ${core:-}; then
+if ${core:-false}; then
   output::h1 "Applying core symlinks"
 else
   output::h1 "Applying symlinks"
