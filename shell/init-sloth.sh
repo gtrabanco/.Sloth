@@ -89,10 +89,16 @@ if [[ -x "$UNAME_BIN" && "$("$UNAME_BIN" -s)" == "Darwin" ]]; then
     export path=(
       "$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnubin"
       "$("$BREW_BIN" --prefix)/opt/findutils/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-sed/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-tar/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-which/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/grep/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/make/libexec/gnubin"
       "${path[@]}"
     )
     MANPATH="$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnuman:$MANPATH"
     export MANPATH
+    [[ -d "/usr/local/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-/usr/local/etc/gnutls/}"
   fi
 fi
 
