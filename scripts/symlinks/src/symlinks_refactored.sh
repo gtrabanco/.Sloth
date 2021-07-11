@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-script::depends_on coreutils realpath
+# Dependency
+# dot::load_library "dotbot_yaml.sh"
 
 #;
 # symlinks::realpath()
@@ -151,10 +152,87 @@ symlinks::get_link_by_linked_path() {
 }
 
 #;
-# symlinks::find()
-# Custom find for these scripts context
+# symlinks::add_link()
+# Append a link to dotbot <yaml_file> or stdin dotbot yaml
+# @param link_path Where to place the link (very recommended to use realpath that accept ~ at the beggining)
+# @param file_path The path to be linked (very recommended to use realpath that accept ~ at the beggining, this path must exists)
+# @param yaml_file Optional argument to read the file and save the link in the given file. If stdin the link will be added to stdin and not saved.
+# @return string|boolean Return string yaml file content (always) if success, 1 if failed
 #"
+symlinks::add_link() {
+  local yaml_file link_path file_path link link_value
 
+  # Check no. arguments
+  [[ $# -lt 2 ]] && return 1
+
+  # Variables
+  link_path="$(symlinks::realpath "$1")"
+  file_path="$(dotbot::realpath "$2")"
+  yaml_file="${3:-}"
+  link="$(dotbot::relativepath "$link_path")"
+  link_value="$(dotbot::relativepath "$file_path")"
+
+  if [[ -t 0 && -f "$yaml_file" && -e "$file_path" ]]; then
+    dotbot::add_or_edit_json_value_to_directive "link" "$link" "$link_value" "$yaml_file"
+  elif [[ ! -t 0 && -e "$file_path" ]]; then
+    dotbot::add_or_edit_json_value_to_directive "link" "$link" "$link_value" < /dev/stdin
+  else
+    return 1
+  fi
+}
+
+#;
+# symlinks::update_link()
+# Update a <link> or <link_value> to dotbot <yaml_file> or stdin dotbot yaml. <link> or <link_value> must exists
+# @param link Where to place the link (very recommended to use realpath that accept ~ at the beggining)
+# @param link_value The path to be linked (very recommended to use realpath that accept ~ at the beggining, this path must exists)
+# @param yaml_file Optional argument to read the file and save the link in the given file. If stdin the link will be added to stdin and not saved.
+# @return string|boolean Return string yaml file content (always) if success, 1 if failed
+#"
+symlinks::update_link() {
+  local yaml_file link link_value is_link old_link input
+
+  # Check no. arguments
+  [[ $# -lt 2 ]] && return 1
+
+  # Variables
+  link="$(symlinks::realpath "$1")"
+  link_value="$(dotbot::realpath "$2")"
+  yaml_file="${3:-}"
+  link="$(dotbot::relativepath "$link_path")"
+  link_value="$(dotbot::relativepath "$file_path")"
+  is_link="$(symlinks::link_exists "$link_path")"
+
+  if [[ -t 0 && -f "$yaml_file" && -n "$is_link" ]]; then
+    symlinks::add_link "$link" "$link_value" "$yaml_file"
+  elif [[ -t 0 && -f "$yaml_file" && -z "$is_link" ]]; then
+    # Delete the symlink by link
+    old_link="$(symlinks::link_exists "$link_value")"
+    [[ -z "$old_link" ]] && return 1
+
+    dotbot::delete_by_key_in "link" "$old_link" "$yaml_file"
+    # Add new symlink
+    symlinks::add_link "$link" "$link_value" "$yaml_file"
+  elif [[ ! -t 0 && -n "$is_link" ]]; then
+    symlinks::add_link "$link" "$link_value" < /dev/stdin
+  elif [[ ! -t 0 && -z "$is_link" ]]; then
+    input="$(< /dev/stdin)"
+    # Delete the symlink by link
+    old_link="$(echo "$input" | symlinks::link_exists "$link_value")"
+    [[ -z "$old_link" ]] && return 1
+
+    echo "$input" | dotbot::delete_by_key_in "link" "$old_link" | symlinks::add_link "$link" "$link_value"
+  else
+    return 1
+  fi
+}
+
+
+#;
+# symlinks::find()
+# See in code doc
+#"
+# Custom find for these scripts context
 # It has positional arguments, valid example of usage is:
 # symlinks::find --exclude "$DOTBOT_BASE_PATH" -maxdepth 1 -name "*"
 # Not valid usage is:
@@ -163,8 +241,9 @@ symlinks::get_link_by_linked_path() {
 # --exclude must be the first
 # "/some/path/to/find" the second
 # Any other find commands (first global options and later "particular" options)
+#
 symlinks::find() {
-  local find_relative_path exclude_itself arguments preview
+  local find_relative_path exclude_itself arguments
   arguments=()
   exclude_itself=false
 
