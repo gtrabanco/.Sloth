@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - master
-      - '!doc/*'
-      - '!documentation/*'
   pull_request:
-    branches-ignore:
-      - doc/*
-      - documentation/*
+    branches:
+      - master
+    paths-ignore:
+      - 'dotfiles_template/*.md'
+      - 'docs/**'
+      - 'doc/**'
+      - '*.md'
+      - '**/*.md'
 
 jobs:
   build:
@@ -38,7 +41,8 @@ jobs:
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
-      - name: Debug
+      - name: Debug on error
+        if: ${{ always() }}
         run: |
           echo "DOTLY_REPOSITORY: $DOTLY_REPOSITORY"
           echo "DOTLY_BRANCH: $DOTLY_BRANCH"

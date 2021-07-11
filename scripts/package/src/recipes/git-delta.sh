@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 git-delta::install() {
   "$DOTLY_PATH/bin/dot" package add git-delta --skip-recipe
 }
