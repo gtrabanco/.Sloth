@@ -50,7 +50,7 @@ elif ${always_backup:-}; then
   symlinks_args=(--backup)
 fi
 #"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
-"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core
+"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}"
 touch "$HOME/.z"
 unset symlinks_args
 
