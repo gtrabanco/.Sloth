@@ -18,8 +18,10 @@ call_sed() {
 }
 
 [[ ! -f "${DOTFILES_PATH:-}/.gitignore" ]] && "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks update v2.0.0
-
-call_sed -i '/^# END OF DOTLY GITIGNORE$/i bin/semver' "$GITIGNORE_FILE" || {
+{
+  call_sed -i '/^# END OF DOTLY GITIGNORE$/i bin/semver' "$GITIGNORE_FILE" &&
+  output::solution ".gitignore file updated"
+} || {
   if [[ -n "$(command -v output::error)" ]]; then
     output::error '.gitignore could not be modified'
     output::write 'Add this line:'
