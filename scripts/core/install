@@ -57,6 +57,8 @@ fi
 
 if [[ -x "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" ]]; then
   echo "Dot exists"
+else
+  echo "Dot does not exists"
 fi
 
 # echo dot symlinks apply "${symlinks_args[@]}" --after-core
