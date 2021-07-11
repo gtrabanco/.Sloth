@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - master
-      - '!doc/*'
-      - '!documentation/*'
   pull_request:
-    branches-ignore:
-      - doc/*
-      - documentation/*
+    branches:
+      - master
+    paths-ignore:
+      - 'dotfiles_template/*.md'
+      - 'docs/**'
+      - 'doc/**'
+      - '*.md'
+      - '**/*.md'
 
 jobs:
   build:
