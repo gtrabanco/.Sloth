@@ -49,7 +49,7 @@ if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
 elif ${always_backup:-}; then
   symlinks_args=(--backup)
 fi
-"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --apply-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
 touch "$HOME/.z"
 unset symlinks_args
 
@@ -80,6 +80,8 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
 fi
+
+exit
 
 output::answer "Executing custom restoration scripts"
 install_scripts_path="$DOTFILES_PATH/restoration_scripts"
