@@ -17,7 +17,7 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python python-yq jq moreutils tee realpath
+script::depends_on docpars zsh fzf python python-yq jq tee realpath
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup.
 ##?
