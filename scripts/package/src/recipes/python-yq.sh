@@ -3,16 +3,16 @@
 python-yq::install() {
   if
     platform::command_exists brew &&
-    brew install python-yq &&
-    python-yq::is_installed
+      brew install python-yq &&
+      python-yq::is_installed
   then
     return 0
   fi
 
   if
     platform::command_exists pip3 &&
-    pip3 install yq &&
-    python-yq::is_installed
+      pip3 install yq &&
+      python-yq::is_installed
   then
     output::solution "yq installed!"
     return 0

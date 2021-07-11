@@ -60,7 +60,7 @@ symlinks::link_exists() {
   if [[ -t 0 && -f "$yaml_file" ]]; then
     input="$(cat "$yaml_file")"
   elif [[ ! -t 0 ]]; then
-    input="$(</dev/stdin)"
+    input="$(< /dev/stdin)"
   else
     # No file found and no stdin
     return 1
@@ -89,7 +89,7 @@ symlinks::get_all_links() {
   if [[ -t 0 && -f "$yaml_file" ]]; then
     dotbot::get_all_keys_in "link" "$yaml_file" || true
   elif [[ ! -t 0 ]]; then
-    dotbot::get_all_keys_in "link" </dev/stdin || true
+    dotbot::get_all_keys_in "link" < /dev/stdin || true
   fi
 }
 
@@ -105,7 +105,7 @@ symlinks::get_all_link_values() {
   if [[ -t 0 && -f "$yaml_file" ]]; then
     dotbot::get_all_values_in "link" "$yaml_file" || true
   elif [[ ! -t 0 ]]; then
-    dotbot::get_all_values_in "link" </dev/stdin || true
+    dotbot::get_all_values_in "link" < /dev/stdin || true
   fi
 }
 
@@ -124,7 +124,7 @@ symlinks::get_linked_path_by_link() {
   if [[ -t 0 && -n "$link" && -f "$yaml_file" ]]; then
     value="$(dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link")" "$yaml_file" || echo -n)"
   elif [[ ! -t 0 && -n "$link" ]]; then
-    value="$(dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link")" </dev/stdin || echo -n)"
+    value="$(dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link")" < /dev/stdin || echo -n)"
   fi
 
   [[ -n "$value" ]] && dotbot::realpath "$value"
@@ -145,7 +145,7 @@ symlinks::get_link_by_linked_path() {
   if [[ -t 0 && -n "$linked_path" && -f "$yaml_file" ]]; then
     link="$(dotbot::get_key_by_value_in "link" "$(dotbot::relativepath "$linked_path")" "$yaml_file" || echo -n)"
   elif [[ ! -t 0 && -n "$linked_path" ]]; then
-    link="$(dotbot::get_key_by_value_in "link" "$(dotbot::relativepath "$linked_path")" </dev/stdin || echo -n)"
+    link="$(dotbot::get_key_by_value_in "link" "$(dotbot::relativepath "$linked_path")" < /dev/stdin || echo -n)"
   fi
 
   [[ -n "$link" ]] && dotbot::realpath "$link"
@@ -227,7 +227,6 @@ symlinks::update_link() {
   fi
 }
 
-
 #;
 # symlinks::find()
 # See in code doc
@@ -248,10 +247,10 @@ symlinks::find() {
   exclude_itself=false
 
   case "${1:-}" in
-  --exclude)
-    exclude_itself=true
-    shift
-    ;;
+    --exclude)
+      exclude_itself=true
+      shift
+      ;;
   esac
 
   find_relative_path="$(dotbot::realpath "${1:-}")"
