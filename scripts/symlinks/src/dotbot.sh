@@ -3,8 +3,14 @@
 
 script::depends_on realpath tee python-yq jq
 
+# DOTBOT_BASE_PATH is the path used in option -d when executing dotbot
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
+
+# Where to look for the yaml files
 DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+
+# Where is placed dotbot
+DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-$DOTLY_PATH}/modules/dotbot/bin/dotbot}"
 
 #;
 # dotbot::yaml_file_path()
@@ -25,6 +31,8 @@ dotbot::yaml_file_path() {
     "$yaml_dir_path/$yaml_file.yml"
   )
 
+  [[ "${yaml_file:0:1}" == "/" && -f "$yaml_file" ]] && echo "$yaml_file" && return
+
   for f in "${yaml_file_posibilities[@]}"; do
     [[ -f "$f" ]] && [[ -w "$f" ]] && yaml_file="$f" && break
   done
@@ -33,7 +41,7 @@ dotbot::yaml_file_path() {
     yaml_file=""
   fi
 
-  echo "$yaml_file" && return 0
+  echo "$yaml_file" && return
 }
 
 #;
@@ -340,4 +348,24 @@ dotbot::delete_by_value_in() {
   key_to_delete="$(echo "$input" | dotbot::get_key_by_value_in "$directive" "$value_to_delete")"
 
   echo "$input" | dotbot::delete_by_key_in "$directive" "$key_to_delete" "$file_save"
+}
+
+#;
+# dotbot::apply_yaml()
+# Apply a dotbot yaml file
+# @param yaml_file name of realpath
+# @param any Other args for dotbot
+# @return boolean
+#"
+dotbot::apply_yaml() {
+  [[ -z "${1:-}" ]] && return 1
+  local -r yaml_file="$(dotbot::yaml_file_path "$1")"
+  shift
+
+  [[ ! -f "$yaml_file" ]] && return 1
+
+  "$DOTBOT_SCRIPT_BIN" -d "$DOTBOT_BASE_PATH" -c "$yaml_file" "$@" || {
+    output::error "Error applying symlinks file name \`$yaml_file\`"
+    return 1
+  }
 }

@@ -4,27 +4,63 @@ set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+dot::load_library "dotbot.sh"
+dot::load_library "symlinks.sh"
 
-symlinks::apply() {
-  [[ -z "${1:-}" ]] && return 1
-  local -r CONFIG="$DOTFILES_PATH/symlinks/$1"
-  shift
+backup_and_warn_if_exists() {
+  local file_path suffix bk_file_path
+  file_path="${1:-}"
+  suffix="${2:-$(date +%s)}"
 
-  echo
-  "$DOTLY_PATH/modules/dotbot/bin/dotbot" "$@" "$CONFIG" || output::error "Error applying symlinks file name '$(basename "$CONFIG")'"
-  echo
+  [[ -n "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
+  [[ -n "$bk_file_path" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
+}
+
+dotbot_yaml_file_backup() {
+  local mode yaml_file suffix
+  yaml_file="${1:-}"
+  mode="${2:-}"
+  suffix="${3:-$(date +%s)}"
+
+  [[ $mode == "ignore" ]] && return
+
+  for link in $(symlinks::get_all_links "$(dotbot::yaml_file_path "$yaml_file")"); do
+    link="$(dotbot::realpath "$link")"
+
+    [[ ! -e "$link" ]] && continue
+
+    case "$mode" in
+      "backup")
+        backup_and_warn_if_exists "$link" "$suffix"
+        ;;
+      *)
+        output::yesno "File \`$link\` exists. Do you want to backup it" &&
+          backup_and_warn_if_exists "$link" "$suffix"
+        ;;
+    esac
+  done
 }
 
 ##? Apply all symlinks
 ##?
 ##? Usage:
-##?    apply [-h | --help]
-##?    apply [-v | --version]
-##?    apply [-q | --quiet]
+##?   apply [-h | --help]
+##?   apply [-v | --version]
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--no-backup] core
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--no-backup] [<yaml_file>]
+##?
+##? Arguments:
+##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
+##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. By default does not do a backup.
 ##?
 ##? Options:
-##?   -h --help     Show this help
-##?   -v --version  Show the program version
+##?   -h --help            Show this help
+##?   -v --version         Show the program version
+##?   -q --quiet           Use quiet with dotbot
+##?   -Q --super-quiet     Use super quiet with dotbot (overrided --quiet)
+##?   --backup             Always do a backup without prompt
+##?   --no-backup          Ignore backup of files. This can override existing files.
+##?   --interactiv-backup       Ignore backup of files. This can override existing files.
 ##?
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
@@ -41,16 +77,70 @@ if ${version:-false}; then
   exit
 fi
 
-symlinks::apply "conf.yaml"
+# Vars to be used
+_args=()
+yaml_files=()
+backup_type="ignore"
+backup_suffix="$(date +%s)"
 
-if platform::is_macos; then
-  if platform::is_macos_arm; then
-    symlinks::apply "conf.macos.yaml" "${_args[@]}"
-  else
-    symlinks::apply "conf.macos-intel.yaml" "${_args[@]}"
-  fi
-else
-  symlinks::apply "conf.linux.yaml" "${_args[@]}"
+# Arguments for dotbot
+if ${quiet:-}; then
+  _args=(--quiet)
+elif ${super_quiet:-}; then
+  _args=(--super-quiet)
 fi
+
+# Backup type
+if ${backup:-}; then
+  backup_type="backup"
+elif ${interactive_backup:-}; then
+  backup_type="interactive"
+fi
+
+# In core we want to change the paths
+if ${core:-}; then
+  DOTBOT_BASE_PATH="${DOTFILES_PATH}"
+  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
+fi
+
+if [[ -n "$yaml_file" ]]; then
+  # Define the base path just to make it explict the default values
+  DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
+  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+
+  if [[ -f "$yaml_file" ]]; then
+    yaml_files+=("$(dotbot::yaml_file_path "$yaml_file")")
+  else
+    exit 1
+  fi
+
+else
+  # Define the base path just to make explict the default values
+  DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
+  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+
+  # Default dotbot file
+  yaml_files+=("$(dotbot::yaml_file_path "conf.yaml")")
+
+  if platform::is_macos; then
+    if platform::is_macos_arm; then
+      yaml_files+=("$(dotbot::yaml_file_path "conf.macos.yaml")")
+    else
+      yaml_files+=("$(dotbot::yaml_file_path "conf.macos-intel.yaml")")
+    fi
+  else
+    yaml_files+=("$(dotbot::yaml_file_path "conf.linux.yaml")")
+  fi
+fi
+
+output::h1 "Applying symlinks"
+
+# Apply symlinks
+for file in "${yaml_files[@]}"; do
+  [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
+  output::h3 "Applying dotbot file: \`$file\`"
+  dotbot_yaml_file_backup "$yaml_file" "$backup_type" "$backup_suffix"
+  dotbot::apply_yaml "$file" "${_args[@]}"
+done
 
 log::success "Done!"

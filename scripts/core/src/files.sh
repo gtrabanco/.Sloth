@@ -8,18 +8,27 @@ files::check_if_path_is_older() {
   [[ -e "$path_to_check" ]] && [[ $(date -r "$path_to_check" +%s) -lt $(date -d "now - $number_of $period" +%s) ]]
 }
 
-files::backup_if_file_exists() {
+#;
+# files::backup_move_if_path_exists
+# Move a file or directory if exists by appending a suffix and return its new location
+# @param string file_path
+# @param string suffix for the backup
+# @return void
+#"
+files::backup_move_if_path_exists() {
   local file_path bk_suffix bk_file_path
   file_path="$(eval realpath -q -m "${1:-}")"
   bk_suffix="${2:-$(date +%s)}"
   bk_file_path="$file_path.${bk_suffix}"
 
-  if [[ -n "$file_path" ]] &&
-    { [[ -f "$file_path" ]] || [[ -d "$file_path" ]]; }; then
-    eval mv "$file_path" "$bk_file_path" && echo "$bk_file_path" && return 1
+  if
+    [[ -n "$file_path" ]] &&
+      {
+        [[ -f "$file_path" ]] || [[ -d "$file_path" ]]
+      }
+  then
+    eval mv "$file_path" "$bk_file_path" && echo "$bk_file_path"
   fi
-
-  return 0
 }
 
 #;

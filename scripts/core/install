@@ -5,47 +5,11 @@ set -euo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "dotbot_yaml.sh" "symlinks"
+dot::load_library "dotbot.sh"
 dot::load_library "symlinks.sh" "symlinks"
 
 export ZIM_HOME="$DOTLY_PATH/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
-
-backup_and_warn_if_exists() {
-  local file_path suffix bk_file_path
-  file_path="${1:-}"
-  suffix="${2:-}"
-
-  [[ -n "$file_path" ]] && bk_file_path="$(files::backup_if_file_exists "$file_path" "$suffix")"
-  [[ -n "$bk_file_path" ]] && output::error "'$file_path' exists and was moved to '$bk_file_path'"
-}
-
-yaml_file_backup() {
-  local yaml_file links
-  yaml_file="${1:-}"
-
-  for link in $(dotbot::get_all_keys_in "link" "$(symlinks::get_file_path "$yaml_file")"); do
-    link="$(eval realpath -q -m -s "$link")"
-
-    if [[ -f "$link" ]]; then
-      if ! ${quiet_symlinks:-} &&
-        output::yesno "File '$link' exists. Do you want to backup it"; then
-        backup_and_warn_if_exists "$link" "$rename_suffix"
-      fi
-    fi
-  done
-}
-
-sloth_install_symlinks() {
-  local -r CONFIG="$DOTLY_PATH/scripts/self/src/symlinks/${1:-}"
-  shift
-
-  [[ ! -f "$CONFIG" ]] && return
-
-  echo
-  "$DOTLY_PATH/modules/dotbot/bin/dotbot" "$@" "$CONFIG" || true
-  echo
-}
 
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
@@ -55,7 +19,7 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python python-yq jq moreutils
+script::depends_on docpars zsh fzf python python-yq jq moreutils tee realpath
 
 ##? Install dotly and setup dotfiles
 ##?
@@ -81,6 +45,9 @@ fi
 output::answer "Creating dotfiles structure"
 "$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
+# Apply symlinks
+DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
+DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
 # Which yaml files
 yaml_files=("conf.yaml")
 

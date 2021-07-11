@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# TODO Update to use new dotbot.sh core library
 set -euo pipefail
 
 #shellcheck disable=SC1091
