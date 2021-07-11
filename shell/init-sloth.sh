@@ -72,8 +72,8 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -d "/usr/local/opt/python/libexec/bin" ]] && path+=("/usr/local/opt/python/libexec/bin")
 [[ -d "/usr/local/bin" ]] && path+=("/usr/local/bin")
 [[ -d "/usr/local/sbin" ]] && path+=("/usr/local/sbin")
-[[ -d "/bin" ]] && path+=("/bin")
 [[ -d "/usr/bin" ]] && path+=("/usr/bin")
+[[ -d "/bin" ]] && path+=("/bin")
 [[ -d "/usr/sbin" ]] && path+=("/usr/sbin")
 [[ -d "/sbin" ]] && path+=("/sbin")
 
