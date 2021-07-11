@@ -154,8 +154,8 @@ symlinks::get_link_by_linked_path() {
 #;
 # symlinks::add_link()
 # Append a link to dotbot <yaml_file> or stdin dotbot yaml
-# @param link_path Where to place the link (very recommended to use realpath that accept ~ at the beggining)
-# @param file_path The path to be linked (very recommended to use realpath that accept ~ at the beggining, this path must exists)
+# @param link_path Where to place the link (must be realpath that accept ~ at the beggining)
+# @param file_path The path to be linked (must be realpath that accept ~ at the beggining, this path must exists)
 # @param yaml_file Optional argument to read the file and save the link in the given file. If stdin the link will be added to stdin and not saved.
 # @return string|boolean Return string yaml file content (always) if success, 1 if failed
 #"
@@ -166,8 +166,8 @@ symlinks::add_link() {
   [[ $# -lt 2 ]] && return 1
 
   # Variables
-  link_path="$(symlinks::realpath "$1")"
-  file_path="$(dotbot::realpath "$2")"
+  link_path="$1"
+  file_path="$2"
   yaml_file="${3:-}"
   link="$(dotbot::relativepath "$link_path")"
   link_value="$(dotbot::relativepath "$file_path")"
@@ -184,8 +184,8 @@ symlinks::add_link() {
 #;
 # symlinks::update_link()
 # Update a <link> or <link_value> to dotbot <yaml_file> or stdin dotbot yaml. <link> or <link_value> must exists
-# @param link Where to place the link (very recommended to use realpath that accept ~ at the beggining)
-# @param link_value The path to be linked (very recommended to use realpath that accept ~ at the beggining, this path must exists)
+# @param link Where to place the link (must be realpath that accept ~ at the beggining)
+# @param link_value The path to be linked (must be realpath that accept ~ at the beggining, this path must exists)
 # @param yaml_file Optional argument to read the file and save the link in the given file. If stdin the link will be added to stdin and not saved.
 # @return string|boolean Return string yaml file content (always) if success, 1 if failed
 #"
@@ -196,32 +196,69 @@ symlinks::update_link() {
   [[ $# -lt 2 ]] && return 1
 
   # Variables
-  link="$(symlinks::realpath "$1")"
-  link_value="$(dotbot::realpath "$2")"
+  link="$1"
+  link_value="$2"
   yaml_file="${3:-}"
   link="$(dotbot::relativepath "$link_path")"
   link_value="$(dotbot::relativepath "$file_path")"
   is_link="$(symlinks::link_exists "$link_path")"
 
-  if [[ -t 0 && -f "$yaml_file" && -n "$is_link" ]]; then
-    symlinks::add_link "$link" "$link_value" "$yaml_file"
-  elif [[ -t 0 && -f "$yaml_file" && -z "$is_link" ]]; then
-    # Delete the symlink by link
-    old_link="$(symlinks::link_exists "$link_value")"
-    [[ -z "$old_link" ]] && return 1
+  if [[ -t 0 && -f "$yaml_file" ]]; then
+    is_link="$(symlinks::link_exists "$link_path" "$yaml_file")"
+    if [[ -n "$is_link" ]]; then
+      symlinks::add_link "$link" "$link_value" "$yaml_file"
+    else
+      # Get the old link
+      old_link="$(symlinks::link_exists "$link_value" "$yaml_file")"
+      [[ -z "$old_link" ]] && return 1
 
-    dotbot::delete_by_key_in "link" "$old_link" "$yaml_file"
-    # Add new symlink
-    symlinks::add_link "$link" "$link_value" "$yaml_file"
-  elif [[ ! -t 0 && -n "$is_link" ]]; then
-    symlinks::add_link "$link" "$link_value" < /dev/stdin
-  elif [[ ! -t 0 && -z "$is_link" ]]; then
+      # Delete without output (we do not want to output many times the same file)
+      symlinks::delete_link "$old_link" "$yaml_file" &> /dev/null
+
+      # Add new symlink
+      symlinks::add_link "$link" "$link_value" "$yaml_file"
+    fi
+  elif [[ ! -t 0 ]]; then
     input="$(< /dev/stdin)"
-    # Delete the symlink by link
-    old_link="$(echo "$input" | symlinks::link_exists "$link_value")"
-    [[ -z "$old_link" ]] && return 1
+    is_link="$(echo "$input" | symlinks::link_exists "$link_path")"
 
-    echo "$input" | dotbot::delete_by_key_in "link" "$old_link" | symlinks::add_link "$link" "$link_value"
+    if [[ -n "$is_link" ]]; then
+      echo "$input" | symlinks::add_link "$link" "$link_value"
+    else
+      # Get the old link
+      old_link="$(echo "$input" | symlinks::link_exists "$link_value")"
+
+      # Delete the old symlink if exists & add the new link
+      echo "$input" | symlinks::delete_link "$old_link" | symlinks::add_link "$link" "$link_value"
+    fi
+  else
+    return 1
+  fi
+}
+
+#;
+# symlinks::delete_link()
+# Delete a symlink by link or by its value
+# @param link_or_link_value Must be realpath that accepts ~ at the beggining or relative to DOTBOT_BASE_PATH
+# @param yaml_file Optional argument to read the file and save the link in the given file. If stdin the link will be added to stdin and not saved.
+#"
+symlinks::delete_link() {
+  local yaml_file link_or_link_value link input
+  [[ $# -lt 1 ]] && return 1
+  link_or_link_value="$1"
+  yaml_file="${2:-}"
+
+  if [[ -t 0 && -f "$yaml_file" ]]; then
+    link="$(symlinks::link_exists "$link_or_link_value" "$yaml_file")"
+    [[ -z "$link" ]] && cat "$yaml_file" && return
+
+    dotbot::delete_by_key_in "link" "$link" "$yaml_file"
+  elif [[ ! -t 0 ]]; then
+    input="$(< /dev/stdin)"
+    link="$(echo "$input" | symlinks::link_exists "$link_or_link_value")"
+    [[ -z "$link" ]] && echo "$input" && return
+
+    echo "$input" | dotbot::delete_by_key_in "link" "$link"
   else
     return 1
   fi
