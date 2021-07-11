@@ -3,4 +3,5 @@
 .sloth_update_available
 .sloth_update_available_is_major
 .sloth_updated
+bin/semver
 # END OF SLOTH GITIGNORE
