@@ -142,7 +142,7 @@ fi
 
 # Apply core symlinks if we have to do it
 if ${after_core:-}; then
-  echo "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" "${_backup_args[@]}" core
+  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]:-}" "${_backup_args[@]:-}" core
 fi
 
 # Apply symlinks

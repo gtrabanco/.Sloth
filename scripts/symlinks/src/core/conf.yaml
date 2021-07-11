@@ -7,7 +7,8 @@
       force: true
 
 - create:
-    - ${SLOTH_PATH}/shell/init.scripts
+    - ~/bin
+    - ${DOTLY_PATH}/shell/init.scripts
 
 - link:
-    bin/semver: ${SLOTH_PATH}/modules/semver-tool/src/semver
+    ~/bin/semver: ${DOTLY_PATH}/modules/semver-tool/src/semver
