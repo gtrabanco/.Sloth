@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# TODO Update to use new dotbot.sh core library
 set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
+dot::load_library "dotbot.sh"
 
 symlinks::get_files() {
   [[ -d "$DOTLY_PATH/symlinks" ]] &&
@@ -32,9 +32,10 @@ symlinks::fzf() {
 ##?   -p --no-prompt  Avoid warning the user about the consecuences of apply
 ##?                   a dotbot file.
 ##?
+##? SCRIPT_VERSION "2.0.0"
 docs::parse "$@"
 
-SCRIPT_NAME="sloth symlinks apply"
+SCRIPT_NAME="sloth symlinks update"
 SCRIPT_VERSION="1.0.0"
 
 # Print name and version
@@ -66,7 +67,9 @@ output::header "Apply dotbot update to your dotfiles"
 output::write "This will apply a selected symlinks to apply any dotly update"
 
 output::empty_line
-"$DOTLY_PATH/modules/dotbot/bin/dotbot" -d "$DOTFILES_PATH" -c "$symlinks_file"
+#shellcheck disable=SC2034
+DOTBOT_BASE_PATH="$DOTFILES_PATH"
+dotbot::apply_yaml "$symlinks_file"
 output::empty_line
 
 output::write "Remember to merge this symlinks file to yours in:"

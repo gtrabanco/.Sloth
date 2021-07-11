@@ -46,22 +46,24 @@ dotbot_yaml_file_backup() {
 ##? Usage:
 ##?   apply [-h | --help]
 ##?   apply [-v | --version]
-##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--no-backup] core
-##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--no-backup] [<yaml_file>]
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] core
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [--after-core] [<yaml_file>]
 ##?
 ##? Arguments:
 ##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
 ##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. By default does not do a backup.
 ##?
 ##? Options:
-##?   -h --help            Show this help
-##?   -v --version         Show the program version
-##?   -q --quiet           Use quiet with dotbot
-##?   -Q --super-quiet     Use super quiet with dotbot (overrided --quiet)
-##?   --backup             Always do a backup without prompt
-##?   --no-backup          Ignore backup of files. This can override existing files.
-##?   --interactiv-backup       Ignore backup of files. This can override existing files.
+##?   -h --help             Show this help
+##?   -v --version          Show the program version
+##?   -q --quiet            Use quiet with dotbot
+##?   -Q --super-quiet      Use super quiet with dotbot (overrided --quiet)
+##?   --backup              Always do a backup without prompt
+##?   --ignore-backup       Ignore backup of files. This can override existing files.
+##?   --interactive-backup  Ask user if wants to do a backup for every file
+##?   --apply-core          Apply core symlinks as well at the beggining
 ##?
+##? SCRIPT_VERSION "2.0.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
 elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -78,29 +80,34 @@ if ${version:-false}; then
 fi
 
 # Vars to be used
-_args=()
+_backup_args=(--ignore-backup)
+_dotbot_args=()
 yaml_files=()
 backup_type="ignore"
 backup_suffix="$(date +%s)"
 
 # Arguments for dotbot
 if ${quiet:-}; then
-  _args=(--quiet)
+  _dotbot_args=(--quiet)
 elif ${super_quiet:-}; then
-  _args=(--super-quiet)
+  _dotbot_args=(--super-quiet)
 fi
 
 # Backup type
 if ${backup:-}; then
   backup_type="backup"
+  _backup_args=(--backup)
 elif ${interactive_backup:-}; then
   backup_type="interactive"
+  _backup_args=(--interactive-backup)
 fi
 
 # In core we want to change the paths
 if ${core:-}; then
   DOTBOT_BASE_PATH="${DOTFILES_PATH}"
   DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
+elif ${apply_core:-}; then
+  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks
 fi
 
 if [[ -n "$yaml_file" ]]; then
@@ -133,14 +140,26 @@ else
   fi
 fi
 
-output::h1 "Applying symlinks"
+# Apply core symlinks if we have to do it
+if ${after_core:-}; then
+  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" "${_backup_args[@]}" core
+fi
 
 # Apply symlinks
+if ${core:-}; then
+  output::h1 "Applying core symlinks"
+else
+  output::h1 "Applying symlinks"
+fi
+
 for file in "${yaml_files[@]}"; do
   [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
   output::h3 "Applying dotbot file: \`$file\`"
+
+  output::empty_line
   dotbot_yaml_file_backup "$yaml_file" "$backup_type" "$backup_suffix"
-  dotbot::apply_yaml "$file" "${_args[@]}"
+  dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
+  output::empty_line
 done
 
 log::success "Done!"
