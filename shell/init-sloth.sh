@@ -64,6 +64,7 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -d "/usr/local/opt/openssl/bin" ]] && path+=("/usr/local/opt/openssl/bin")
 
 # Conditional paths
+[[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
@@ -118,9 +119,6 @@ fi
 # Functions
 #shellcheck source=/dev/null
 { [[ -f "$DOTFILES_PATH/shell/functions.sh" ]] && . "$DOTFILES_PATH/shell/functions.sh"; } || true
-
-#shellcheck source=/dev/null
-[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 # Auto Init scripts at the end
 init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
