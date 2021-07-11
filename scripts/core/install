@@ -49,7 +49,8 @@ if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
 elif ${always_backup:-}; then
   symlinks_args=(--backup)
 fi
-"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+#"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core
 touch "$HOME/.z"
 unset symlinks_args
 
@@ -81,8 +82,6 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   } || output::error '❌ Error reloading completions'
 fi
 
-exit
-
 output::answer "Executing custom restoration scripts"
 install_scripts_path="$DOTFILES_PATH/restoration_scripts"
 if [ -d "$install_scripts_path" ]; then
@@ -90,7 +89,9 @@ if [ -d "$install_scripts_path" ]; then
     sort |
     while read -r install_script; do
       #shellcheck disable=SC1090
-      { [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"; } || {
+      {
+        [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
+      } || {
         output::error "Install script error in \`$(basename "$install_script")\`"
       }
     done
