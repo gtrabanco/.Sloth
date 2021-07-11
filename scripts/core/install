@@ -5,8 +5,6 @@ set -euo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "dotbot.sh"
-dot::load_library "symlinks.sh" "symlinks"
 
 export ZIM_HOME="$DOTLY_PATH/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -21,15 +19,15 @@ fi
 
 script::depends_on docpars zsh fzf python python-yq jq moreutils tee realpath
 
-##? Install dotly and setup dotfiles
+##? Install dotly and setup dotfiles. By default use a interactive backup.
 ##?
 ##? Usage:
 ##?    install [[-n | --never-backup] | [-b |--always-backup]]
 ##?
 ##? Options:
 ##?    -h --help            Prints this help
-##?    -n --never-backup    Never do a backup of user symlinks without prompt. Not apply to core symlinks.
-##?    -b --always-backup   Always do a backup of user symlinks without prompt. Not apply to core symlinks.
+##?    -n --never-backup    Never do a backup of user symlinks without prompt
+##?    -b --always-backup   Always do a backup of user symlinks without prompt
 ##?
 ##?    install
 ##?
@@ -43,24 +41,15 @@ fi
 output::answer "Creating dotfiles structure"
 "$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
-# Apply core symlinks
-output::answer "Setting up core symlinks"
-core_symlinks_args=()
-if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-  core_symlinks_args=(--no-backup)
-fi
-"$DOTLY_PATH/bin/dot" symlinks apply "${core_symlinks_args[@]}" core | log::file "Applying core symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
-unset core_symlinks_args
-
 # Apply user symlinks
 output::answer "Setting up symlinks"
-symlinks_args=(--interactive)
+symlinks_args=(--interactive-backup)
 if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
-  symlinks_args=(--no-backup)
+  symlinks_args=(--ignore-backup)
 elif ${always_backup:-}; then
   symlinks_args=(--backup)
 fi
-"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+"$DOTLY_PATH/bin/dot" symlinks apply "${symlinks_args[@]}" --apply-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
 touch "$HOME/.z"
 unset symlinks_args
 
