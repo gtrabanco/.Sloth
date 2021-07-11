@@ -54,15 +54,7 @@ else
   #shellcheck disable=SC2034
   $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
 fi
-
-if [[ -x "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" ]]; then
-  echo "Dot exists"
-else
-  echo "Dot does not exists"
-fi
-
-# echo dot symlinks apply "${symlinks_args[@]}" --after-core
-# "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --never-backup --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
 touch "$HOME/.z"
 unset symlinks_args bk
 
