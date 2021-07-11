@@ -42,7 +42,7 @@ jobs:
         run: echo "$HOME/.dotfiles" | bash installer
 
       - name: Debug on error
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: |
           echo "DOTLY_REPOSITORY: $DOTLY_REPOSITORY"
           echo "DOTLY_BRANCH: $DOTLY_BRANCH"
