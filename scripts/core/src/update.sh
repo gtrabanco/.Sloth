@@ -6,7 +6,7 @@ update::check_minor_update() {
   declare -a cremote_sloth_version
   tags_number="${1:-10}"
   local_sloth_version="$(git::sloth_repository_exec git::get_current_latest_tag)"
-  mapfile -n "${tags_number}" -t cremote_sloth_version < <(git::get_all_remote_tags_version_only "$(git::get_submodule_property sloth url)")
+  readarray -n "${tags_number}" -t cremote_sloth_version < <(git::get_all_remote_tags_version_only "$(git::get_submodule_property sloth url)")
 
   [ -n "$local_sloth_version" ] && for tag_version in "${cremote_sloth_version[@]}"; do
     [ -z "$tag_version" ] && continue                                                      # I am not sure if this can happen
@@ -34,7 +34,7 @@ update::get_latest_minor_local_head() {
     return_code=0
 
   elif [[ -n "$current_tag_version" ]]; then
-    mapfile -t latest_tags_version < <(git::get_all_local_tags)
+    readarray -t latest_tags_version < <(git::get_all_local_tags)
 
     # Select latest local minor tag taking the current HEAD tag as main
     for tag_version in "${latest_tags_version[@]}"; do
