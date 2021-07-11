@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2016
 
-script::depends_on coreutils realpath python-yq jq
+script::depends_on realpath tee python-yq jq
 
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
 
+#;
+# dotbot::yaml_file_path()
+# Get yaml file realpath
+# @param string Path or name of the yaml file
+# @return string Which is the realpath to yaml file or empty string if could not be found
+#"
 dotbot::yaml_file_path() {
   local yaml_file_posibilities yaml_file yaml_dir_path
   yaml_file="${1:-}"
@@ -30,7 +36,12 @@ dotbot::yaml_file_path() {
   echo "$yaml_file" && return 0
 }
 
-# Return a path to store in the dotbot yaml file
+#;
+# dotbot::relativepath()
+# Return a path to store in the dotbot yaml file relative to DOTBOT_BASE_PATH. Does not check if file exists
+# @param string file_path
+# @param string relative path to DOTBOT_BASE_PATH
+#"
 dotbot::relativepath() {
   local file_path
   [[ -z "${1:-}" ]] && return
@@ -45,7 +56,12 @@ dotbot::relativepath() {
   echo "$file_path"
 }
 
-# Return a realpath even if the file do not exists
+#;
+# dotbot::realpath()
+# Return a realpath even if the file do not exists, uses pwd as root if file_path does not start with /
+# @param string file path
+# @param string realpath
+#"
 dotbot::realpath() {
   local file_path
   [[ -z "${1:-}" ]] && return
@@ -56,19 +72,36 @@ dotbot::realpath() {
   realpath -qms "$file_path" 2>/dev/null || true
 }
 
-# Save json as yaml
+#;
+# dotbot::save_as_yaml()
+# Save json as yaml or save yaml
+# @param string File path to store the yaml
+# @return string|false
+#"
 dotbot::save_as_yaml() {
   local file_path input
   file_path="${1:-}"
+  input="$(< /dev/stdin)"
 
   [[ -z "$file_path" ]] && return 1
   eval mkdir -p "$(dirname "$file_path")"
   touch "$file_path"
-  json::to_yaml </dev/stdin | sponge "$file_path"
+  if echo "$input" | json::is_valid; then
+    echo "$input" | json::to_yaml | tee "$file_path"
+  elif echo "$input" | yaml::is_valid; then
+    echo "$input" | tee "$file_path"
+  else
+    return 1
+  fi
 }
 
-# Use jq with yaml file or stdin yaml content
-# Last argument is the file if stdin is clean
+#;
+# dotbot::jq_yaml_file()
+# Use jq or yq with yaml or json file or stdin yaml content. Last argument is the file.
+# @param any jq|yq args
+# @param string Last arg is the yaml file
+# @return jq|yq output
+#"
 dotbot::jq_yaml_file() {
   local _args file lastarg input
   _args=("$@")
@@ -92,8 +125,12 @@ dotbot::jq_yaml_file() {
   fi
 }
 
-# Use jq with yaml file and save. Last argument is
-# the file where to save (and read if not stdin)
+#;
+# dotbot::jq_yaml_file_save
+# Same as dotbot::jq_yaml_file(). But last argument is the file where to save (and read if not stdin). Is a combination of dotbot::jq_yaml_file() and dotbot::save_as_yaml()
+# @param any jq|yq args
+# @param string Last arg is the yaml file to read and write if no stdin and to write only if stdin
+# @return jq|yq output
 dotbot::jq_yaml_file_save() {
   local _args file lastarg
   _args=("$@")
@@ -253,7 +290,7 @@ dotbot::delete_directive() {
 
 # Delete object in colection
 dotbot::delete_by_key_in() {
-  local _jq_query _jq_args directive key_to_delete file_to_read file_to_save
+  local _jq_query _jq_args directive key_to_delete file_to_read file_to_write
   directive="${1:-}"
   key_to_delete="${2:-}"
   file_to_write="${4:-${3:-}}"
