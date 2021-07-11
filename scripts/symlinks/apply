@@ -157,7 +157,7 @@ for file in "${yaml_files[@]}"; do
   output::h3 "Applying dotbot file: \`$file\`"
 
   output::empty_line
-  dotbot_yaml_file_backup "$yaml_file" "$backup_type" "$backup_suffix"
+  dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
   output::empty_line
 done
