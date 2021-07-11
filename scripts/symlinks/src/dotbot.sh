@@ -358,13 +358,19 @@ dotbot::delete_by_value_in() {
 # @return boolean
 #"
 dotbot::apply_yaml() {
+  local _args
   [[ -z "${1:-}" ]] && return 1
   local -r yaml_file="$(dotbot::yaml_file_path "$1")"
   shift
 
   [[ ! -f "$yaml_file" ]] && return 1
 
-  "$DOTBOT_SCRIPT_BIN" -d "$DOTBOT_BASE_PATH" -c "$yaml_file" "$@" || {
+  _args=(
+    -d "$DOTBOT_BASE_PATH"
+    -c "$yaml_file"
+  )
+
+  "$DOTBOT_SCRIPT_BIN" "${_args[@]}" || {
     output::error "Error applying symlinks file name \`$yaml_file\`"
     return 1
   }

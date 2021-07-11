@@ -142,7 +142,11 @@ fi
 
 # Apply core symlinks if we have to do it
 if ${after_core:-}; then
-  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]:-}" "${_backup_args[@]:-}" core
+  if [[ ${#_dotbot_args[@]} -gt 0 ]]; then
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" "${_backup_args[@]}" core
+  else
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_backup_args[@]}" core
+  fi
 fi
 
 # Apply symlinks
@@ -156,9 +160,9 @@ for file in "${yaml_files[@]}"; do
   [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
   output::h3 "Applying dotbot file: \`$file\`"
 
-  output::empty_line
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
-  dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
+  output::empty_line
+  dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
   output::empty_line
 done
 
