@@ -22,10 +22,10 @@ files::backup_if_file_exists() {
   return 0
 }
 
-files::echo() {
-  echo "WTF"
-}
-
+#;
+# files::fzf()
+# Show fzf but can include libraries in a easier way
+#;
 files::fzf() {
   local arguments preview multiple preview_args preview_path libraries_to_load dot_lib
   preview=false
@@ -45,21 +45,22 @@ files::fzf() {
       preview_args+=("$2;")
       shift 2
       ;;
-    -p | --preview-path)
+    -p|--preview-path)
+      #shellcheck disable=SC2034
       [[ -d "${2:-}" ]] && preview_path="${2:-}/"
       shift 2
       ;;
-    -m | --multi)
+    -m|--multi)
       multiple=true
       arguments+=(--multi)
       shift
 
-      if [[ "${1:-}" =~ '^[0-9]+$' ]]; then
+      if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
         arguments+=("${1:-}")
         shift
       fi
       ;;
-    -c | --dotly-core)
+    -c|--sloth-core|--dotly-core)
       preview=true
       preview_args=(
         ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
