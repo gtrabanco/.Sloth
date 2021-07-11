@@ -139,6 +139,7 @@ fi
 
 # Apply core symlinks if we have to do it
 if ${after_core:-}; then
+  echo "after_core = ${after_core:-null}"
   unset after_core
   output::answer "Detected \`--after-core\`, applying core symlinks at first place"
   echo "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" core
