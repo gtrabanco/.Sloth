@@ -47,7 +47,7 @@ dotbot_yaml_file_backup() {
 ##?   apply [-h | --help]
 ##?   apply [-v | --version]
 ##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] core
-##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [--after-core] [<yaml_file>]
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [--after-core] [<dotbot_yaml_file>]
 ##?
 ##? Arguments:
 ##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
@@ -110,13 +110,13 @@ elif ${apply_core:-}; then
   "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks
 fi
 
-if [[ -n "${yaml_file:-}" ]]; then
+if [[ -n "${dotbot_yaml_file:-}" ]]; then
   # Define the base path just to make it explict the default values
   DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
   DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
 
-  if [[ -f "$yaml_file" ]]; then
-    yaml_files+=("$(dotbot::yaml_file_path "$yaml_file")")
+  if [[ -f "$dotbot_yaml_file" ]]; then
+    yaml_files+=("$(dotbot::yaml_file_path "$dotbot_yaml_file")")
   else
     exit 1
   fi
