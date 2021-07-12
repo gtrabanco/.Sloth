@@ -64,6 +64,7 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -d "/usr/local/opt/openssl/bin" ]] && path+=("/usr/local/opt/openssl/bin")
 
 # Conditional paths
+[[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
@@ -72,8 +73,8 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -d "/usr/local/opt/python/libexec/bin" ]] && path+=("/usr/local/opt/python/libexec/bin")
 [[ -d "/usr/local/bin" ]] && path+=("/usr/local/bin")
 [[ -d "/usr/local/sbin" ]] && path+=("/usr/local/sbin")
-[[ -d "/bin" ]] && path+=("/bin")
 [[ -d "/usr/bin" ]] && path+=("/usr/bin")
+[[ -d "/bin" ]] && path+=("/bin")
 [[ -d "/usr/sbin" ]] && path+=("/usr/sbin")
 [[ -d "/sbin" ]] && path+=("/sbin")
 
@@ -88,10 +89,16 @@ if [[ -x "$UNAME_BIN" && "$("$UNAME_BIN" -s)" == "Darwin" ]]; then
     export path=(
       "$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnubin"
       "$("$BREW_BIN" --prefix)/opt/findutils/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-sed/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-tar/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/gnu-which/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/grep/libexec/gnubin"
+      "$("$BREW_BIN" --prefix)/opt/make/libexec/gnubin"
       "${path[@]}"
     )
     MANPATH="$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnuman:$MANPATH"
     export MANPATH
+    [[ -d "/usr/local/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-/usr/local/etc/gnutls/}"
   fi
 fi
 
@@ -118,9 +125,6 @@ fi
 # Functions
 #shellcheck source=/dev/null
 { [[ -f "$DOTFILES_PATH/shell/functions.sh" ]] && . "$DOTFILES_PATH/shell/functions.sh"; } || true
-
-#shellcheck source=/dev/null
-[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 # Auto Init scripts at the end
 init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
