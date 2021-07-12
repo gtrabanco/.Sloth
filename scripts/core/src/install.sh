@@ -60,7 +60,7 @@ install_linux_custom() {
       return
     fi
 
-    output::answer "Installing linux package $1"
+    output::answer "Installing linux package $1 with $package_manager"
     # package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
     package::is_installed "$1" || package::install "$1"
     shift
