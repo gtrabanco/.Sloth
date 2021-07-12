@@ -37,7 +37,7 @@ dotbot_yaml_file_backup() {
       *)
         {
           output::yesno "File \`$link\` exists. Do you want to backup it" &&
-          backup_and_warn_if_exists "$link" "$suffix"
+            backup_and_warn_if_exists "$link" "$suffix"
         } || true
         ;;
     esac
@@ -174,7 +174,7 @@ for file in "${yaml_files[@]}"; do
 
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
-  
+
   if ${continue_on_error:-false}; then
     echo "continue"
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}" || true
