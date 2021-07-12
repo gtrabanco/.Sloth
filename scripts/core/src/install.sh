@@ -75,7 +75,8 @@ install_linux_custom() {
       echo "Not exists install"
     fi
 
-    package::is_installed "$1" || package::install "$1"
+    # package::is_installed "$1" || package::install "$1"
+    package::install "$1"
     shift
 
     if [[ $# -gt 0 ]]; then
