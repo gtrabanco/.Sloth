@@ -12,7 +12,7 @@ backup_and_warn_if_exists() {
   file_path="${1:-}"
   suffix="${2:-$(date +%s)}"
 
-  [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
+  [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && [[ ! -L "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
   [[ -n "$bk_file_path" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
 }
 

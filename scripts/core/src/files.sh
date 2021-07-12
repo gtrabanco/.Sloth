@@ -21,7 +21,7 @@ files::backup_move_if_path_exists() {
   bk_suffix="${2:-$(date +%s)}"
   bk_file_path="$file_path.${bk_suffix}"
 
-  if [[ -n "$file_path" ]] && [[ -e "$file_path" ]]; then
+  if [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && [[ ! -L "$file_path" ]]; then
     mv "$file_path" "$bk_file_path" && echo "$bk_file_path"
   fi
 }
