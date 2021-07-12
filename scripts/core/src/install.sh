@@ -84,7 +84,7 @@ install_linux_custom() {
   }
 
   # To make CI Cheks faster avoid package manager update & upgrade
-  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
   fi
 
@@ -92,7 +92,7 @@ install_linux_custom() {
   linux::install build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
-  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     linux::install bash zsh hyperfine
   fi
 }
