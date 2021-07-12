@@ -61,7 +61,8 @@ install_linux_custom() {
     fi
 
     output::answer "Installing linux package $1"
-    package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
+    # package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
+    package::is_installed "$1" || package::install "$1"
     shift
 
     if [[ $# -gt 0 ]]; then
