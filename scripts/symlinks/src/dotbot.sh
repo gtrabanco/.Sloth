@@ -41,7 +41,9 @@ dotbot::yaml_file_path() {
     yaml_file=""
   fi
 
-  echo "$yaml_file" && return
+  {
+    [[ -n "$yaml_file" ]] && echo "$yaml_file"
+  } || return
 }
 
 #;

@@ -41,27 +41,45 @@ dotbot_yaml_file_backup() {
   done
 }
 
+select_yaml_files_in_path() {
+  if [[ -d "${1:-}" ]]; then
+    # Default dotbot file
+    dotbot::yaml_file_path "conf.yaml" "$1"
+
+    if platform::is_macos; then
+      if platform::is_macos_arm; then
+        dotbot::yaml_file_path "conf.macos.yaml" "$1"
+      else
+        dotbot::yaml_file_path "conf.macos-intel.yaml" "$1"
+      fi
+    else
+      dotbot::yaml_file_path "conf.linux.yaml" "$1"
+    fi
+  fi
+}
+
 ##? Apply all symlinks
 ##?
 ##? Usage:
 ##?   apply [-h | --help]
 ##?   apply [-v | --version]
-##?   apply [-q | --quiet] [-Q | --super-quiet] core
-##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [--after-core] [<dotbot_yaml_file>]
+##?   apply [-q | --quiet] [-Q | --super-quiet] [-c | --continue-on-error] core
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [-c | --continue-on-error] [--after-core] [<dotbot_yaml_file>]
 ##?
 ##? Arguments:
 ##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
 ##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. Core symlinks never perform a backup.
 ##?
 ##? Options:
-##?   -h --help             Show this help
-##?   -v --version          Show the program version
-##?   -q --quiet            Use quiet with dotbot
-##?   -Q --super-quiet      Use super quiet with dotbot (overrided --quiet)
-##?   --backup              Always do a backup without prompt. This option is never applied to core symlinks.
-##?   --ignore-backup       Ignore backup of files. This can override existing files.
-##?   --interactive-backup  Ask user if wants to do a backup for every file. This option is never applied to core symlinks.
-##?   --apply-core          Apply core symlinks as well at the beggining
+##?   -h --help               Show this help
+##?   -v --version            Show the program version
+##?   -q --quiet              Use quiet with dotbot
+##?   -Q --super-quiet        Use super quiet with dotbot (overrided --quiet)
+##?   --backup                Always do a backup without prompt. This option is never applied to core symlinks.
+##?   --ignore-backup         Ignore backup of files. This can override existing files.
+##?   --interactive-backup    Ask user if wants to do a backup for every file. This option is never applied to core symlinks.
+##?   --apply-core            Apply core symlinks as well at the beggining
+##?   -c --continue-on-error  If any symlinks fail, continue applying the next
 ##?
 ##? SCRIPT_VERSION "2.0.0"
 if ! ${DOTLY_INSTALLER:-false}; then
@@ -82,8 +100,11 @@ fi
 # Vars to be used
 _dotbot_args=()
 yaml_files=()
+tmp_yaml_files=()
 backup_type="ignore"
 backup_suffix="$(date +%s)"
+CORE_SYMLINKS_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
+USER_SYMLINKS_PATH="${DOTFILES_PATH}/symlinks"
 
 # Arguments for dotbot
 if ${quiet:-false}; then
@@ -99,14 +120,14 @@ elif ${interactive_backup:-false}; then
   backup_type="interactive"
 fi
 
-# In core we want to change the paths
-if ${core:-false}; then
-  DOTBOT_BASE_PATH="${DOTFILES_PATH}"
-  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
-elif ${apply_core:-}; then
-  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks
+# Add core symlinks if needed
+if ${core:-false} || ${after_core:-false}; then
+  readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$CORE_SYMLINKS_PATH")
+  [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
+  unset tmp_yaml_files
 fi
 
+# Add the unique yaml_file or (else) the default user symlinks
 if [[ -n "${dotbot_yaml_file:-}" ]]; then
   # Define the base path just to make it explict the default values
   DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
@@ -119,48 +140,23 @@ if [[ -n "${dotbot_yaml_file:-}" ]]; then
   fi
 
 else
-  # Define the base path just to make explict the default values
-  DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
-  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
-
-  # Default dotbot file
-  yaml_files+=("$(dotbot::yaml_file_path "conf.yaml")")
-
-  if platform::is_macos; then
-    if platform::is_macos_arm; then
-      yaml_files+=("$(dotbot::yaml_file_path "conf.macos.yaml")")
-    else
-      yaml_files+=("$(dotbot::yaml_file_path "conf.macos-intel.yaml")")
-    fi
-  else
-    yaml_files+=("$(dotbot::yaml_file_path "conf.linux.yaml")")
-  fi
-fi
-
-# TODO There is a problem here when this script calling itself, we need another way to do this
-# Apply core symlinks if we have to do it
-if ${after_core:-false}; then
-  echo "after_core = ${after_core:-null}"
-  unset after_core
-  output::answer "Detected \`--after-core\`, applying core symlinks at first place"
-  echo "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" core
-  "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_dotbot_args[@]}" core
+  readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$USER_SYMLINKS_PATH")
+  [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
+  unset tmp_yaml_files
 fi
 
 # Apply symlinks
-if ${core:-false}; then
-  output::h1 "Applying core symlinks"
-else
-  output::h1 "Applying symlinks"
-fi
-
 for file in "${yaml_files[@]}"; do
   [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
   output::h3 "Applying dotbot file: \`$file\`"
 
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
-  dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
+  if ${continue_on_error:-false}; then
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]}" || true
+  else
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
+  fi
   output::empty_line
 done
 

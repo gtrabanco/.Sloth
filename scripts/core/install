@@ -54,7 +54,7 @@ else
   #shellcheck disable=SC2034
   $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
 fi
-"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --after-core | log::file "Applying symlinks" || output::write "Error applying symlinks, see \`dot self debug\`"
+"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
 
