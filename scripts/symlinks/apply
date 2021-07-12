@@ -137,6 +137,7 @@ else
   fi
 fi
 
+# TODO There is a problem here when this script calling itself, we need another way to do this
 # Apply core symlinks if we have to do it
 if ${after_core:-false}; then
   echo "after_core = ${after_core:-null}"

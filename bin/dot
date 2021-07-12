@@ -98,11 +98,6 @@ else
 
   shift 2
 
-  echo "Executing"
-  echo "context = ${context}"
-  echo "script = ${script}"
-  echo "args = $*"
-
   script_path=""
   script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
   script_exist "${SLOTH_PATH:-$DOTLY_PATH}" "$context" "$script" && script_path="${SLOTH_PATH:-$DOTLY_PATH}"
