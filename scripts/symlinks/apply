@@ -13,7 +13,8 @@ backup_and_warn_if_exists() {
   suffix="${2:-$(date +%s)}"
 
   [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && [[ ! -L "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
-  [[ -n "$bk_file_path" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
+  [[ -n "${bk_file_path:-}" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
+  return
 }
 
 dotbot_yaml_file_backup() {
@@ -34,8 +35,10 @@ dotbot_yaml_file_backup() {
         backup_and_warn_if_exists "$link" "$suffix"
         ;;
       *)
-        output::yesno "File \`$link\` exists. Do you want to backup it" &&
+        {
+          output::yesno "File \`$link\` exists. Do you want to backup it" &&
           backup_and_warn_if_exists "$link" "$suffix"
+        } || true
         ;;
     esac
   done
@@ -117,9 +120,9 @@ elif ${super_quiet:-false}; then
 fi
 
 # Backup type
-if ${backup:-false}; then
+if ${backup:-false} && [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   backup_type="backup"
-elif ${interactive_backup:-false}; then
+elif ${interactive_backup:-false} && [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   backup_type="interactive"
 fi
 
@@ -171,11 +174,15 @@ for file in "${yaml_files[@]}"; do
 
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
+  
   if ${continue_on_error:-false}; then
-    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
+    echo "continue"
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}" || true
   else
+    echo "no continue"
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
   fi
+
   output::empty_line
 done
 
