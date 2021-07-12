@@ -8,12 +8,10 @@
 - create:
     - $DOTFILES_PATH/shell/bash/completions
     - $DOTFILES_PATH/shell/bash/themes
-    - ${SLOTH_PATH}/shell/init.scripts
     - $DOTFILES_PATH/shell/init.scripts
     - $DOTFILES_PATH/shell/init.scripts-enabled
 
 - link:
-    bin/semver: ${SLOTH_PATH}/modules/semver-tool/src/semver
     ~/.bash_profile: shell/bash/.bash_profile
     ~/.bashrc: shell/bash/.bashrc
     ~/.zimrc: shell/zsh/.zimrc

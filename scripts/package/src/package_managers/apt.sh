@@ -59,7 +59,8 @@ apt::update_apps() {
 }
 
 apt::self_update() {
-  apt::is_available && sudo apt-get update
+  platform::command_exists sudo && platform::command_exists hwclock && sudo hwclock --hctosys
+  apt::is_available && platform::command_exists sudo && sudo apt-get update
 }
 
 apt::update_all() {

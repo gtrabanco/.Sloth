@@ -17,11 +17,19 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars fzf zsh python
+script::depends_on docpars zsh fzf python python-yq jq tee realpath
 
-##? Install dotly and setup dotfiles
+##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
+##?    install [[-n | --never-backup] | [-b |--always-backup]]
+##?
+##? Options:
+##?    -h --help                Prints this help
+##?    -n --never-backup        Never do a backup of user symlinks without prompt
+##?    -b --always-backup       Always do a backup of user symlinks without prompt
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
+##?
 ##?    install
 ##?
 ##? SCRIPT_VERSION "2.0.0"
@@ -34,22 +42,43 @@ fi
 output::answer "Creating dotfiles structure"
 "$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
-# @todo Backup if exists before
+# Apply user symlinks
 output::answer "Setting up symlinks"
-"$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || true
+symlinks_args=(--interactive-backup)
+if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+  symlinks_args=(--ignore-backup)
+elif ${always_backup:-}; then
+  symlinks_args=(--backup)
+else
+  bk=false
+  output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
+  $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
+  ! $bk && symlinks_args=(--ignore-backup)
+fi
+"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
+unset symlinks_args bk
 
-if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
-  output::answer "Setting zsh as the default shell"
+# ZSH as default shell if we are using zsh
+output::answer "Setting zsh as the default shell"
+if ! str::contains zsh "$SHELL" && platform::command_exists chsh; then
   sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
+else
+  output::error "ZSH could not be setup as default shell"
 fi
 
+# If exists zsh install ZIMFW
+output::answer "Installing zim"
 if platform::command_exists zsh; then
-  output::answer "Installing zim"
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+else
+  output::error "ZIM Framework could not be installed"
+  output::write "Use \`dot self debug\` to view what happened"
+  output::write "You will need to run manually the ZIM Framework install command"
+  output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
 fi
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" && "$SHELL" =~ zsh$ ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
   {
     zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
@@ -64,11 +93,14 @@ if [ -d "$install_scripts_path" ]; then
     sort |
     while read -r install_script; do
       #shellcheck disable=SC1090
-      { [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"; } || {
-        output::error "Install script error in $(basename "$install_script")"
+      {
+        [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
+      } || {
+        output::error "Install script error in \`$(basename "$install_script")\`"
       }
     done
 fi
 
+output::empty_line
 output::answer '🥳 🎉 SLOTH installed sucessfully'
-output::solution 'Now restart your terminal'
+output::solution "🏁 Now restart your terminal to finish the installation"
