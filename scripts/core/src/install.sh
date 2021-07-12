@@ -62,6 +62,19 @@ install_linux_custom() {
 
     output::answer "Installing linux package $1 with $package_manager"
     # package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
+
+    if package::is_installed "$1"; then
+      output::write "package \`$1\` IS installed"
+    else
+      output::write "package \`$1\` NOT installed"
+    fi
+
+    if package::command_exists "$package_manager" "install"; then
+      echo "Install exists"
+    else
+      echo "Not exists install"
+    fi
+
     package::is_installed "$1" || package::install "$1"
     shift
 
