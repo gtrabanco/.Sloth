@@ -109,6 +109,17 @@ package::is_installed() {
   registry::is_installed "$1" || return 1
 }
 
+package::manager_preferred() {
+  local all_available_pkgmgrs
+
+  readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
+  eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
+
+  if [[ ${#uniq_values[@]} -gt 0 ]]; then
+    echo "${uniq_values[0]}"
+  fi
+}
+
 package::_install() {
   local package_manager package
   package_manager="${1:-}"
@@ -142,17 +153,6 @@ package::_install() {
   fi
 
   return 1
-}
-
-package::manager_preferred() {
-  local all_available_pkgmgrs
-
-  readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
-  eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
-
-  if [[ ${#uniq_values[@]} -gt 0 ]]; then
-    echo "${uniq_values[0]}"
-  fi
 }
 
 # Try to install with any package manager
