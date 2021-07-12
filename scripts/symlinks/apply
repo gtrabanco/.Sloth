@@ -12,7 +12,7 @@ backup_and_warn_if_exists() {
   file_path="${1:-}"
   suffix="${2:-$(date +%s)}"
 
-  [[ -n "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
+  [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
   [[ -n "$bk_file_path" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
 }
 
@@ -99,12 +99,15 @@ fi
 
 # Vars to be used
 _dotbot_args=()
+_after_core_args=()
 yaml_files=()
 tmp_yaml_files=()
 backup_type="ignore"
-backup_suffix="$(date +%s)"
+backup_suffix="$(date +%s).bak"
 CORE_SYMLINKS_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
 USER_SYMLINKS_PATH="${DOTFILES_PATH}/symlinks"
+#shellcheck disable=SC2034
+DOTBOT_BASE_PATH="$DOTFILES_PATH" # is used in dotbot.sh library
 
 # Arguments for dotbot
 if ${quiet:-false}; then
@@ -120,44 +123,64 @@ elif ${interactive_backup:-false}; then
   backup_type="interactive"
 fi
 
+if ${after_core:-false}; then
+  output::answer "Argument \`--after-core\` detected, calling core scripts first"
+  [[ ${#_dotbot_args[@]} -gt 0 ]] && _after_core_args+=("${_dotbot_args[@]}")
+  ${continue_on_error:-false} && _after_core_args+=(--continue-on-error)
+
+  if [[ ${#_after_core_args[@]} -gt 0 ]]; then
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_after_core_args[@]}" core
+  else
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply core
+  fi
+fi
+
 # Add core symlinks if needed
-if ${core:-false} || ${after_core:-false}; then
+if ${core:-false}; then
   readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$CORE_SYMLINKS_PATH")
   [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
   unset tmp_yaml_files
-fi
 
-# Add the unique yaml_file or (else) the default user symlinks
-if [[ -n "${dotbot_yaml_file:-}" ]]; then
-  # Define the base path just to make it explict the default values
-  DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
-  DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+# Add the unique yaml_file
+elif [[ -n "${dotbot_yaml_file:-}" ]]; then
+  dotbot_yaml_file="$(dotbot::yaml_file_path "$dotbot_yaml_file")"
 
   if [[ -f "$dotbot_yaml_file" ]]; then
-    yaml_files+=("$(dotbot::yaml_file_path "$dotbot_yaml_file")")
+    yaml_files+=("$dotbot_yaml_file")
   else
     exit 1
   fi
 
-else
+# the default user symlinks
+elif ! ${core:-false}; then
   readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$USER_SYMLINKS_PATH")
   [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
   unset tmp_yaml_files
 fi
 
 # Apply symlinks
+
+if ${core:-false}; then
+  output::h1 "Applying core symlinks"
+else
+  output::h1 "Applying user symlinks"
+fi
+
 for file in "${yaml_files[@]}"; do
   [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
-  output::h3 "Applying dotbot file: \`$file\`"
 
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
   if ${continue_on_error:-false}; then
-    dotbot::apply_yaml "$file" "${_dotbot_args[@]}" || true
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
   else
-    dotbot::apply_yaml "$file" "${_dotbot_args[@]}"
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
   fi
   output::empty_line
 done
 
-log::success "Done!"
+if ${core:-false}; then
+  log::success "Core done!"
+else
+  log::success "Done!"
+fi

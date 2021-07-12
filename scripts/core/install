@@ -9,25 +9,28 @@ dot::load_library "install.sh"
 export ZIM_HOME="$DOTLY_PATH/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-if platform::is_macos; then
-  output::answer "🍎 Setting up macOS platform"
-  install_macos_custom
-elif platform::is_linux; then
-  output::answer "🐧 Setting up Linux Platform"
-  install_linux_custom
-fi
+# if platform::is_macos; then
+#   output::answer "🍎 Setting up macOS platform"
+#   install_macos_custom
+# elif platform::is_linux; then
+#   output::answer "🐧 Setting up Linux Platform"
+#   install_linux_custom
+# fi
 
-script::depends_on docpars zsh fzf python python-yq jq tee realpath
+# script::depends_on docpars zsh fzf python python-yq jq tee realpath
 
-##? Install dotly and setup dotfiles. By default use a interactive backup.
+echo "$*"
+
+##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
 ##?    install [[-n | --never-backup] | [-b |--always-backup]]
 ##?
 ##? Options:
-##?    -h --help            Prints this help
-##?    -n --never-backup    Never do a backup of user symlinks without prompt
-##?    -b --always-backup   Always do a backup of user symlinks without prompt
+##?    -h --help                Prints this help
+##?    -n --never-backup        Never do a backup of user symlinks without prompt
+##?    -b --always-backup       Always do a backup of user symlinks without prompt
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
 ##?
 ##?    install
 ##?
@@ -38,8 +41,8 @@ elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   grep '^##?' "$0" | tr '##? ' ' '
 fi
 
-output::answer "Creating dotfiles structure"
-"$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+# output::answer "Creating dotfiles structure"
+# "$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
 # Apply user symlinks
 output::answer "Setting up symlinks"
@@ -85,20 +88,20 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   } || output::error '❌ Error reloading completions'
 fi
 
-output::answer "Executing custom restoration scripts"
-install_scripts_path="$DOTFILES_PATH/restoration_scripts"
-if [ -d "$install_scripts_path" ]; then
-  find "$install_scripts_path" -mindepth 1 -maxdepth 1 -type l,f -name '*.sh' |
-    sort |
-    while read -r install_script; do
-      #shellcheck disable=SC1090
-      {
-        [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
-      } || {
-        output::error "Install script error in \`$(basename "$install_script")\`"
-      }
-    done
-fi
+# output::answer "Executing custom restoration scripts"
+# install_scripts_path="$DOTFILES_PATH/restoration_scripts"
+# if [ -d "$install_scripts_path" ]; then
+#   find "$install_scripts_path" -mindepth 1 -maxdepth 1 -type l,f -name '*.sh' |
+#     sort |
+#     while read -r install_script; do
+#       #shellcheck disable=SC1090
+#       {
+#         [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
+#       } || {
+#         output::error "Install script error in \`$(basename "$install_script")\`"
+#       }
+#     done
+# fi
 
 output::empty_line
 output::answer '🥳 🎉 SLOTH installed sucessfully'
