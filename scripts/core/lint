@@ -48,9 +48,9 @@ script::depends_on shfmt
 # Avoid zsh because shfmt show some errors because it do not understand some
 # valid zsh valid syntax
 if ${dotfiles:-false}; then
-  mapfile -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
+  readarray -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
 else
-  mapfile -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+  readarray -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
 fi
 
 # No color for shfmt

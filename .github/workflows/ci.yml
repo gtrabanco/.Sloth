@@ -41,7 +41,7 @@ jobs:
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
-      - name: Debug on error
+      - name: Debug
         if: ${{ always() }}
         run: |
           echo "DOTLY_REPOSITORY: $DOTLY_REPOSITORY"

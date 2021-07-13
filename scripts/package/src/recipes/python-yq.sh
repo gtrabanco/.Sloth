@@ -23,11 +23,6 @@ python-yq::install() {
 }
 
 python-yq::is_installed() {
-  {
-    platform::command_exists brew && {
-      brew list --formula "python-yq" &> /dev/null || brew list --cask "python-yq"
-    }
-  } || {
-    platform::command_exists pip3 && pip3 show "yq" &> /dev/null
-  }
+  # Because there is another tool called yq as well
+  platform::command_exists yq && yq --help | grep -q "https://github.com/kislyuk/yq"
 }

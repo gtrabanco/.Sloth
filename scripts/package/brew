@@ -36,7 +36,7 @@ case $1 in
     HOMEBREW_DUMP_FILE_PATH="${optional_path_brewfile:-$(package::exists_dump_current_machine_file "$BREW_PATH")}"
 
     if ! ${never_prompt:-false}; then
-      [[ -z "$HOMEBREW_DUMP_FILE_PATH" ]] || ${prompt:-false} && package::which_file "$BREW_PATH" "Select Brewfile to import" "HOMEBREW_DUMP_FILE_PATH"
+      [[ -z "$HOMEBREW_DUMP_FILE_PATH" ]] || ${prompt:-false} && HOMEBREW_DUMP_FILE_PATH="$(package::which_file "$BREW_PATH" "Select Brewfile to import")"
     fi
 
     if [[ -f $HOMEBREW_DUMP_FILE_PATH ]]; then

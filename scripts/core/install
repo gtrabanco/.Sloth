@@ -55,19 +55,18 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python python-yq jq moreutils
+script::depends_on docpars zsh fzf python3 python-yq jq tee realpath
 
-##? Install dotly and setup dotfiles
+##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup]] [-s | --quiet-symlinks]
+##?    install [[-n | --never-backup] | [-b |--always-backup]]
 ##?
 ##? Options:
-##?    -h --help            Prints this help
-##?    -n --never-backup    Never do a backup without prompt
-##?    -b --always-backup   Always do a backup without prompt
-##?    -s --quiet-symlinks  Run dotbot in super quiet mode. If backup, do it
-##?                         without asking.
+##?    -h --help                Prints this help
+##?    -n --never-backup        Never do a backup of user symlinks without prompt
+##?    -b --always-backup       Always do a backup of user symlinks without prompt
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
 ##?
 ##?    install
 ##?
@@ -81,97 +80,57 @@ fi
 output::answer "Creating dotfiles structure"
 "$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
-# Which yaml files
-yaml_files=("conf.yaml")
-
-if platform::is_macos; then
-  if platform::is_macos_arm; then
-    yaml_files+=("conf.macos.yaml")
-  else
-    yaml_files+=("conf.macos-intel.yaml")
-  fi
-else
-  yaml_files+=("conf.linux.yaml")
-fi
-
-_args=()
-if ${quiet_symlinks:-false}; then
-  _args+=(--super-quiet)
-fi
-
-_args+=(
-  -d
-  "$DOTFILES_PATH"
-  -c
-)
-
-# Sloth core install symlinks
-for yaml_file in "${yaml_files[@]}"; do
-  sloth_install_symlinks "$yaml_file" "${_args[@]}"
-done
-
-if platform::command_exists yq && platform::command_exists jq; then
-  # Make a backup of existing current dotfiles
-  if ! ${always_backup:-} &&
-    ! ${never_backup:-} &&
-    output::yesno "Do you want to perform a backup of your current existing dotfiles if they exists"; then
-    always_backup=true
-  fi
-
-  if ${always_backup:-false}; then
-    rename_suffix=$(date +%s)
-
-    for yaml_file in "${yaml_files[@]}"; do
-      yaml_file="$(symlinks::get_file_path "$yaml_file")"
-
-      [[ ! -f "$yaml_file" ]] && continue
-      maptfile -t links < <(dotbot::get_all_keys_in "link" "$(symlinks::get_file_path "$yaml_file")")
-
-      for link in "${links[@]}"; do
-        link="$(eval realpath -q -m -s "$link")"
-
-        if [[ -f "$link" ]]; then
-          if ! ${quiet_symlinks:-} &&
-            ! output::yesno "File '$link' exists. Do you want to backup it"; then
-            continue
-          fi
-
-          backup_and_warn_if_exists "$link" "$rename_suffix"
-        fi
-      done
-    done
-  fi
-else
-  output::error "🚨 Backup can not be performed because \`yq\` or \`jq\` commands are not available."
-  output::error "If you continue be sure to make a backup first of you existing .bashrc, .zshrc and any other shell files."
-  output::yesno "Do you want to continue now" || exit 5
-fi
-
 # Apply user symlinks
 output::answer "Setting up symlinks"
-if ${quiet_symlinks:-false}; then
-  "$DOTLY_PATH/bin/dot" symlinks apply --quiet | log::file "Applying symlinks" || true
+symlinks_args=(--interactive-backup)
+if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+  symlinks_args=(--ignore-backup)
+elif ${always_backup:-}; then
+  symlinks_args=(--backup)
 else
-  "$DOTLY_PATH/bin/dot" symlinks apply | log::file "Applying symlinks" || output::write "Error applying symlinks, see $(dot self backup)"
+  bk=false
+  output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
+  $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
+  ! $bk && symlinks_args=(--ignore-backup)
 fi
+"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
+unset symlinks_args bk
 
-if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
-  output::answer "Setting zsh as the default shell"
-  sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
+# ZSH as default shell if we are using zsh
+zsh_shell_path="$(command -v zsh || true)"
+output::answer "Trying to setup zsh as the default shell"
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
+  if
+    [[ -f "/etc/shells" ]] &&
+      ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
+      sudo -v
+  then
+    echo "$zsh_shell_path" >> "/etc/shells"
+  fi
+
+  {
+    sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
+  } | log::file "Setting zsh as default shell"
+elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  output::error "ZSH is not installed or is your current shell"
+else
+  output::answer "This is step is aborted on CI"
 fi
+unset zsh_shell_path
 
+# If exists zsh install ZIMFW
+output::answer "Installing zim"
 if platform::command_exists zsh; then
-  output::answer "Installing zim"
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
   output::error "ZIM Framework could not be installed"
-  output::write "Use $(dot self debug) to view what happened"
+  output::write "Use \`dot self debug\` to view what happened"
   output::write "You will need to run manually the ZIM Framework install command"
   output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
 fi
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" && "$SHELL" =~ zsh$ ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
   {
     zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
@@ -186,8 +145,10 @@ if [ -d "$install_scripts_path" ]; then
     sort |
     while read -r install_script; do
       #shellcheck disable=SC1090
-      { [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"; } || {
-        output::error "Install script error in $(basename "$install_script")"
+      {
+        [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
+      } || {
+        output::error "Install script error in \`$(basename "$install_script")\`"
       }
     done
 fi

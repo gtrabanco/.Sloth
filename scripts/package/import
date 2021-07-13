@@ -49,7 +49,7 @@ for package_manager in $(package::get_available_package_managers); do
       [[ ! -f "$file_path" ]] &&
       ! ${never_prompt:-false} &&
       file_path=""
-  } && package::which_file "$directory_file_path" "Select $(eval echo "\$${package_manager}_title") file to import" "file_path"
+  } && file_path="$(package::which_file "$directory_file_path" "Select $(eval echo "\$${package_manager}_title") file to import")"
 
   output::empty_line
   output::h2 "🚀 Importing $(eval echo "\$${package_manager}_title") apps"

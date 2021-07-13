@@ -4,53 +4,243 @@ set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+dot::load_library "dotbot.sh"
+dot::load_library "symlinks.sh"
 
-symlinks::apply() {
-  [[ -z "${1:-}" ]] && return 1
-  local -r CONFIG="$DOTFILES_PATH/symlinks/$1"
-  shift
+backup_and_warn_if_exists() {
+  local file_path suffix bk_file_path
+  file_path="${1:-}"
+  suffix="${2:-$(date +%s)}"
 
-  echo
-  "$DOTLY_PATH/modules/dotbot/bin/dotbot" "$@" "$CONFIG" || output::error "Error applying symlinks file name '$(basename "$CONFIG")'"
-  echo
+  [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && [[ ! -L "$file_path" ]] && bk_file_path="$(files::backup_move_if_path_exists "$file_path" "$suffix")"
+  [[ -n "${bk_file_path:-}" ]] && output::error "\`$file_path\` exists and was moved to \`$bk_file_path\`"
+  return
+}
+
+dotbot_yaml_file_backup() {
+  local mode yaml_file suffix
+  yaml_file="${1:-}"
+  mode="${2:-}"
+  suffix="${3:-$(date +%s)}"
+
+  [[ $mode == "ignore" ]] && return
+
+  for link in $(symlinks::get_all_links "$(dotbot::yaml_file_path "$yaml_file")"); do
+    link="$(dotbot::realpath "$link")"
+
+    [[ ! -e "$link" ]] && continue
+
+    case "$mode" in
+      "backup")
+        backup_and_warn_if_exists "$link" "$suffix"
+        ;;
+      *)
+        {
+          output::yesno "File \`$link\` exists. Do you want to backup it" &&
+            backup_and_warn_if_exists "$link" "$suffix"
+        } || true
+        ;;
+    esac
+  done
+}
+
+select_yaml_files_in_path() {
+  if [[ -d "${1:-}" ]]; then
+    # Default dotbot file
+    dotbot::yaml_file_path "conf.yaml" "$1"
+
+    if platform::is_macos; then
+      if platform::is_macos_arm; then
+        dotbot::yaml_file_path "conf.macos.yaml" "$1"
+      else
+        dotbot::yaml_file_path "conf.macos-intel.yaml" "$1"
+      fi
+    else
+      dotbot::yaml_file_path "conf.linux.yaml" "$1"
+    fi
+  fi
 }
 
 ##? Apply all symlinks
 ##?
 ##? Usage:
-##?    apply [-h | --help]
-##?    apply [-v | --version]
-##?    apply [-q | --quiet]
+##?   apply [-h | --help]
+##?   apply [-v | --version]
+##?   apply [-q | --quiet] [-Q | --super-quiet] [-c | --continue-on-error] core
+##?   apply [-q | --quiet] [-Q | --super-quiet] [--backup|--interactive-backup|--ignore-backup] [-c | --continue-on-error] [--after-core] [<dotbot_yaml_file>]
+##?
+##? Arguments:
+##?   yaml_file  If you do not want to apply dotfiles yaml files and you want to apply a specific yaml (it will use DOTBOT_BASE_PATH as -d argument). By default does not do a backup.
+##?   core       Apply core symlinks that are applied on installation or restauration of dotfiles. Core symlinks never perform a backup.
 ##?
 ##? Options:
-##?   -h --help     Show this help
-##?   -v --version  Show the program version
+##?   -h --help               Show this help
+##?   -v --version            Show the program version
+##?   -q --quiet              Use quiet with dotbot
+##?   -Q --super-quiet        Use super quiet with dotbot (overrided --quiet)
+##?   --backup                Always do a backup without prompt. This option is never applied to core symlinks.
+##?   --ignore-backup         Ignore backup of files. This can override existing files.
+##?   --interactive-backup    Ask user if wants to do a backup for every file. This option is never applied to core symlinks.
+##?   --apply-core            Apply core symlinks as well at the beggining
+##?   -c --continue-on-error  If any symlinks fail, continue applying the next
 ##?
+##? SCRIPT_VERSION "2.1.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
+else
+  version=false
+  help=false
+  quiet=false
+  super_quiet=false
+  backup=false
+  interactive_backup=false
+  ignore_backup=false
+  continue_on_error=false
+  after_core=false
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      --quiet | -q)
+        quiet=true
+        shift
+        ;;
+      --super-quiet | -Q)
+        super_quiet=true
+        shift
+        ;;
+      --backup)
+        { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        backup=true
+        ;;
+      --interactive-backup)
+        { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        interactive_backup=true
+        shift
+        ;;
+      --ignore-backup)
+        { $backup || $interactive_backup; } && output::error "Error you can not use \`--ignore-backup\` with \`--backup\` or \`--interactive-backup\`" && exit 4
+        ignore_backup=true
+        shift
+        ;;
+      --continue-on-error | -c)
+        continue_on_error=true
+        shift
+        ;;
+      --after-core)
+        after_core=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
 fi
 
 SCRIPT_NAME="sloth symlinks apply"
-SCRIPT_VERSION="1.0.0"
 
 # Print name and version
 if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  exit
+elif ${help:-false}; then
+  grep "##?" "$(dot::get_full_script_path)"
   exit
 fi
 
-symlinks::apply "conf.yaml"
+# Vars to be used
+_dotbot_args=()
+_after_core_args=()
+yaml_files=()
+tmp_yaml_files=()
+backup_type="ignore"
+backup_suffix="$(date +%s).bak"
+CORE_SYMLINKS_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
+USER_SYMLINKS_PATH="${DOTFILES_PATH}/symlinks"
+#shellcheck disable=SC2034
+DOTBOT_BASE_PATH="$DOTFILES_PATH" # is used in dotbot.sh library
 
-if platform::is_macos; then
-  if platform::is_macos_arm; then
-    symlinks::apply "conf.macos.yaml" "${_args[@]}"
-  else
-    symlinks::apply "conf.macos-intel.yaml" "${_args[@]}"
-  fi
-else
-  symlinks::apply "conf.linux.yaml" "${_args[@]}"
+# Arguments for dotbot
+if ${quiet:-false}; then
+  _dotbot_args=(--quiet)
+elif ${super_quiet:-false}; then
+  _dotbot_args=(--super-quiet)
 fi
 
-log::success "Done!"
+# Backup type
+if ${backup:-false} && [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  backup_type="backup"
+elif ${interactive_backup:-false} && [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  backup_type="interactive"
+fi
+
+if ${after_core:-false}; then
+  output::answer "Argument \`--after-core\` detected, calling core scripts first"
+  [[ ${#_dotbot_args[@]} -gt 0 ]] && _after_core_args+=("${_dotbot_args[@]}")
+  ${continue_on_error:-false} && _after_core_args+=(--continue-on-error)
+
+  if [[ ${#_after_core_args[@]} -gt 0 ]]; then
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_after_core_args[@]}" core
+  else
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply core
+  fi
+fi
+
+# Add core symlinks if needed
+if ${core:-false}; then
+  readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$CORE_SYMLINKS_PATH")
+  [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
+  unset tmp_yaml_files
+
+# Add the unique yaml_file
+elif [[ -n "${dotbot_yaml_file:-}" ]]; then
+  dotbot_yaml_file="$(dotbot::yaml_file_path "$dotbot_yaml_file")"
+
+  if [[ -f "$dotbot_yaml_file" ]]; then
+    yaml_files+=("$dotbot_yaml_file")
+  else
+    exit 1
+  fi
+
+# the default user symlinks
+elif ! ${core:-false}; then
+  readarray -t tmp_yaml_files < <(select_yaml_files_in_path "$USER_SYMLINKS_PATH")
+  [[ ${#tmp_yaml_files[@]} -gt 0 ]] && yaml_files+=("${tmp_yaml_files[@]}")
+  unset tmp_yaml_files
+fi
+
+# Apply symlinks
+
+if ${core:-false}; then
+  output::h1 "Applying core symlinks"
+else
+  output::h1 "Applying user symlinks"
+fi
+
+for file in "${yaml_files[@]}"; do
+  [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
+
+  dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
+  output::empty_line
+
+  if ${continue_on_error:-false}; then
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}" || true
+  else
+    dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
+  fi
+
+  output::empty_line
+done
+
+if ${core:-false}; then
+  log::success "Core done!"
+else
+  log::success "Done!"
+fi
