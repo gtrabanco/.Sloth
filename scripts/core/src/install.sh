@@ -63,24 +63,13 @@ install_linux_custom() {
     output::answer "Installing linux package $1 with $package_manager"
     # package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
 
-    if package::is_installed "$1"; then
-      output::write "package \`$1\` IS installed"
-    else
-      output::write "package \`$1\` NOT installed"
-    fi
-
-    if package::command_exists "$package_manager" "install"; then
-      echo "Install exists"
-    else
-      echo "Not exists install"
-    fi
-
     # package::is_installed "$1" || package::install "$1"
-    if ! "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package check "$1" &>/dev/null; then
-      "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
-    else
-      output::write "\`$1\` is installed"
-    fi
+    # if ! "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package check "$1" &>/dev/null; then
+    #   "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
+    # else
+    #   output::write "\`$1\` is installed"
+    # fi
+    "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
     shift
 
     if [[ $# -gt 0 ]]; then
@@ -90,7 +79,7 @@ install_linux_custom() {
 
   # To make CI Cheks faster avoid package manager update & upgrade
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-    package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
+  package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
   # fi
 
   output::answer "Installing needed packages"
@@ -98,6 +87,6 @@ install_linux_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-    linux::install bash zsh hyperfine
+  linux::install bash zsh hyperfine
   # fi
 }
