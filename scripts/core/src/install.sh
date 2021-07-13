@@ -86,7 +86,7 @@ install_linux_custom() {
   # fi
 
   output::answer "Installing needed packages"
-  linux::install build-essential coreutils findutils
+  linux::install build-essential coreutils findutils python3-pip
 
   # To make CI Checks faster this packages are only installed if not CI
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
