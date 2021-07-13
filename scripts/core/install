@@ -59,13 +59,14 @@ fi
 echo "End of apply symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
-
+echo "1"
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh)"
+echo "2"
 output::answer "Trying to setup zsh as the default shell"
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
   if
-    [[ "${DOTLY_ENV:-PROD}" != "CI" && -f "/etc/shells" ]] &&
+    [[ -f "/etc/shells" ]] &&
       ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
       sudo -v
   then
