@@ -136,6 +136,9 @@ if ${after_core:-false}; then
   else
     "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply core
   fi
+else
+  echo "no core"
+  echo "$*"
 fi
 
 # Add core symlinks if needed
