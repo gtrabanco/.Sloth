@@ -46,7 +46,20 @@ install_macos_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine
+    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make python3 hyperfine
+
+    # Python setup tools
+    command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
+
+    # Adds brew zsh and bash to /etc/shells
+    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
+    if [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -v; then
+      echo "${HOMEBREW_PREFIX}/bin/zsh" >> "/etc/shells"
+    fi
+
+    if [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -v; then
+      echo "${HOMEBREW_PREFIX}/bin/bash" >> "/etc/shells"
+    fi
 
     output::answer "Installing mas"
     brew::install mas
