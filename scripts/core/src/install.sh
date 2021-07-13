@@ -76,7 +76,11 @@ install_linux_custom() {
     fi
 
     # package::is_installed "$1" || package::install "$1"
-    package::install "$1"
+    if ! "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package check "$1" &>/dev/null; then
+      "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
+    else
+      output::write "\`$1\` is installed"
+    fi
     shift
 
     if [[ $# -gt 0 ]]; then
