@@ -138,7 +138,7 @@ if ${after_core:-false}; then
   fi
 else
   echo "no core"
-  echo "$*"
+  echo "$* (${after_core:-none})"
 fi
 
 # Add core symlinks if needed
