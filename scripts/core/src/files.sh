@@ -24,6 +24,8 @@ files::backup_move_if_path_exists() {
   if [[ -n "$file_path" ]] && [[ -e "$file_path" ]] && [[ ! -L "$file_path" ]]; then
     mv "$file_path" "$bk_file_path" && echo "$bk_file_path"
   fi
+
+  return
 }
 
 #;
