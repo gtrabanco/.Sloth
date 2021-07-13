@@ -42,14 +42,14 @@ install_macos_custom() {
     brew upgrade --force | log::file "Brew upgrade current packages"
   fi
 
-  brew::install coreutils findutils gnu-sed
+  brew::install coreutils findutils gnu-sed python3
+
+  # Python setup tools
+  command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make python3 hyperfine
-
-    # Python setup tools
-    command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
+    brew::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
@@ -87,6 +87,9 @@ install_linux_custom() {
 
   output::answer "Installing needed packages"
   linux::install build-essential coreutils findutils python3-pip
+
+  # Python setup tools
+  command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
 
   # To make CI Checks faster this packages are only installed if not CI
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
