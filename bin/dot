@@ -115,7 +115,8 @@ else
     grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" ||
     grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
     grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" ||
-    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"; then
+    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"
+  then
     if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
       docs::parse_script "${script_full_path}" "--help"
     elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then

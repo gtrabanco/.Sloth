@@ -36,6 +36,7 @@ dot::list_scripts_path() {
 }
 
 dot::get_script_path() {
+  [[ -n "${script_full_path:-}" ]] && dirname "$script_full_path" && return
   #shellcheck disable=SC2164
   echo "$(
     cd -- "$(dirname "$0")" > /dev/null 2>&1
@@ -44,6 +45,8 @@ dot::get_script_path() {
 }
 
 dot::get_full_script_path() {
+  [[ -n "${script_full_path:-}" ]] && echo "$script_full_path" && return
+
   #shellcheck disable=SC2164
   echo "$(
     cd -- "$(dirname "$0")" > /dev/null 2>&1
