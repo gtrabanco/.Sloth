@@ -5,16 +5,6 @@
 #   https://github.com/dylanaraps/neofetch
 #
 
-#shellcheck disable=SC2034,SC2207
-DOTLY_UNAME=($(uname -sm))
-if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
-  DOTLY_OS="$(echo "${DOTLY_UNAME[0]}" | tr '[:upper:]' '[:lower:]')"
-  DOTLY_ARCH="${DOTLY_UNAME[1]}"
-else
-  DOTLY_OS="$(echo "${DOTLY_UNAME[1]}" | tr '[:upper:]' '[:lower:]')"
-  DOTLY_ARCH="${DOTLY_UNAME[2]}"
-fi
-
 platform::command_exists() {
   type "$1" > /dev/null 2>&1
 }
@@ -49,11 +39,12 @@ platform::macos_version_name() {
 }
 
 platform::get_os() {
-  echo "$DOTLY_OS" | tr '[:upper:]' '[:lower:]'
+  echo "$DOTLY_OS" | tr '[:upper:]' '[:lower:]' || uname -s
 }
 
 platform::get_arch() {
   local architecture="unknown"
+  [[ -z "${DOTLY_ARCH:-}" ]] && DOTLY_ARCH="$(uname -m)"
   case "$DOTLY_ARCH" in
     x86_64)
       architecture="amd64"
@@ -77,7 +68,7 @@ platform::is_arm() {
 }
 
 platform::is_macos() {
-  [[ $DOTLY_OS == "darwin"* ]]
+  [[ $DOTLY_OS == "Darwin"* ]]
 }
 
 platform::is_macos_arm() {
@@ -85,7 +76,7 @@ platform::is_macos_arm() {
 }
 
 platform::is_linux() {
-  [[ $DOTLY_OS == *"linux"* ]]
+  [[ $DOTLY_OS == *"Linux"* ]]
 }
 
 platform::is_wsl() {
@@ -93,14 +84,14 @@ platform::is_wsl() {
 }
 
 platform::is_bsd() {
-  [[ $DOTLY_OS == *"bsd"* ]]
+  [[ $DOTLY_OS == *"BSD"* ]]
 }
 
 platform::os() {
   # Should never show unknown but expect the unexpected ;)
   local os="unknown"
 
-  case "$DOTLY_OS" in
+  case "$(platform::get_os)" in
     darwin*)
       os="macos"
       ;;
