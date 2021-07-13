@@ -60,14 +60,24 @@ touch "$HOME/.z"
 unset symlinks_args bk
 
 # ZSH as default shell if we are using zsh
-if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
+zsh_shell_path="$(command -v zsh)"
+if ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
   output::answer "Setting zsh as the default shell"
+  if
+    [[ "${DOTLY_ENV:-PROD}" != "CI" && -f "/etc/shells" ]] &&
+    ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
+    sudo -v
+  then
+    echo "$zsh_shell_path" >> "/etc/shells"
+  fi
+
   {
     sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
   } | log::file "Setting zsh as default shell"
 else
   output::error "ZSH is not installed?"
 fi
+unset zsh_shell_path
 
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
