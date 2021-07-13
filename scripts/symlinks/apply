@@ -84,19 +84,74 @@ select_yaml_files_in_path() {
 ##?   --apply-core            Apply core symlinks as well at the beggining
 ##?   -c --continue-on-error  If any symlinks fail, continue applying the next
 ##?
-##? SCRIPT_VERSION "2.0.0"
+##? SCRIPT_VERSION "2.1.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
+else
+  version=false
+  help=false
+  quiet=false
+  super_quiet=false
+  backup=false
+  interactive_backup=false
+  ignore_backup=false
+  continue_on_error=false
+  after_core=false
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      --quiet | -q)
+        quiet=true
+        shift
+        ;;
+      --super-quiet | -Q)
+        super_quiet=true
+        shift
+        ;;
+      --backup)
+        { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        backup=true
+        ;;
+      --interactive-backup)
+        { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        interactive_backup=true
+        shift
+        ;;
+      --ignore-backup)
+        { $backup || $interactive_backup; } && output::error "Error you can not use \`--ignore-backup\` with \`--backup\` or \`--interactive-backup\`" && exit 4
+        ignore_backup=true
+        shift
+        ;;
+      --continue-on-error | -c)
+        continue_on_error=true
+        shift
+        ;;
+      --after-core)
+        after_core=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
 fi
 
 SCRIPT_NAME="sloth symlinks apply"
-SCRIPT_VERSION="1.0.0"
 
 # Print name and version
 if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  exit
+elif ${help:-false}; then
+  grep "##?" "$(dot::get_full_script_path)"
   exit
 fi
 
@@ -135,15 +190,6 @@ if ${after_core:-false}; then
     "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_after_core_args[@]}" core
   else
     "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply core
-  fi
-else
-  echo "no core"
-  echo "$* (${after_core:-none})"
-
-  if platform::is_linux; then
-    echo "LINUX"
-  else
-    echo "MACOS"
   fi
 fi
 
@@ -187,7 +233,6 @@ for file in "${yaml_files[@]}"; do
   output::empty_line
 
   if ${continue_on_error:-false}; then
-    echo "---- continue on error ----"
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}" || true
   else
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"
