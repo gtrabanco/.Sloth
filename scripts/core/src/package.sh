@@ -62,6 +62,7 @@ package::get_available_package_managers() {
   local package_manager_src package_manager
   find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2> /dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
     # Get package manager name
+    #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
 
@@ -79,7 +80,7 @@ package::get_available_package_managers() {
 }
 
 #;
-# package::manager_preferred
+# package::manager_preferred()
 # Get the first avaible of the preferred package managers
 # @return string package manager
 #"
@@ -140,6 +141,24 @@ package::command() {
     else
       "${package_manager}::${command}" "${args[@]}"
     fi
+  fi
+}
+
+#;
+# package::managers_self_update()
+# Update packages manager list of packages (no packages). Should not be a upgrade of all apps
+# @param string package_manager If this value is empty update all available package managers
+# @return void
+#"
+package::manager_self_update() {
+  local -r package_manager="${1:-}"
+
+  if [[ -n "$package_manger" ]]; then
+    package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
+  else
+    for package_manager in $(package::get_available_package_managers); do
+      [[ -n "$package_manager" ]] && package::manager_self_update "$package_manager"
+    done
   fi
 }
 
