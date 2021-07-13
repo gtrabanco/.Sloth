@@ -148,12 +148,7 @@ unset BREW_BIN
 
 # Load dotly core for your current BASH
 # PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
-DOTLY_SHELL="unknown"
-if [[ -n "${ZSH_VERSION:-}" ]]; then
-  DOTLY_SHELL="zsh"
-elif [[ -n "${BASH_VERSION:-}" ]]; then
-  DOTLY_SHELL="bash"
-fi
+DOTLY_SHELL="${SHELL##*/}"
 
 if [[ "$CURRENT_SHELL" != "unknown" && -f "$SLOTH_PATH/shell/${DOTLY_SHELL}/init.sh" ]]; then
   #shellcheck source=/dev/null
