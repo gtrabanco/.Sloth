@@ -55,15 +55,14 @@ else
   $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
   ! $bk && symlinks_args=(--ignore-backup)
 fi
-echo dot symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core
-"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks" || true
+"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
 
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh)"
 output::answer "Trying to setup zsh as the default shell"
-if ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
   if
     [[ "${DOTLY_ENV:-PROD}" != "CI" && -f "/etc/shells" ]] &&
       ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
@@ -75,8 +74,10 @@ if ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_
   {
     sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
   } | log::file "Setting zsh as default shell"
-else
+elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::error "ZSH is not installed or is your current shell"
+else
+  output::answer "This is step is aborted on CI"
 fi
 unset zsh_shell_path
 

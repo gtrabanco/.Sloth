@@ -172,6 +172,8 @@ fi
 for file in "${yaml_files[@]}"; do
   [[ ! -f "$file" ]] && output::error "File \`$file\` does not exists" && continue
 
+  echo "Applying file \`$file\`"
+
   dotbot_yaml_file_backup "$file" "$backup_type" "$backup_suffix"
   output::empty_line
 
