@@ -8,6 +8,8 @@ script::depends_on() {
   utils::curry command_not_exists utils::not command_or_package_exists
   non_existing_commands=$(coll::filter command_not_exists "$@")
 
+  echo "script::depends_on $*"
+
   for non_existing_command in $non_existing_commands; do
     has_to_install=$(output::question "\`$non_existing_command\` is a dependency of this script. Should this be installed? [Y/n]")
 
