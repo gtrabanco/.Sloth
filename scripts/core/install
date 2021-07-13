@@ -17,7 +17,7 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python python-yq jq tee realpath
+script::depends_on docpars zsh fzf python3 python-yq jq tee realpath
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
@@ -56,13 +56,11 @@ else
   ! $bk && symlinks_args=(--ignore-backup)
 fi
 "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
-echo "End of apply symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
-echo "1"
+
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
-echo "2"
 output::answer "Trying to setup zsh as the default shell"
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
   if
