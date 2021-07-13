@@ -147,7 +147,7 @@ package::_install() {
 package::manager_preferred() {
   local all_available_pkgmgrs
 
-  mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+  readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
   eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
   if [[ ${#uniq_values[@]} -gt 0 ]]; then
@@ -166,7 +166,12 @@ package::install() {
     package::_install "$package_manager" "$package"
     return $?
   else
-    mapfile -t all_available_pkgmgrs < <(package::get_available_package_managers)
+    if platform::command_exists readarray; then
+      readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
+    else
+      #shellcheck disable=SC2207
+      all_available_pkgmgrs=($(package::get_available_package_managers))
+    fi
     eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
     # Try to install from package managers precedence

@@ -4,10 +4,10 @@
 SCRIPT_PATH="$(cd -- "$(dirname "$0")" && pwd -P)"
 FULL_SCRIPT_PATH="$SCRIPT_PATH/$(basename "$0")"
 
-mapfile -c 1 -t < <(which -a open | grep -v "$FULL_SCRIPT_PATH")
+readarray -c 1 -t < <(which -a open | grep -v "$FULL_SCRIPT_PATH")
 OPEN_BIN=""
-if [[ "${#MAPFILE[@]}" -gt 0 ]]; then
-  OPEN_BIN="${MAPFILE[0]}"
+if [[ "${#readarray[@]}" -gt 0 ]]; then
+  OPEN_BIN="${readarray[0]}"
 fi
 
 os=$(uname | tr '[:upper:]' '[:lower:]')

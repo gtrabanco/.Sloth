@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cargo::install() {
   {
     platform::command_exists brew && brew install rust 2>&1 | log::file "Installing build-essential" && return 0
@@ -12,6 +14,12 @@ cargo::install() {
   export PATH="$HOME/.cargo/bin:$PATH"
   #shellcheck disable=SC1091
   . "$HOME/.cargo/env"
+
+  # Sometimes it fails to set the toolchain, this avoid that error
+  if platform::command_exists rustup; then
+    rustup install stable
+    rustup default stable
+  fi
 }
 
 cargo::is_installed() {

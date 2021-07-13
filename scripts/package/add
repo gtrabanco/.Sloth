@@ -74,7 +74,7 @@ elif [[ -z "${package_name:-}" ]]; then
 fi
 
 # If the package is not docpars and docpars is not installed
-if [[ "$package_name" != "docpars" ]] && ! package::is_installed "docpars"; then
+if [[ "$package_name" != "docpars" && "$package_name" != "cargo" ]] && ! package::is_installed "docpars"; then
   script::depends_on docpars
 fi
 

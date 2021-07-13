@@ -20,7 +20,7 @@ mas::install() {
 
 mas::update_all() {
   local outdated row app_id app_name app_new_version app_old_version app_url app_list_line
-  mapfile -t outdated < <(mas outdated)
+  readarray -t outdated < <(mas outdated)
 
   if [[ ${#outdated[@]} -eq 0 ]]; then
     output::answer "Already up-to-date"

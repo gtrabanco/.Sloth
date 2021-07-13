@@ -13,14 +13,20 @@ is_valid_name() {
   ! [[ "${name:0:1}" == "_" || "${name:0:1}" == "." ]]
 }
 
-##? Sloth script creator. To generate a Dotly compatible script use \`--dotly\` option.
+##? Sloth script creator. To generate a .Sloth compatible script use \`--dotly\` option.
 ##?
 ##?
 ##? Usage:
 ##?   create [-h | --help]
 ##?   create [-v | --version]
-##?   create bin <name>
-##?   create [-c | --core] [-d | --dotly] [-s | --sample] [--author <author>] [--email <email>] <context> <script_name> [<script_description>...]
+##?   create bin [--open <editor>] <script_name>
+##?   create [-c | --core] [-d | --dotly] [-s | --sample] [--author <author>] [--email <email>] [-o | --open] <context> <script_name> [<script_description>...]
+##?
+##? Arguments:
+##?   author       Name of the author of the script, if not defined, it will use the git global config
+##?   email        Email of the author of the script, if not defined it will use git global config email
+##?   context      The context to be created for normal script
+##?   script_name  The name for the script we are creating
 ##?
 ##? Options:
 ##?   bin                Create a command in $DOTFILES_PATH/bin
@@ -36,6 +42,7 @@ is_valid_name() {
 ##?                      be used
 ##?   --email <email>    Provide author email, if none the default git author email will
 ##?                      be used
+##?   -o --open          Open editor by using env var \$EDITOR to edit or view the script if not defined just use "cat"
 ##?
 ##? Author:
 ##?   Gabriel Trabanco <gtrabanco@users.noreply.github.com>
@@ -44,16 +51,18 @@ is_valid_name() {
 ##?
 docs::parse "$@"
 
+editor="${EDITOR:-cat}"
+
 case "${1:-}" in
   "bin")
-    new_script_path="$DOTFILES_PATH/bin/${name:-}"
-    if [[ -z "${name:-}" ]]; then
+    new_script_path="$DOTFILES_PATH/bin/${script_name:-}"
+    if [[ -z "${script_name:-}" ]]; then
       output::error "🚨 No name for the script provided"
       exit 1
     fi
 
-    if is_valid_name "$name"; then
-      output::error "The given name \`$name\` for binary is wrong. Names can not start with \`.\` or \`_\`."
+    if ! is_valid_name "$script_name"; then
+      output::error "The given name \`$script_name\` for binary is wrong. Names can not start with \`.\` or \`_\`."
       output::answer "These names are restricted for private and non execution or private usage files that should be created manually."
       exit 1
     fi
@@ -73,19 +82,23 @@ case "${1:-}" in
     rm -f "$new_script_path"
     touch "$new_script_path"
     printf "#!/usr/bin/env bash\n\n" >> "$new_script_path"
-    printf "set -euo pipefail\n" >> "$new_script_path"
+    printf "set -euo pipefail\n\n" >> "$new_script_path"
+    printf "#shellcheck disable=SC1091\n" >> "$new_script_path"
     #shellcheck disable=SC2016
     printf '. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"\n' >> "$new_script_path"
 
     chmod u+x "$new_script_path"
 
     output::empty_line
-    output::solution "The script \`$name\` where successfully created."
-    output::write ""
+    output::solution "The script \`$script_name\` where successfully created."
+    output::empty_line
     output::write "You can access the scipt with your favorite editor by executing:"
-    output::write "\$EDITOR \"\$DOTFILES_PATH/bin/${name:-}\""
+    output::write "\`\$EDITOR \"\$DOTFILES_PATH/bin/${script_name:-}\"\`"
     output::empty_line
 
+    if ${open:-} && [[ -f "$new_script_path" ]]; then
+      "$editor" "${new_script_path:-}"
+    fi
     ;;
   *)
     if [[ -z "${context:-}" ]] || [[ -z "${script_name:-}" ]]; then
@@ -168,5 +181,9 @@ case "${1:-}" in
     output::write "You can access the scipt with your favorite editor by executing:"
     output::write "\$EDITOR \"\$DOTFILES_PATH/scripts/$context/$script_name\""
     output::empty_line
+
+    if ${open:-} && [[ -f "${script_name:-}" ]]; then
+      "$editor" "$script_name"
+    fi
     ;;
 esac

@@ -74,5 +74,10 @@ install_linux_custom() {
   fi
 
   output::answer "Installing needed packages"
-  linux::install bash zsh hyperfine
+  linux::install build-essential coreutils findutils
+
+  # To make CI Checks faster this packages are only installed if not CI
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    linux::install bash zsh hyperfine
+  fi
 }
