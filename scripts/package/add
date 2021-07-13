@@ -64,7 +64,7 @@ fi
 
 # Multiple package installation
 number_of_packages="${#packages_names[@]}"
-only_args_number=$(( ${#_all_args[@]} - number_of_packages ))
+only_args_number=$((${#_all_args[@]} - number_of_packages))
 given_options=("${_all_args[@]:0:$only_args_number}")
 
 if [[ $number_of_packages -gt 1 ]]; then
