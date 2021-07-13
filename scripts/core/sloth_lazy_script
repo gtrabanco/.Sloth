@@ -62,7 +62,7 @@ else
   shift
 fi
 
-mapfile -d "/" -t _script_paths < <(echo "$SLOTH_SCRIPT_FILE_PATH")
+readarray -d "/" -t _script_paths < <(echo "$SLOTH_SCRIPT_FILE_PATH")
 _last_script_path=$((${#_script_paths[@]} - 1))
 _previous_script_path=$((_last_script_path - 1))
 SCRIPT_NAME="${SLOTH_LAZY_SCRIPT_BASE_NAME} ${_script_paths[$_previous_script_path]} ${_script_paths[$_last_script_path]}"

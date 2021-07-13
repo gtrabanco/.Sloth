@@ -1,0 +1,14 @@
+
+- clean: ['~']
+
+- defaults:
+    link:
+      create: true
+      force: true
+
+- create:
+    - ~/bin
+    - ${DOTLY_PATH}/shell/init.scripts
+
+- link:
+    ~/bin/semver: ${DOTLY_PATH}/modules/semver-tool/src/semver
