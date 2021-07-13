@@ -139,6 +139,12 @@ if ${after_core:-false}; then
 else
   echo "no core"
   echo "$* (${after_core:-none})"
+
+  if platform::is_linux; then
+    echo "LINUX"
+  else
+    echo "MACOS"
+  fi
 fi
 
 # Add core symlinks if needed
