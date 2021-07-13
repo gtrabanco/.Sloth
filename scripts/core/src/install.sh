@@ -51,7 +51,7 @@ install_macos_custom() {
   custom::install coreutils findutils gnu-sed python3
 
   # Python setup tools
-  command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
+  command -v python3 &>/dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
@@ -95,7 +95,7 @@ install_linux_custom() {
   custom::install build-essential coreutils findutils python3-pip
 
   # Python setup tools
-  command -v python3 && "$(command -v python3)" -m pip install --upgrade setuptools
+  command -v python3 &>/dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
