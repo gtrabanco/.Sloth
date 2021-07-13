@@ -187,6 +187,7 @@ for file in "${yaml_files[@]}"; do
   output::empty_line
 
   if ${continue_on_error:-false}; then
+    echo "---- continue on error ----"
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}" || true
   else
     dotbot::apply_yaml "$file" "${_dotbot_args[@]:-}"

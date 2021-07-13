@@ -56,6 +56,7 @@ else
   ! $bk && symlinks_args=(--ignore-backup)
 fi
 "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
+echo "End of apply symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
 
