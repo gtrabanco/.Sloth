@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2016
 
-# script::depends_on realpath tee python-yq jq
+script::depends_on realpath tee python-yq jq
 
 # DOTBOT_BASE_PATH is the path used in option -d when executing dotbot
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
@@ -155,7 +155,13 @@ dotbot::jq_yaml_file_save() {
   fi
 }
 
+#;
+# dotbot::get_all_keys_in()
 # Get all keys of a dotbot directive
+# @param string directive
+# @param string yaml_file Optional param, it can read from stdin
+# @return array of strings or void
+#"
 dotbot::get_all_keys_in() {
   local _jq_query _jq_args
   _jq_query='.[] | select(has($directive)) | .[] | keys[] | values'
@@ -168,7 +174,13 @@ dotbot::get_all_keys_in() {
   fi
 }
 
+#;
+# dotbot::get_all_values_in()
 # Get all values of a dotbot directive
+# @param string directive
+# @param string yaml_file Optional param, it can read from stdin
+# @return array of strings or void
+#"
 dotbot::get_all_values_in() {
   local _jq_query _jq_args
   _jq_query='.[] | select(has($directive)) | .[] | .[] | values'
@@ -181,7 +193,14 @@ dotbot::get_all_values_in() {
   fi
 }
 
-# Look for a key in a directive
+#;
+# dotbot::get_value_of_key_in()
+# Get the value of given key in directive
+# @param string directive
+# @param string|int key
+# @param string yaml_file Optional param, it can read from stdin
+# @return string|void The value of the key in the directive
+#"
 dotbot::get_value_of_key_in() {
   local _jq_query _jq_args
   _jq_args=(-r --arg directive "${1:-}")
@@ -205,6 +224,14 @@ dotbot::get_value_of_key_in() {
   fi
 }
 
+#;
+# dotbot::get_value_of_key_in()
+# Get the key of given value in a directive
+# @param string directive
+# @param string value
+# @param string yaml_file Optional param, it can read from stdin
+# @return string|void The value of the key in the directive
+#"
 dotbot::get_key_by_value_in() {
   local input _jq_query _jq_query_type _jq_args
   _jq_args=(-r --arg directive "${1:-}" --arg value "${2:-}")
@@ -238,6 +265,15 @@ dotbot::get_key_by_value_in() {
 #
 # The json_value should be always a valid json (quoted string, right quoted object....), if is a string
 # in array, should be an array to combine...
+#;
+# dotbot::add_or_edit_json_value_to_directive()
+# Adds or edit (if key exists) a value to a directive. If you provide additional argument after the key it will create the json object.
+# @param string directive
+# @param strink key or valid json value
+# @param string value for key or optional yaml_file (can read piped yaml)
+# @param string yaml_file The yaml dotbot file is always the last param
+# @return string yaml_file if provided it will be saved but it will return the new yaml content any way so you could check if the value was added
+#"
 dotbot::add_or_edit_json_value_to_directive() {
   local input _jq_query _jq_args directive value check_directive_exists
   directive="${1:-}"
@@ -281,7 +317,13 @@ dotbot::add_or_edit_json_value_to_directive() {
   fi
 }
 
-# Delete directly a directive in yaml dotbot file
+#;
+# dotbot::delete_directive()
+# Delete a whole directive in yaml dotbot file
+# @param string directive
+# @param string yaml_file optional, it can read yaml from piped value
+# @return string yaml_file if provided it will be saved but it will return the new yaml content any way so you could check if the directive was deleted
+#"
 dotbot::delete_directive() {
   local _jq_query _jq_args
   _jq_query='del(.[] | select(has($directive)))'
@@ -298,7 +340,14 @@ dotbot::delete_directive() {
   fi
 }
 
-# Delete object in colection
+#;
+# dotbot::delete_by_key_in()
+# Delete by key in a directive
+# @param string directive
+# @param string|int key
+# @param string yaml_file optional, it can read yaml from piped value
+# @return string yaml_file if provided it will be saved but it will return the new yaml content any way so you could check if the value was deleted
+#"
 dotbot::delete_by_key_in() {
   local _jq_query _jq_args directive key_to_delete file_to_read file_to_write
   directive="${1:-}"
@@ -334,7 +383,13 @@ dotbot::delete_by_key_in() {
   fi
 }
 
-# Delete object in colection
+#;
+# dotbot::delete_by_value_in()
+# Delete by any directive value, useful when you know the value but not the key
+# @param string directive
+# @param string value
+# @param string yaml_file optional, it can read yaml from piped value
+# @return string yaml_file if provided it will be saved but it will return the new yaml content any way so you could check if the directive was deleted
 dotbot::delete_by_value_in() {
   local input file_save directive value_to_delete key_to_delete
   directive="${1:-}"
