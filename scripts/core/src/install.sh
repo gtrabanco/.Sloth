@@ -54,22 +54,12 @@ install_macos_custom() {
 }
 
 install_linux_custom() {
-  local -r package_manager="$(package::manager_preferred)"
   linux::install() {
     if [[ $# -eq 0 ]]; then
       return
     fi
 
-    output::answer "Installing linux package $1 with $package_manager"
-    # package::is_installed "$1" || package::install "$1" | log::file "Installing package $1"
-
-    # package::is_installed "$1" || package::install "$1"
-    # if ! "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package check "$1" &>/dev/null; then
-    #   "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
-    # else
-    #   output::write "\`$1\` is installed"
-    # fi
-    "${SLOT_PATH:-$DOTLY_PATH}/bin/dot" package add "$1"
+    package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1"
     shift
 
     if [[ $# -gt 0 ]]; then
@@ -79,7 +69,7 @@ install_linux_custom() {
 
   # To make CI Cheks faster avoid package manager update & upgrade
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-  package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
+    package::manager_self_update | log::file "Update package managers list of packages"
   # fi
 
   output::answer "Installing needed packages"
