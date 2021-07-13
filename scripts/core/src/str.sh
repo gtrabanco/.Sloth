@@ -8,7 +8,7 @@ str::split() {
 }
 
 str::contains() {
-  [[ $2 == *$1* ]]
+  [[ $2 == *"$1"* ]]
 }
 
 str::to_upper() { echo "${@:-$(< /dev/stdin)}" | tr '[:lower:]' '[:upper:]'; }

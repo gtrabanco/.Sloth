@@ -12,11 +12,12 @@ set -euo pipefail
 ##? Usage:
 ##?    check [-v | --version]
 ##?    check [-h | --help]
-##?    check <package_name> [--skip-recipe]
+##?    check <package_name>
 ##?
 ##? Options:
-##?    -h --help     Show script help
-##?    -v --version  Show script version
+##?    -h --help      Show script help
+##?    -v --version   Show script version
+##?    --skip-recipe  Skip recipe when check
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>

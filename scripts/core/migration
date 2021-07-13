@@ -39,11 +39,11 @@ output::header "SLOTH migration wizard"
 [[ -z "${to_version:-}" ]] && [[ -f "$DOTFILES_PATH/.sloth_updated" ]] && to_version="$(uptate::migration_script_exits)"
 
 if [[ ${to_version:-false} == false ]]; then
-  to_version="$(find "$SLOTH_PATH/migration/" -name "*" -type f,l -executable -print0 -exec echo {} \; | xargs -I _ basename _ | sort --reverse | fzf --header "Select migration script version")"
+  to_version="$(find "$SLOTH_PATH/migration/" -name "*" -type f,l -executable -print0 | xargs -0 -I _ basename _ | sort --reverse | fzf --header "Select migration script version")"
 fi
 
 if [[ -n "$to_version" ]] && [[ -x "$SLOTH_PATH/migration/$to_version" ]]; then
-  output::write "You will execute migration script for '$to_version' this could"
+  output::write "You will execute migration script for \`$to_version\` this could"
   output::write "result in a damage of your current dotfiles if they are not"
   output::write "organized as expected."
   output::write "PLEASE PERFORM A BACKUP OF YOUR DOTFILES BEFORE CONTINUE"

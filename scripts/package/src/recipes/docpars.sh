@@ -3,6 +3,8 @@
 docpars::install() {
   script::depends_on cargo
 
+  #shellcheck disable=SC1091
+  [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
   cargo install docpars
 }
 
