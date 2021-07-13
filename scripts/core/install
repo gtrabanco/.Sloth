@@ -62,7 +62,9 @@ unset symlinks_args bk
 # ZSH as default shell if we are using zsh
 if ! str::contains zsh "$SHELL" && platform::command_exists chsh && platform::command_exists zsh; then
   output::answer "Setting zsh as the default shell"
-  sudo chsh -s "$(command -v zsh)" | log::file "Setting zsh as default shell"
+  {
+    sudo chsh -s "$(command -v zsh)" || output::write "Shell could not be changed to zsh"
+  } | log::file "Setting zsh as default shell"
 else
   output::error "ZSH is not installed?"
 fi
