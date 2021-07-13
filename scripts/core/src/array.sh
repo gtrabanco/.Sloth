@@ -43,7 +43,7 @@ array::uniq_unordered() {
 
   if [[ $# -gt 0 ]]; then
     for item in "$@"; do
-      ! array::exists_value "$item" "${uniq_values[@]}" && uniq_values+=("$item")
+      ! array::exists_value "$item" "${uniq_values[@]:-}" && uniq_values+=("$item")
     done
   fi
 
