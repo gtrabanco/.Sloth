@@ -11,9 +11,8 @@ cargo::install() {
 
   curl https://sh.rustup.rs -sSf | sh -s -- -y 2>&1 | log::file "Installing rust from sources"
 
-  export PATH="$HOME/.cargo/bin:$PATH"
   #shellcheck disable=SC1091
-  . "$HOME/.cargo/env"
+  [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
   # Sometimes it fails to set the toolchain, this avoid that error
   if platform::command_exists rustup; then
