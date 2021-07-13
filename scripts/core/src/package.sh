@@ -151,7 +151,7 @@ package::command() {
 # @return void
 #"
 package::manager_self_update() {
-  local -r package_manager="${1:-}"
+  local package_manager="${1:-}"
 
   if [[ -n "$package_manager" ]]; then
     package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
