@@ -5,8 +5,9 @@ array::union() { echo "${@}" | tr ' ' '\n' | sort | uniq; }
 array::disjunction() { echo "${@}" | tr ' ' '\n' | sort | uniq -u; }
 array::difference() { echo "${@}" | tr ' ' '\n' | sort | uniq -d; }
 array::exists_value() {
-  local value array_value
-  value="${1:-}"
+  local array_value
+  [[ $# -lt 2 ]] && return 1
+  local -r value="${1:-}"
   shift
 
   for array_value in "$@"; do
@@ -14,6 +15,21 @@ array::exists_value() {
   done
 
   return 1
+}
+
+array::substract() {
+  local array_value
+  [[ $# -lt 2 ]] && return
+  local -r value="${1:-}"
+  shift
+
+  if array::exists_value "$value" "${@:-}"; then
+    for array_value in "$@"; do 
+      [[ $value != "$array_value" ]] && echo -E "$array_value"
+    done
+  else
+    echo -E "$@"
+  fi
 }
 
 # Always define a variable called uniq_values
