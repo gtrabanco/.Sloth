@@ -119,8 +119,7 @@ package::is_installed "$package_name" && log::success "$package_name already ins
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
-  package::install_recipe_first "$package_name" "${FORCED_PKGMGR:-}" 2>&1
-then
+  package::install_recipe_first "$package_name" "${FORCED_PKGMGR:-}" 2>&1; then
   output::write "✅ \`$package_name\` installed"
 
   exit 0

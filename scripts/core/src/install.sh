@@ -69,7 +69,7 @@ install_linux_custom() {
 
   # To make CI Cheks faster avoid package manager update & upgrade
   # if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-    package::manager_self_update | log::file "Update package managers list of packages"
+  package::manager_self_update | log::file "Update package managers list of packages"
   # fi
 
   output::answer "Installing needed packages"

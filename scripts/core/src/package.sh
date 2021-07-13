@@ -319,8 +319,8 @@ package::common_dump_check() {
 
   if
     [[ -n "$package_manager" ]] &&
-    [[ -n "$file_path" ]] &&
-    [[ -n "$(package::manager_exists "$package_manager")" ]]
+      [[ -n "$file_path" ]] &&
+      [[ -n "$(package::manager_exists "$package_manager")" ]]
   then
     mkdir -p "$(dirname "$file_path")"
   fi

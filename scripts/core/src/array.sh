@@ -24,7 +24,7 @@ array::substract() {
   shift
 
   if array::exists_value "$value" "${@:-}"; then
-    for array_value in "$@"; do 
+    for array_value in "$@"; do
       [[ $value != "$array_value" ]] && echo -E "$array_value"
     done
   else
