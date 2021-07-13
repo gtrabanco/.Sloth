@@ -92,7 +92,7 @@ elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
   BREW_BIN="${HOME}/.linuxbrew/bin/brew"
 elif [[ -x "/usr/local/bin/brew" ]]; then
   BREW_BIN="/usr/local/bin/brew"
-elif command -v which &>/dev/null && [[ -x "$(which brew)" ]]; then
+elif command -v which &> /dev/null && [[ -x "$(which brew)" ]]; then
   BREW_BIN="$(which brew)"
 fi
 

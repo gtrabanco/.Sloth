@@ -65,8 +65,8 @@ if ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_
   output::answer "Setting zsh as the default shell"
   if
     [[ "${DOTLY_ENV:-PROD}" != "CI" && -f "/etc/shells" ]] &&
-    ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
-    sudo -v
+      ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
+      sudo -v
   then
     echo "$zsh_shell_path" >> "/etc/shells"
   fi
