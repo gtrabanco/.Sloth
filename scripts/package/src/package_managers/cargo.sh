@@ -18,10 +18,6 @@ cargo::install() {
   platform::command_exists cargo && cargo install "$@"
 }
 
-cargo::update_all() {
-  cargo::is_available && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d' ' | xargs -n1 cargo install
-}
-
 cargo::is_installed() {
   local package
   if [[ $# -gt 1 ]]; then
@@ -60,4 +56,27 @@ cargo::import() {
   fi
 
   return 1
+}
+
+cargo::update_all() {
+  cargo::update_apps
+}
+
+cargo::update_apps() {
+  local outdated_app app_new_version app_old_version
+
+  script::depends_on cargo-update
+
+  cargo install-update --list --git | tail -n+4 | head -n-1 | awk '{print ($4 == "No"?$0:"");}' | while read -r row; do
+    [[ -z "$row" || $row == "Package" ]] && continue
+    outdated_app="$(echo "$row" | awk '{print $1}')"
+    app_old_version="$(echo "$row" | awk '{print $2}')"
+    app_new_version="$(echo "$row" | awk '{print $3}')"
+
+    output::write "📦 $outdated_app"
+    output::write " └ $app_old_version -> $app_new_version"
+    output::empty_line
+
+    cargo install-update "$outdated_app" 2>&1 | log::file "Updating ${cargo_title} app: $outdated_app"
+  done
 }
