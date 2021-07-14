@@ -38,25 +38,6 @@ if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-
   fi
 fi
 
-# Define DOTLY_OS and DOTLY_ARCH variables
-# BREW_BIN & UNAME_BIN are necessary because paths maybe are not loaded
-UNAME_BIN="${UNAME_BIN:-/bin/uname}"
-[[ ! -x "$UNAME_BIN" && -x "/usr/bin/uname" ]] && UNAME_BIN="/usr/bin/uname"
-
-if [[ -x "$UNAME_BIN" ]]; then
-  #shellcheck disable=SC2034,SC2207
-  export DOTLY_UNAME=($("$UNAME_BIN" -sm))
-  if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
-    DOTLY_OS="${DOTLY_UNAME[0]}"
-    DOTLY_ARCH="${DOTLY_UNAME[1]}"
-  else
-    DOTLY_OS="${DOTLY_UNAME[1]}"
-    DOTLY_ARCH="${DOTLY_UNAME[2]}"
-  fi
-  export DOTLY_OS DOTLY_ARCH
-fi
-unset UNAME_BIN
-
 # Envs
 # GPG TTY
 GPG_TTY="$(tty)"
@@ -79,11 +60,33 @@ alias s='"$SLOTH_PATH/bin/dot"'
 # shellcheck source=/dev/null
 [[ -f "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
 
-# Add openssl if it exists
-[[ -d "/usr/local/opt/openssl/bin" ]] && path+=("/usr/local/opt/openssl/bin")
+# Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
+user_paths="$path"
+# Define PATH to be used with brew and use of uname, we keep user paths because maybe brew is installled in other path
+PATH="${PATH:+$PATH}:/usr/bin:/bin:/usr/sbin:/sbin"
+
+# Define variables for OS, arch and shell
+#shellcheck disable=SC2034,SC2207
+SLOTH_UNAME=($(uname -sm))
+if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
+  SLOTH_OS="${DOTLY_UNAME[0]}"
+  SLOTH_ARCH="${DOTLY_UNAME[1]}"
+else
+  SLOTH_OS="${DOTLY_UNAME[1]}"
+  SLOTH_ARCH="${DOTLY_UNAME[2]}"
+fi
+
+DOTLY_SHELL="${SHELL##*/}"
+# PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
+if [[ -n "${BASH_VERSION:-}" ]]; then
+  SLOTH_SHELL="bash"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+  SLOTH_SHELL="zsh"
+fi
+export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
 
 # LOAD BREW PATHS
-# BREW_BIN is necessary because paths maybe are not loaded
+# BREW_BIN is necessary because maybe is not set the path where it is brew installed
 BREW_BIN=""
 # Locating brew binary
 if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
@@ -92,8 +95,8 @@ elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
   BREW_BIN="${HOME}/.linuxbrew/bin/brew"
 elif [[ -x "/usr/local/bin/brew" ]]; then
   BREW_BIN="/usr/local/bin/brew"
-elif command -v which &> /dev/null && [[ -x "$(which brew)" ]]; then
-  BREW_BIN="$(which brew)"
+elif command -v brew &> /dev/null; then
+  BREW_BIN="$(command -v brew)"
 fi
 
 if [[ -n "$BREW_BIN" ]]; then
@@ -113,16 +116,19 @@ if [[ -n "$BREW_BIN" ]]; then
       "${HOMEBREW_PREFIX}/opt/make/libexec/gnubin"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${path[@]}"
+      "${user_paths[@]}"
     )
   else
     # Brew paths
     export path=(
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${path[@]}"
+      "${user_paths[@]}"
     )
   fi
+
+  # Open SSL if exists
+  [[ -d "${HOMEBREW_PREFIX}/opt/openssl/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/openssl/bin")
 
   #Homebrew ruby and python over the system
   [[ -d "${HOMEBREW_PREFIX}/opt/ruby/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/ruby/bin")
@@ -132,8 +138,13 @@ if [[ -n "$BREW_BIN" ]]; then
   INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
   export MANPATH INFOPATH HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
   [[ -d "${HOMEBREW_PREFIX}/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-${HOMEBREW_PREFIX}/etc/gnutls/}"
+else
+  # No brew :(
+  export path=(
+    "${user_paths[@]}"
+  )
 fi
-unset BREW_BIN
+unset BREW_BIN user_paths
 
 # Conditional paths
 [[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
@@ -147,9 +158,6 @@ unset BREW_BIN
 [[ -d "/sbin" ]] && path+=("/sbin")
 
 # Load dotly core for your current BASH
-# PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
-DOTLY_SHELL="${SHELL##*/}"
-
 if [[ "$CURRENT_SHELL" != "unknown" && -f "$SLOTH_PATH/shell/${DOTLY_SHELL}/init.sh" ]]; then
   #shellcheck source=/dev/null
   . "$DOTLY_PATH/shell/${DOTLY_SHELL}/init.sh"
