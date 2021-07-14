@@ -30,9 +30,9 @@ cargo::is_installed() {
 }
 
 cargo::version() {
-  local -r cargo="$(cargo --version | awk '{$2}')"
+  local -r cargo="$(cargo --version 2>/dev/null | awk '{print $2}')"
   local -r rustup="$(rustup --version 2> /dev/null | head -n1 | awk '{print $2}')"
-  local -r rustc="$(rustc --version | awk '{print $2}')"
+  local -r rustc="$(rustc --version 2>/dev/null | awk '{print $2}')"
   echo -n "${cargo} (rustup ${rustup} - rustc ${rustc})"
 }
 
@@ -45,13 +45,17 @@ cargo::is_outdated() {
 }
 
 cargo::upgrade() {
-  rustup update
+  rustup update &>/dev/null
 }
 
 cargo::description() {
-  echo -n "Cargo is the Rust package manager. Cargo downloads your Rust package's dependencies, compiles your packages, makes distributable packages, and uploads them to crates.io, the Rust community’s package registry."
+  echo -n "Cargo is a Rust package manager"
 }
 
 cargo::url() {
   echo -n "https://doc.rust-lang.org/cargo/ - https://crates.io"
+}
+
+cargo::title() {
+  echo -n "📦 Cargo"
 }

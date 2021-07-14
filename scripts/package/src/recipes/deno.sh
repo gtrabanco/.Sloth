@@ -28,10 +28,11 @@ deno::is_installed() {
 }
 
 deno::is_outdated() {
-  ! deno upgrade --dry-run | tail -n 1 | grep -q "recent release$"
+  ! deno upgrade --dry-run 2>&1 | tail -n 1 | grep -q "is the most recent release$"
 }
 
 deno::upgrade() {
+  sleep 1s
   deno upgrade
 }
 
@@ -53,4 +54,8 @@ deno::latest() {
   else
     deno::version
   fi
+}
+
+deno::title() {
+  echo -n "🦕 Deno"
 }
