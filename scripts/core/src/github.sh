@@ -20,21 +20,21 @@ github::get_api_url() {
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-    --user | -u | --organization | -o)
-      user="${2:-}"
-      shift 2
-      ;;
-    --repository | -r)
-      repository="${2:-}"
-      shift 2
-      ;;
-    --branch | -b)
-      branch="/branches/${2:-}"
-      shift 2
-      ;;
-    *)
-      break 2
-      ;;
+      --user | -u | --organization | -o)
+        user="${2:-}"
+        shift 2
+        ;;
+      --repository | -r)
+        repository="${2:-}"
+        shift 2
+        ;;
+      --branch | -b)
+        branch="/branches/${2:-}"
+        shift 2
+        ;;
+      *)
+        break 2
+        ;;
     esac
   done
 
@@ -66,21 +66,21 @@ github::branch_raw_url() {
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-    --user | -u | --organization | -o)
-      user="${2:-}"
-      shift 2
-      ;;
-    --repository | -r)
-      repository="${2:-}"
-      shift 2
-      ;;
-    --branch | -b)
-      branch="/branches/${2:-}"
-      shift 2
-      ;;
-    *)
-      break 2
-      ;;
+      --user | -u | --organization | -o)
+        user="${2:-}"
+        shift 2
+        ;;
+      --repository | -r)
+        repository="${2:-}"
+        shift 2
+        ;;
+      --branch | -b)
+        branch="/branches/${2:-}"
+        shift 2
+        ;;
+      *)
+        break 2
+        ;;
     esac
   done
 
@@ -129,7 +129,7 @@ github::_command() {
 
 github::curl() {
   local md5command cached_request_file_path _command url cached cache_period
-  
+
   cached=true
   cache_period="$GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS"
 
@@ -189,25 +189,25 @@ github::get_remote_file_path_json() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --url)
-      url="$2"
-      shift 2
-      ;;
-    *)
-      break 2
-      ;;
+      --url)
+        url="$2"
+        shift 2
+        ;;
+      *)
+        break 2
+        ;;
     esac
   done
 
   GITHUB_REPOSITORY="${2:-$GITHUB_SLOTH_REPOSITORY}"
 
   if [[ -z "$url" ]]; then
-    url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq -r '.commit.commit.tree.url' 2>/dev/null)"
+    url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq -r '.commit.commit.tree.url' 2> /dev/null)"
     [[ -n "$url" ]] && "$0" --url "$url" "$1" "$GITHUB_REPOSITORY" && return $?
   else
     mapfile -t file_paths < <(echo "${1:-}" | tr "/" "\n")
 
-    json="$(github::curl "$url" | jq -r --arg file_path "${file_paths[1]}" '.tree[] | select(.path == $file_path)' 2>/dev/null)"
+    json="$(github::curl "$url" | jq -r --arg file_path "${file_paths[1]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
 
     if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
       "$0" --url "$(echo "$json" | jq -r '.url')" "$(str::join / "${file_paths[@]:1}")" "$GITHUB_REPOSITORY"

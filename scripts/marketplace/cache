@@ -41,7 +41,7 @@ if ${version:-}; then
 fi
 
 create_asycn_cache() {
-  marketplace::create_cache_tree >/dev/null 2>&1
+  marketplace::create_cache_tree > /dev/null 2>&1
 }
 
 success() {

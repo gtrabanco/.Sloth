@@ -27,23 +27,23 @@ marketplace::get_scripts_cache_path() {
 # Get url to request api urls or raw files
 marketplace::get_url() {
   case "$1" in
-  raw)
-    shift
-    github::branch_raw_url -b "master" "$MARKETPLACE_REPOSITORY" "$*"
-    ;;
-  tree)
-    branch="${2:-master}"
-    param="${3:-url}"
-    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY" | github::curl | jq -r ".commit.commit.tree.$param"
-    ;;
-  branch | branches)
-    branch="${2:master}"
-    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
-    ;;
-  *)
-    branch="${1:master}"
-    github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
-    ;;
+    raw)
+      shift
+      github::branch_raw_url -b "master" "$MARKETPLACE_REPOSITORY" "$*"
+      ;;
+    tree)
+      branch="${2:-master}"
+      param="${3:-url}"
+      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY" | github::curl | jq -r ".commit.commit.tree.$param"
+      ;;
+    branch | branches)
+      branch="${2:master}"
+      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
+      ;;
+    *)
+      branch="${1:master}"
+      github::get_api_url -b "$branch" "$MARKETPLACE_REPOSITORY"
+      ;;
   esac
 }
 
@@ -117,9 +117,9 @@ marketplace::recursive_tree() {
       if [[ -n "$item_is_folder" ]]; then
         marketplace::recursive_tree "$item_url" "$cache_folder/$item_path"
       else
-        echo "#!/usr/bin/env bash" >"$cache_folder/$item_path"
-        echo "script_download_url='$item_url'" >>"$cache_folder/$item_path"
-        echo "relative_script_folder_path='${cache_folder#$(marketplace::get_scripts_cache_path)/}'" >>"$cache_folder/$item_path"
+        echo "#!/usr/bin/env bash" > "$cache_folder/$item_path"
+        echo "script_download_url='$item_url'" >> "$cache_folder/$item_path"
+        echo "relative_script_folder_path='${cache_folder#$(marketplace::get_scripts_cache_path)/}'" >> "$cache_folder/$item_path"
       fi
     done
 }
@@ -177,16 +177,16 @@ marketplace::create_cache_tree() {
 #  -1 is an abort (no script, no context)
 marketplace::is_script() {
   case "$(str::to_lower "$1")" in
-  abort)
-    echo -1
-    ;;
-  */*)
-    echo 0
-    ;;
+    abort)
+      echo -1
+      ;;
+    */*)
+      echo 0
+      ;;
 
-  *)
-    echo 1
-    ;;
+    *)
+      echo 1
+      ;;
   esac
 }
 
@@ -201,21 +201,21 @@ marketplace::preview_search() {
   output::empty_line
 
   case "$(marketplace::is_script "$1")" in
-  -1)
-    output::write "$red${bold}Exit without install anything$normal"
-    output::empty_line
-    return
-    ;;
-  0)
-    output::write "Select to install $bold$green$1$normal script"
-    ;;
+    -1)
+      output::write "$red${bold}Exit without install anything$normal"
+      output::empty_line
+      return
+      ;;
+    0)
+      output::write "Select to install $bold$green$1$normal script"
+      ;;
 
-  *)
-    output::write "Select to install $bold$green$1$normal context"
-    output::empty_line
-    output::write "This will install all these scripts"
-    marketplace::print_tab_find "$2/$1"
-    ;;
+    *)
+      output::write "Select to install $bold$green$1$normal context"
+      output::empty_line
+      output::write "This will install all these scripts"
+      marketplace::print_tab_find "$2/$1"
+      ;;
   esac
 
   output::empty_line
@@ -307,7 +307,7 @@ marketplace::install_file_from_cache() {
   script_full_path="$DOTFILES_SCRIPTS_PATH/$relative_script_folder_path/$script_name"
   mkdir -p "$(dirname $script_full_path)"
   touch "$script_full_path"
-  github::curl "$script_download_url" | jq -r '.content' | base64 --decode >"$script_full_path"
+  github::curl "$script_download_url" | jq -r '.content' | base64 --decode > "$script_full_path"
   chmod u+x "$script_full_path"
   unset relative_script_folder_path script_download_url
 }
