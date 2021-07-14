@@ -17,7 +17,7 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python3 python-yq jq tee realpath
+script::depends_on cargo cargo-update docpars zsh fzf python3 python-yq jq tee realpath
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
