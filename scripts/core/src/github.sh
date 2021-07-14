@@ -110,6 +110,11 @@ github::clean_cache() {
   rm -rf "$GITHUB_DOTLY_CACHE_PETITIONS"
 }
 
+github::_is_valid_url() {
+  local -r url_regex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+  [[ -n "${1:-}" ]] && [[ $1 =~ $url_regex ]]
+}
+
 github::_command() {
   local url CURL_BIN
   url="$1"
@@ -124,25 +129,32 @@ github::_command() {
 
 github::curl() {
   local md5command cached_request_file_path _command url cached cache_period
-
+  
   cached=true
   cache_period="$GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS"
 
   case "$1" in
-  --no-cache | -n)
-    cached=false
-    shift
-    ;;
-  --cached | -c)
-    shift
-    ;;
-  --period-in-days | -p)
-    cache_period="$2"
-    shift 2
-    ;;
+    --no-cache | -n)
+      cached=false
+      shift
+      ;;
+    --cached | -c)
+      shift
+      ;;
+    --period-in-days | -p)
+      cache_period="$2"
+      shift 2
+      ;;
   esac
 
-  url=${1:-$(</dev/stdin)}
+  if [[ -t 0 ]]; then
+    url=${1:-}
+    shift
+  else
+    url="$(< /dev/stdin)"
+  fi
+  ! github::_is_valid_url "$url" && return 1
+
   _command="$(github::_command "$url")"
 
   if $cached; then
@@ -150,7 +162,7 @@ github::curl() {
     mkdir -p "$GITHUB_DOTLY_CACHE_PETITIONS"
 
     # Cache vars
-    md5command="$(echo "$_command" | md5)"
+    md5command="$(echo "$_command" "$@" | md5)"
     cached_request_file_path="$GITHUB_DOTLY_CACHE_PETITIONS/$md5command"
 
     [[ -f "$cached_request_file_path" ]] &&
@@ -158,12 +170,12 @@ github::curl() {
 
     # Cache result if is not
     if [ ! -f "$cached_request_file_path" ]; then
-      eval "$_command 2>/dev/null" >"$cached_request_file_path"
+      eval "$_command 2>/dev/null" "$@" > "$cached_request_file_path"
     fi
 
     cat "$cached_request_file_path"
   else
-    eval "$_command 2>/dev/null"
+    echo "$_command 2>/dev/null"
   fi
 }
 
