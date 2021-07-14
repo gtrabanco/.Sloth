@@ -38,7 +38,7 @@ Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [Cod
  SLOTH_PATH="${DOTFILES_PATH}/modules/sloth"
 . "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"
  ```
-* Init scripts (see (init-scripts)[https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts] in (gtrabanco/dotfiles)[https://github.com/gtrabanco/dotfiles]). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
+* Init scripts [see (init-scripts](https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts) in [gtrabanco/dotfiles](https://github.com/gtrabanco/dotfiles)). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
 * Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
 * Non opinionated `git` scripts.
 * Compatibility with all Dotly features and scripts.

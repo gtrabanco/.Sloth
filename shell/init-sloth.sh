@@ -60,8 +60,91 @@ alias s='"$SLOTH_PATH/bin/dot"'
 # shellcheck source=/dev/null
 [[ -f "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
 
-# Add openssl if it exists
-[[ -d "/usr/local/opt/openssl/bin" ]] && path+=("/usr/local/opt/openssl/bin")
+# Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
+user_paths="$path"
+# Define PATH to be used with brew and use of uname, we keep user paths because maybe brew is installled in other path
+PATH="${PATH:+$PATH}:/usr/bin:/bin:/usr/sbin:/sbin"
+
+# Define variables for OS, arch and shell
+#shellcheck disable=SC2034,SC2207
+SLOTH_UNAME=($(uname -sm))
+if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
+  SLOTH_OS="${DOTLY_UNAME[0]}"
+  SLOTH_ARCH="${DOTLY_UNAME[1]}"
+else
+  SLOTH_OS="${DOTLY_UNAME[1]}"
+  SLOTH_ARCH="${DOTLY_UNAME[2]}"
+fi
+
+DOTLY_SHELL="${SHELL##*/}"
+# PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
+if [[ -n "${BASH_VERSION:-}" ]]; then
+  SLOTH_SHELL="bash"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+  SLOTH_SHELL="zsh"
+fi
+export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
+
+# LOAD BREW PATHS
+# BREW_BIN is necessary because maybe is not set the path where it is brew installed
+BREW_BIN=""
+# Locating brew binary
+if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+  BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+  BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+elif [[ -x "/usr/local/bin/brew" ]]; then
+  BREW_BIN="/usr/local/bin/brew"
+elif command -v brew &> /dev/null; then
+  BREW_BIN="$(command -v brew)"
+fi
+
+if [[ -n "$BREW_BIN" ]]; then
+  HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
+  HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+
+  # Brew add gnutools in macos or bsd only and brew paths
+  if [[ "$DOTLY_OS" == Darwin* || "$DOTLY_OS" == *"BSD"* ]]; then
+    export path=(
+      "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/findutils/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/gnu-which/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/grep/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/opt/make/libexec/gnubin"
+      "${HOMEBREW_PREFIX}/bin"
+      "${HOMEBREW_PREFIX}/sbin"
+      "${user_paths[@]}"
+    )
+  else
+    # Brew paths
+    export path=(
+      "${HOMEBREW_PREFIX}/bin"
+      "${HOMEBREW_PREFIX}/sbin"
+      "${user_paths[@]}"
+    )
+  fi
+
+  # Open SSL if exists
+  [[ -d "${HOMEBREW_PREFIX}/opt/openssl/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/openssl/bin")
+
+  #Homebrew ruby and python over the system
+  [[ -d "${HOMEBREW_PREFIX}/opt/ruby/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/ruby/bin")
+  [[ -d "${HOMEBREW_PREFIX}/opt/python/libexec/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/python/libexec/bin")
+
+  MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${HOMEBREW_PREFIX}/share/man:$MANPATH"
+  INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
+  export MANPATH INFOPATH HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
+  [[ -d "${HOMEBREW_PREFIX}/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-${HOMEBREW_PREFIX}/etc/gnutls/}"
+else
+  # No brew :(
+  export path=(
+    "${user_paths[@]}"
+  )
+fi
+unset BREW_BIN user_paths
 
 # Conditional paths
 [[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
@@ -69,51 +152,15 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
-[[ -d "/usr/local/opt/ruby/bin" ]] && path+=("/usr/local/opt/ruby/bin")
-[[ -d "/usr/local/opt/python/libexec/bin" ]] && path+=("/usr/local/opt/python/libexec/bin")
-[[ -d "/usr/local/bin" ]] && path+=("/usr/local/bin")
-[[ -d "/usr/local/sbin" ]] && path+=("/usr/local/sbin")
 [[ -d "/usr/bin" ]] && path+=("/usr/bin")
 [[ -d "/bin" ]] && path+=("/bin")
 [[ -d "/usr/sbin" ]] && path+=("/usr/sbin")
 [[ -d "/sbin" ]] && path+=("/sbin")
 
-# Brew add gnutools in macos only
-# UNAME_BIN and BREW_BIN are necessary because paths are not yet loaded
-UNAME_BIN="${UNAME_BIN:-/usr/bin/uname}"
-if [[ -x "$UNAME_BIN" && "$("$UNAME_BIN" -s)" == "Darwin" ]]; then
-  BREW_BIN="${BREW_BIN:-$(which brew)}"
-  [[ ! -x "$BREW_BIN" && -x "/usr/local/bin/brew" ]] && BREW_BIN="/usr/local/bin/brew"
-
-  if [[ -x "$BREW_BIN" && -d "$("$BREW_BIN" --prefix)" ]]; then
-    export path=(
-      "$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/findutils/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/gnu-sed/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/gnu-tar/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/gnu-which/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/grep/libexec/gnubin"
-      "$("$BREW_BIN" --prefix)/opt/make/libexec/gnubin"
-      "${path[@]}"
-    )
-    MANPATH="$("$BREW_BIN" --prefix)/opt/coreutils/libexec/gnuman:$MANPATH"
-    export MANPATH
-    [[ -d "/usr/local/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-/usr/local/etc/gnutls/}"
-  fi
-fi
-
 # Load dotly core for your current BASH
-# PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
-CURRENT_SHELL="unknown"
-if [[ -n "${BASH_VERSION:-}" ]]; then
-  CURRENT_SHELL="bash"
-elif [[ -n "${ZSH_VERSION:-}" ]]; then
-  CURRENT_SHELL="zsh"
-fi
-
-if [[ "$CURRENT_SHELL" != "unknown" && -f "$SLOTH_PATH/shell/${CURRENT_SHELL}/init.sh" ]]; then
+if [[ "$CURRENT_SHELL" != "unknown" && -f "$SLOTH_PATH/shell/${DOTLY_SHELL}/init.sh" ]]; then
   #shellcheck source=/dev/null
-  . "$DOTLY_PATH/shell/${CURRENT_SHELL}/init.sh"
+  . "$DOTLY_PATH/shell/${DOTLY_SHELL}/init.sh"
 else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${CURRENT_SHELL}\`\033[0m"
 fi
