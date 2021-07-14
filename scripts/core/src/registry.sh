@@ -48,7 +48,7 @@ registry::load_recipe() {
 # @param string recipe
 # @param string recipe_command The function name in the recipe
 # @return boolean
-#" 
+#"
 registry::command_exists() {
   local -r recipe="${1:-}"
   local -r recipe_command="${recipe}::${2:-}"
