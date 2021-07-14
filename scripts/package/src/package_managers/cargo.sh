@@ -66,7 +66,7 @@ cargo::update_apps() {
   local outdated_app app_new_version app_old_version
 
   script::depends_on cargo-update
-  
+
   cargo install-update --list --git | tail -n+4 | head -n-1 | awk '{print ($4 == "No"?$0:"");}' | while read -r row; do
     [[ -z "$row" || $row == "Package" ]] && continue
     outdated_app="$(echo "$row" | awk '{print $1}')"
