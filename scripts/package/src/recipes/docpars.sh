@@ -1,11 +1,11 @@
-docpars::install() {
-  {
-    platform::command_exists brew && brew install denisidoro/tools/docpars && return 0
-  } || true
+#!/usr/bin/env bash
 
+docpars::install() {
   script::depends_on cargo
 
-  "$DOTLY_PATH/bin/dot" package add docpars --skip-recipe
+  #shellcheck disable=SC1091
+  [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+  cargo install docpars
 }
 
 docpars::is_installed() {
