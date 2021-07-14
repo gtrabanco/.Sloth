@@ -5,18 +5,18 @@
 #   https://github.com/dylanaraps/neofetch
 #
 
-if [[ -z "${DOTLY_OS:-}" || -z "${DOTLY_ARCH}" ]]; then
+if [[ -z "${SLOTH_OS:-}" || -z "${SLOTH_ARCH}" ]]; then
   #shellcheck disable=SC2034,SC2207
-  [[ -z "${DOTLY_UNAME:-}" ]] && DOTLY_UNAME=($(uname -sm))
-  if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
-    DOTLY_OS="${DOTLY_UNAME[0]}"
-    DOTLY_ARCH="${DOTLY_UNAME[1]}"
+  [[ -z "${SLOTH_UNAME:-}" ]] && SLOTH_UNAME=($(uname -sm))
+  if [[ -n "${SLOTH_UNAME[0]:-}" ]]; then
+    SLOTH_OS="${SLOTH_UNAME[0]}"
+    SLOTH_ARCH="${SLOTH_UNAME[1]}"
   else
-    DOTLY_OS="${DOTLY_UNAME[1]}"
-    DOTLY_ARCH="${DOTLY_UNAME[2]}"
+    SLOTH_OS="${SLOTH_UNAME[1]}"
+    SLOTH_ARCH="${SLOTH_UNAME[2]}"
   fi
 fi
-export DOTLY_UNAME DOTLY_OS DOTLY_ARCH
+export SLOTH_UNAME SLOTH_OS SLOTH_ARCH
 
 platform::command_exists() {
   type "$1" > /dev/null 2>&1
@@ -52,12 +52,12 @@ platform::macos_version_name() {
 }
 
 platform::get_os() {
-  echo "${DOTLY_OS}" | tr '[:upper:]' '[:lower:]'
+  echo "${SLOTH_OS}" | tr '[:upper:]' '[:lower:]'
 }
 
 platform::get_arch() {
   local architecture="unknown"
-  case "${DOTLY_ARCH}" in
+  case "${SLOTH_ARCH}" in
     x86_64)
       architecture="amd64"
       ;;
@@ -80,7 +80,7 @@ platform::is_arm() {
 }
 
 platform::is_macos() {
-  [[ $DOTLY_OS == "Darwin"* ]]
+  [[ $SLOTH_OS == "Darwin"* ]]
 }
 
 platform::is_macos_arm() {
@@ -88,7 +88,7 @@ platform::is_macos_arm() {
 }
 
 platform::is_linux() {
-  [[ $DOTLY_OS == *"Linux"* ]]
+  [[ $SLOTH_OS == *"Linux"* ]]
 }
 
 platform::is_wsl() {
@@ -96,7 +96,7 @@ platform::is_wsl() {
 }
 
 platform::is_bsd() {
-  [[ $DOTLY_OS == *"BSD"* ]]
+  [[ $SLOTH_OS == *"BSD"* ]]
 }
 
 platform::os() {
@@ -118,7 +118,7 @@ platform::os() {
       os="bsd"
       ;;
     *)
-      os="$DOTLY_OS"
+      os="$SLOTH_OS"
       ;;
   esac
 
