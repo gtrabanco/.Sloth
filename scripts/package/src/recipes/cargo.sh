@@ -44,7 +44,7 @@ cargo::is_outdated() {
   [[ "$(rustup update --no-self-update 2> /dev/null | xargs | awk '{print $2}')" == "updated" ]]
 }
 
-cargo::update() {
+cargo::upgrade() {
   rustup update
 }
 
