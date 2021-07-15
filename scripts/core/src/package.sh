@@ -55,25 +55,44 @@ package::load_manager() {
 }
 
 #;
-# package::get_available_package_managers()
-# Output a full list of available package managers
+# package::get_all_package_managers()
+# Output a full list of all package managers. If any param provided will list only package managers with subcommand(s) (functions)
+# @param any commands command or command that must have the package managers to list them as available
 #"
-package::get_available_package_managers() {
-  local package_manager_src package_manager
+package::get_all_package_managers() {
+  local package_manager_src package_manager command has_all
   find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2> /dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
+    has_all=true
 
     # Check if it is a valid package manager
     [[ -z "$(package::manager_exists "$package_manager")" ]] && continue
 
-    # Load package manager
-    package::load_manager "$package_manager"
+    if [[ -n "$*" ]]; then
+      for command in "$@"; do
+        ! script::function_exists "$package_manager_src" "${package_manager}::${command}" && has_all=false
+      done
+    fi
 
-    # Check if package manager is available
-    if command -v "${package_manager}::is_available" &> /dev/null && "${package_manager}::is_available"; then
+    $has_all && echo "$package_manager_src"
+  done
+}
+
+#;
+# package::get_available_package_managers()
+# Output a full list of available package managers
+#"
+package::get_available_package_managers() {
+  local package_manager_src package_manager_filename package_manager
+
+  for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
+    package_manager_filename="$(basename "$package_manager_src")"
+    package_manager="${package_manager_filename%%.sh}"
+
+    if package::command "$package_manager" "is_available"; then
       echo "$package_manager"
     fi
   done
@@ -111,6 +130,7 @@ package::command_exists() {
     return 1
   fi
 
+  # TODO Change this to use the new way
   package::load_manager "$package_manager"
 
   # If function does not exists for the package manager it will return 0 (true) always
@@ -175,10 +195,8 @@ package::is_installed() {
 
   registry::is_installed "$package_name" && return
 
-  for package_manager in $(package::get_available_package_managers); do
-    if package::command_exists "$package_manager" "is_installed"; then
-      package::command "$package_manager" is_installed "$package_name" && return
-    fi
+  for package_manager in $(package::get_all_package_managers "is_installed"); do
+    package::command "$package_manager" is_installed "$package_name" && return
   done
 
   return 1
@@ -199,27 +217,35 @@ package::_install() {
   [[ -z "$package_manager" || -z "$package" ]] && return 1
 
   if
-    ! package::command_exists "$package_manager" "package_exists" &&
+    package::command_exists "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "package_exists" &&
       package::command_exists "$package_manager" "is_installed" &&
-      package::command_exists "$package_manager" "is_available" &&
       package::command_exists "$package_manager" "install" &&
-      package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" "install" "$package"
+      package::command "$package_manager" "is_available"
   then
 
-    if package::command "$package_manager" "is_installed" "$package"; then
-      return
+    if
+      ! package::command "$package_manager" "is_installed" "$package"
+      package::command "$package_manager" "package_exists" "$package" &&
+        package::command "$package_manager" "install" "$package"
+    then
+      package::command "$package_manager" "is_installed" "$package" && return
     fi
+
+    package::command "$package_manager" "is_installed" "$package" && return
+
+    return 1
 
   elif
     package::command_exists "$package_manager" "is_available" &&
       package::command_exists "$package_manager" "install" &&
-      package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" "package_exists" "$package"
+      package::command_exists "$package_manager" "is_installed" &&
+      package::command "$package_manager" "is_available"
   then
 
-    package::command "$package_manager" "install" "$package"
-    return
+    package::command "$package_manager" "install" "$package" &&
+      package::command_exists "$package_manager" "is_installed" &&
+      return
 
   fi
 
