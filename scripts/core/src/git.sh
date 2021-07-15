@@ -4,11 +4,6 @@ git::is_in_repo() {
   git rev-parse HEAD > /dev/null 2>&1
 }
 
-# shellcheck disable=SC2120
-git::current_branch() {
-  git branch --show-current "$@"
-}
-
 git::get_local_HEAD_hash() {
   local branch
   branch="${1:-HEAD}"
