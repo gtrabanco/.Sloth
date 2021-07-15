@@ -82,6 +82,23 @@ package::get_all_package_managers() {
 }
 
 #;
+# package::get_available_package_managers()
+# Output a full list of available package managers
+#"
+package::get_available_package_managers() {
+  local package_manager_src package_manager_filename package_manager
+
+  for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
+    package_manager_filename="$(basename "$package_manager_src")"
+    package_manager="${package_manager_filename%%.sh}"
+
+    if package::command "$package_manager" "is_available"; then
+      echo "$package_manager"
+    fi
+  done
+}
+
+#;
 # package::manager_preferred()
 # Get the first avaible of the preferred package managers
 # @return string package manager
@@ -178,10 +195,8 @@ package::is_installed() {
 
   registry::is_installed "$package_name" && return
 
-  for package_manager in $(package::get_available_package_managers); do
-    if package::command_exists "$package_manager" "is_installed"; then
-      package::command "$package_manager" is_installed "$package_name" && return
-    fi
+  for package_manager in $(package::get_all_package_managers "is_installed"); do
+    package::command "$package_manager" is_installed "$package_name" && return
   done
 
   return 1
@@ -202,27 +217,35 @@ package::_install() {
   [[ -z "$package_manager" || -z "$package" ]] && return 1
 
   if
-    ! package::command_exists "$package_manager" "package_exists" &&
+    package::command_exists "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "package_exists" &&
       package::command_exists "$package_manager" "is_installed" &&
-      package::command_exists "$package_manager" "is_available" &&
       package::command_exists "$package_manager" "install" &&
-      package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" "install" "$package"
+      package::command "$package_manager" "is_available"
   then
 
-    if package::command "$package_manager" "is_installed" "$package"; then
-      return
+    if
+      ! package::command "$package_manager" "is_installed" "$package"
+      package::command "$package_manager" "package_exists" "$package" &&
+        package::command "$package_manager" "install" "$package"
+    then
+      package::command "$package_manager" "is_installed" "$package" && return
     fi
+
+    package::command "$package_manager" "is_installed" "$package" && return
+
+    return 1
 
   elif
     package::command_exists "$package_manager" "is_available" &&
       package::command_exists "$package_manager" "install" &&
-      package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" "package_exists" "$package"
+      package::command_exists "$package_manager" "is_installed" &&
+      package::command "$package_manager" "is_available"
   then
 
-    package::command "$package_manager" "install" "$package"
-    return
+    package::command "$package_manager" "install" "$package" &&
+      package::command_exists "$package_manager" "is_installed" &&
+      return
 
   fi
 
