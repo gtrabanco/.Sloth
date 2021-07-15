@@ -12,9 +12,6 @@ fi
 
 os="$(echo "${SLOTH_OS:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')"
 
-echo "$OPEN_BIN"
-command -v open
-
 if [[ -x "$OPEN_BIN" ]]; then
   "$OPEN_BIN" "$@"
 else
