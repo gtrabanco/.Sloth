@@ -1,4 +1,18 @@
 # ------------------------------------------------------------------------------
+# GENERAL INFORMATION ABOUT THIS FILE
+# The variables here are loaded previously PATH is defined. Use full path if you
+# need to do something like JAVA_HOME here or consider to add a init-script
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Sloth config
+# ------------------------------------------------------------------------------
+export SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS=7
+export SLOTH_AUTO_UPDATE_MODE="auto" # silent, auto, info, prompt
+export SLOTH_UPDATE_VERSION="stable" # latest, stable, minor
+export SLOTH_INIT_SCRIPTS=true       # Init scripts enabled
+
+# ------------------------------------------------------------------------------
 # Codely theme config
 # ------------------------------------------------------------------------------
 export CODELY_THEME_MINIMAL=false
@@ -9,9 +23,10 @@ export CODELY_THEME_PWD_MODE="short" # full, short, home_relative
 # ------------------------------------------------------------------------------
 # Languages
 # ------------------------------------------------------------------------------
-export JAVA_HOME='/Library/Java/JavaVirtualMachines/amazon-corretto-15.jdk/Contents/Home'
-export GEM_HOME="$HOME/.gem"
-export GOPATH="$HOME/.go"
+JAVA_HOME="$(/usr/libexec/java_home 2>&1 /dev/null)"
+GEM_HOME="$HOME/.gem"
+GOPATH="$HOME/.go"
+export JAVA_HOME GEM_HOME GOPATH
 
 # ------------------------------------------------------------------------------
 # Apps
@@ -23,25 +38,3 @@ else
 fi
 
 export FZF_DEFAULT_OPTS="--color=$fzf_colors --reverse"
-
-# ------------------------------------------------------------------------------
-# Path - The higher it is, the more priority it has
-# ------------------------------------------------------------------------------
-export path=(
-  "$HOME/bin"
-  "$DOTLY_PATH/bin"
-  "$DOTFILES_PATH/bin"
-  "$JAVA_HOME/bin"
-  "$GEM_HOME/bin"
-  "$GOPATH/bin"
-  "$HOME/.cargo/bin"
-  "/usr/local/opt/ruby/bin"
-  "/usr/local/opt/python/libexec/bin"
-  "/opt/homebrew/bin"
-  "/usr/local/bin"
-  "/usr/local/sbin"
-  "/bin"
-  "/usr/bin"
-  "/usr/sbin"
-  "/sbin"
-)

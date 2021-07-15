@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[[ -z "${DOTLY_PATH:-$SLOTH_PATH}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/src/_main.sh"
+
+script::depends_on curl
+
+remote::require_script() {
+  local url http_code
+  [[ $# -lt 1 ]] && return 1
+  url="${1:-}"
+  CURL_BIN="${2:-$(which curl)}"
+  http_code="$(curl -o /dev/null -Isw '%{http_code}' "$url")"
+
+  [[ "$http_code" != "200" ]] && return 1
+  #shellcheck disable=SC1090
+  "$CURL_BIN" --silent "$url" || return 1
+}
+
+##? Load library from remote url. Usage of this command is quite special.
+##? To include a remote shell library use:
+##?   . <(sloth script load_remote "https://raw.githubusercontent.com/gtrabanco/sloth/master/scripts/core/src/output.sh")
+##?
+##?   This will load from sloth repository the output.sh library of sloth core.
+##?
+##? To execute a remote shell script use:
+##?   bash <(sloth script load_remote "https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer")
+##?
+##?   This will execute sloth installer.
+##?
+##? Usage:
+##?   load_remote [-h | --help]
+##?   load_remote [-v | --version]
+##?   load_remote [--curl-bin=<curl_bin>] <script_url>
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+docs::parse "$@"
+
+SCRIPT_NAME="sloth script load_remote"
+SCRIPT_VERSION="1.0.0"
+
+# Print name and version
+if ${version:-}; then
+  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  exit
+fi
+
+if [[ -z "${script_url:-}" ]] ||
+  { [[ -z "${curl_bin:-}" ]] && ! platform::command_exists curl; } ||
+  { [[ -n "${curl_bin:-}" ]] && ! command -v "${curl_bin}" &> /dev/null; }; then
+  output::error "No valid url were given or \`curl\` command were not found"
+fi
+
+curl_bin="${curl_bin:-$(which curl)}"
+
+remote::require_script "$script_url" "$curl_bin" || exit 1

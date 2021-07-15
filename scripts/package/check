@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[[ -z "${DOTLY_PATH:-$SLOTH_PATH}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
+
+##? Install a package
+##?
+##? Usage:
+##?    check [-v | --version]
+##?    check [-h | --help]
+##?    check <package_name>
+##?
+##? Options:
+##?    -h --help      Show script help
+##?    -v --version   Show script version
+##?    --skip-recipe  Skip recipe when check
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+  docs::parse "$@"
+else
+  package_name=""
+  version=false
+  help=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      *)
+        package_name="$1"
+        shift
+        ;;
+    esac
+  done
+fi
+
+SCRIPT_NAME="sloth package check"
+SCRIPT_VERSION="1.0.0"
+package_name="$(str::to_lower "$package_name")"
+
+if ${version:-}; then
+  output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
+  exit 0
+elif ${help:-}; then
+  grep '^##?' "$0" | tr '##? ' ' '
+  exit 0
+elif [[ -z "${package_name:-}" ]]; then
+  output::error "No package name provided"
+  exit 1
+fi
+
+if [[ "$package_name" != "docpars" ]]; then
+  script::depends_on docpars
+fi
+
+if package::is_installed "$package_name"; then
+  log::success "$package_name already installed" && exit 0
+fi
+
+log::error "$package_name is not installed" && exit 1

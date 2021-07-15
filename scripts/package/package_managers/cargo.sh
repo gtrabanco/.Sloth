@@ -1,3 +1,0 @@
-cargo::install() {
-  cargo install "$@"
-}

@@ -5,9 +5,12 @@ set -euo pipefail
 ##? Setups the environment
 ##?
 ##? Usage:
-##?    installer
+##?    install
 
-DOTLY_REPOSITORY=${DOTLY_REPOSITORY:-CodelyTV/dotly}
+ICLOUD_PATH="$HOME/Library/Mobile\ Documents/com~apple~CloudDocs/"
+IS_ICLOUD_DOTFILES=false
+
+DOTLY_REPOSITORY=${DOTLY_REPOSITORY:-gtrabanco/sloth}
 DOTLY_BRANCH=${DOTLY_BRANCH:-master}
 DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
 export DOTLY_ENV=${DOTLY_ENV:-PROD}
@@ -32,13 +35,13 @@ _log() {
   current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 
   while IFS= read -r log_message; do
-    echo "$log_message" >>"$DOTLY_LOG_FILE"
+    echo "$log_message" >> "$DOTLY_LOG_FILE"
   done
 
-  echo "" >>"$DOTLY_LOG_FILE"
+  echo "" >> "$DOTLY_LOG_FILE"
 }
 
 current_timestamp() { date +%s; }
@@ -59,19 +62,32 @@ create_dotfiles_dir() {
 }
 
 command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
-_w "  ┌────────────────────────────────────┐"
-_w "~ │ 🚀 Welcome to the ${green}dotly${normal} installer! │ ~"
-_w "  └────────────────────────────────────┘"
+_w "  ┌──────────────────────────────────────────┐"
+_w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
+_w "  └──────────────────────────────────────────┘"
 _w
-_q "Where do you want your dotfiles to be located? (default ~/.dotfiles)" "DOTFILES_PATH"
-DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
-DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
+
+if [[ "$OSTYPE" =~ ^[darwin] ]] && [[ -d "$ICLOUD_PATH" ]]; then
+  _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
+  if [[ "${ICLOUD_REPLY:-Y}" =~ ^[Yy] ]]; then
+    IS_ICLOUD_DOTFILES=true
+    _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
+    DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
+    DOTFILES_LINK_PATH="$HOME/$(basename "$ICLOUD_DOTFILES")"
+  fi
+fi
+
+if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
+  _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
+  DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
+fi
 export DOTFILES_PATH="$DOTFILES_PATH"
 
-dotly_inner_path="modules/dotly"
+dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
 
 create_dotfiles_dir "$DOTFILES_PATH"
@@ -80,9 +96,9 @@ cd "$DOTFILES_PATH"
 if ! command_exists git; then
   _e "git not installed, trying to install"
 
-  if command_exists apt; then
+  if command_exists apt-get; then
     _a "Installing using apt"
-    sudo apt -y install git 2>&1 | _log "Installing git"
+    sudo apt-get -y install git 2>&1 | _log "Installing git"
   elif command_exists dnf; then
     _a "Installing using dnf"
     sudo dnf -y install git 2>&1 | _log "Installing git"
@@ -97,20 +113,20 @@ if ! command_exists git; then
     sudo pacman -S --noconfirm git 2>&1 | _log "Installing git"
   else
     case "$OSTYPE" in
-    darwin*)
-      _a "Checking if Command Line Tools are installed 🕵️‍♂️"
+      darwin*)
+        _a "Checking if Command Line Tools are installed 🕵️‍♂️"
 
-      xcode-select --install 2>&1 | grep installed >/dev/null
-      if [[ $? ]]; then
-        _a "Installing Command Line Tools 📺"
-        xcode-select --install
-        _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
-      fi
-      ;;
-    *)
-      _e "Could not install git, no package provider found"
-      exit 1
-      ;;
+        xcode-select --install 2>&1 | grep installed > /dev/null
+        if [[ $? ]]; then
+          _a "Installing Command Line Tools 📺"
+          xcode-select --install
+          _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
+        fi
+        ;;
+      *)
+        _e "Could not install git, no package provider found"
+        exit 1
+        ;;
     esac
   fi
 fi
@@ -142,15 +158,24 @@ fi
 _a "Initializing your dotfiles git repository"
 git init 2>&1 | _log "Initializing repository"
 
-_a "Cloning dotly"
-git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding dotly submodule"
+_a "Cloning sloth/dotly"
+git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
 
-_a "Installing dotly dependencies"
-git submodule update --init --recursive 2>&1 | _log "Installing dotly dependencies"
+_a "Installing sloth/dotly dependencies"
+git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
 cd "$DOTLY_PATH"
 
-"$PWD/bin/dot" self install
+if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
+  if [[ -d "$DOTFILES_LINK_PATH" ]]; then
+    create_dotfiles_dir "$DOTFILES_LINK_PATH"
+    rm -f "$DOTFILES_LINK_PATH"
+    ln -s "$DOTFILES_PATH" "$DOTFILES_LINK_PATH"
+    export DOTFILES_PATH="$DOTFILES_LINK_PATH"
+  fi
+fi
 
-_a "🎉 dotly installed correctly! 🎉"
+"$PWD/bin/dot" core install
+
+_a "🎉 sloth/dotly installed correctly! 🎉"
 _a "Please, restart your terminal to see the changes"

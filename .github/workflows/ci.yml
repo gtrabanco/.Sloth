@@ -5,18 +5,25 @@ on:
     branches:
       - master
   pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'dotfiles_template/*.md'
+      - 'docs/**'
+      - 'doc/**'
+      - '*.md'
+      - '**/*.md'
 
 jobs:
   build:
     name: 🚀 Build
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
-          - macos-10.15
-          - macos-11.0
-          - ubuntu-18.04
-          - ubuntu-20.04
+          - macos-latest
+          - ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -27,15 +34,15 @@ jobs:
 
       - name: Set current repository and branch
         run: |
-          echo "DOTLY_REPOSITORY=${DOTLY_PR_REPOSITORY:-CodelyTV/dotly}" >> $GITHUB_ENV
+          echo "DOTLY_REPOSITORY=${DOTLY_PR_REPOSITORY:-gtrabanco/sloth}" >> $GITHUB_ENV
           echo "DOTLY_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
           echo "DOTLY_ENV=CI" >> $GITHUB_ENV
 
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
-      - name: Debug on error
-        if: ${{ failure() }}
+      - name: Debug
+        if: ${{ always() }}
         run: |
           echo "DOTLY_REPOSITORY: $DOTLY_REPOSITORY"
           echo "DOTLY_BRANCH: $DOTLY_BRANCH"
@@ -69,5 +76,10 @@ jobs:
       - name: 📥 Install shfmt
         run: go get mvdan.cc/sh/v3/cmd/shfmt
 
-      - name: 💅 Lint bash files
-        run: bash scripts/self/lint
+      - name: 💅 Lint bash files and apply linting patches
+        run: |
+          bash scripts/self/lint || {
+            . "scripts/core/src/_main.sh"
+            output::write "Apply patches by using \`dot core lint\`"
+            exit 1
+          }

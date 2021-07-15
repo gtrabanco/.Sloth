@@ -1,31 +1,60 @@
 #!/usr/bin/env bash
 
-source "$DOTLY_PATH/scripts/core/_main.sh"
-source "$DOTLY_PATH/scripts/package/src/dump.sh"
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+dot::load_library "dump.sh"
+
+if platform::command_exists npm; then
+  script::depends_on jq
+fi
 
 ##? Dump all installed packages from:
 ##?  * Brew
-##?  * Apt
-##?  * Snap
 ##?  * Python
 ##?  * Volta.sh or NPM
 ##?
 ##? Usage:
-##?   dump
+##?   dump [--silent|-s]
+##?
+##? Options:
+##?   --silent -s  If you use this option you won't prompted for custom file name,
+##?                the file name will be the hostname
 docs::parse "$@"
 
-platform::command_exists brew && package::brew_dump && output::answer "Brew apps dumped on $HOMEBREW_DUMP_FILE_PATH"
+HOSTNAME="$(hostname -s)"
 
-platform::command_exists apt-mark && package::apt_dump && output::answer "Apt apps dumped on $APT_DUMP_FILE_PATH"
-
-platform::command_exists snap && package::snap_dump && output::answer "Snap apps dumped on $SNAP_DUMP_FILE_PATH"
-
-platform::command_exists pip3 && package::python_dump && output::answer "Python apps dumped on $PYTHON_DUMP_FILE_PATH"
-
-if platform::command_exists volta; then
-  package::volta_dump && output::answer "Volta apps dumped on $VOLTA_DUMP_FILE_PATH"
-elif platform::command_exists npm; then
-  package::npm_dump && output::answer "NPM apps dumped on $NPM_DUMP_FILE_PATH"
+if ! ${silent:-false}; then
+  output::question_default "Do you want to use current hostname (if not write other name)" "$HOSTNAME" "HOSTNAME"
+  output::empty_line
 fi
+
+for package_manager in $(package::get_available_package_managers); do
+  dump_file_path=""
+  dump_file_path="$(dump::file_path "$package_manager" "${HOSTNAME:-$(hostname -s)}")"
+
+  [[ -z "$dump_file_path" ]] && output::error "No dump file for \`$package_manager\`" && continue
+
+  if
+    [[ $package_manager == "npm" ]] &&
+      package::get_available_package_managers | grep -q "^volta$" ||
+      ! package::command_exists "$package_manager" "dump"
+  then
+    continue
+  fi
+
+  {
+    package::command_exists "$package_manager" "dump" &&
+      package::load_manager "$package_manager" &&
+      output::empty_line &&
+      output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
+      package::command "$package_manager" "dump" "$dump_file_path" &&
+      output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
+      output::empty_line
+  } || {
+    output::error "Error while exporting $(eval echo "\$${package_manager}_title") apps see \`dot core debug\`" &&
+      output::empty_line
+  }
+
+done
 
 output::solution 'All packages dumped'
