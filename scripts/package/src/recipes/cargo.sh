@@ -57,5 +57,5 @@ cargo::url() {
 }
 
 cargo::title() {
-  echo -n "📦 Cargo"
+  echo -n "📦 Cargo & ☢️ Rust compiler"
 }
