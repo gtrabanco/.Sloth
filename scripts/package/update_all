@@ -17,16 +17,17 @@ docs::parse "$@"
 
 output::h1_without_margin "♻️  Updating all the apps on your system"
 output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
+output::empty_line
 
 for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
   package_manager_filename="$(basename "$package_manager_src")"
   package_manager="${package_manager_filename%%.sh}"
+  package_title="${package_manager}_title"
 
-  {
-    package::command "$package_manager" "is_available" &&
-      output::h2 "$(eval echo "\$${package_manager}_title")" &&
-      package::command "$package_manager" "update_all"
-  } || update_all_error "$(eval echo "\$${package_manager}_title")"
+  if package::command "$package_manager" "is_available"; then
+    output::h2 "${!package_title}"
+    package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
+  fi
 done
 
 {
