@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=SC2034
 registry_title='📃 Registry'
 
 #;
@@ -7,7 +8,7 @@ registry_title='📃 Registry'
 # In order to use package managers way to update all registry this is required
 #"
 registry::is_available() {
-  return
+  return 0
 }
 
 #;
@@ -46,14 +47,16 @@ registry::upgrade() {
 
   if registry::command_exists "$recipe" "is_outdated"; then
     if registry::is_outdated "$recipe"; then
-      registry::command "$recipe" "upgrade"  | log::file "Updating ${icon} recipe app: ${recipe_title}"
+      registry::command "$recipe" "upgrade"  2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
+
     else
       output::solution "${icon} Already has lastest version of ${recipe_title}"
     fi
     output::empty_line
+
   elif registry::command_exists "$recipe" "upgrade"; then
     output::answer "Can not check if ${recipe_title} is outdated, trying to update it."
-    registry::command "$recipe" "upgrade"  | log::file "Updating ${icon} recipe app: ${recipe_title}"
+    registry::command "$recipe" "upgrade"  2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
     output::empty_line
   fi
 }
@@ -158,15 +161,34 @@ registry::list_all_recipes() {
 # Update all available recipes that have defined, at least, the function ::update
 #"
 registry::update_all() {
-  local recipe_file_path recipe_file_name recipe icon="📃"
+  local recipe_file_path recipe_file_name recipe any_update=false icon="📃"
 
   for recipe_file_path in $(registry::list_all_recipes "upgrade"); do
     [[ -z "$recipe_file_path" || ! -f "$recipe_file_path" ]] && continue
     recipe_file_name="$(basename "$recipe_file_path")"
     recipe="${recipe_file_name%.sh}"
 
-    if registry::is_installed "$recipe"; then
-      registry::upgrade "$recipe"
+    if
+      registry::is_installed "$recipe" &&
+      registry::command_exists "$recipe" "upgrade"
+    then
+      if
+        registry::command_exists "$recipe" "is_outdated" &&
+        registry::command "$recipe" "is_outdated"
+      then
+        registry::upgrade "$recipe"
+        any_update=true
+
+      elif
+        ! registry::command_exists "$recipe" "is_outdated"
+      then
+        registry::upgrade "$recipe"
+        any_update=true
+      fi
     fi
   done
+  
+  if ! $any_update; then
+    output::answer "Already up-to-date"
+  fi
 }
