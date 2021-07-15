@@ -63,15 +63,20 @@ cargo::update_all() {
 }
 
 cargo::update_apps() {
-  local outdated_app app_new_version app_old_version
+  local outdated_app app_new_version app_old_version cargo_has_updated_apps=false
+  cargo::has_updated() {
+    cargo_has_updated_apps=true
+  }
 
   script::depends_on cargo-update
 
-  cargo install-update --list --git | tail -n+4 | head -n-1 | awk '{print ($4 == "No"?$0:"");}' | while read -r row; do
-    [[ -z "$row" || $row == "Package" ]] && continue
+  cargo install-update --list --git | tail -n+4 | head -n-1 | awk '{print ($4 != "No"?$0:"");}' | while read -r row; do
     outdated_app="$(echo "$row" | awk '{print $1}')"
     app_old_version="$(echo "$row" | awk '{print $2}')"
     app_new_version="$(echo "$row" | awk '{print $3}')"
+
+    [[ -z "$row" || $outdated_app == "Package" ]] && continue
+    cargo::_helper_has_updated 1
 
     output::write "📦 $outdated_app"
     output::write " └ $app_old_version -> $app_new_version"
@@ -79,4 +84,10 @@ cargo::update_apps() {
 
     cargo install-update "$outdated_app" 2>&1 | log::file "Updating ${cargo_title} app: $outdated_app"
   done
+  
+  if ! $cargo_has_updated_apps; then
+    output::answer "Already up-to-date"
+  fi
 }
+
+
