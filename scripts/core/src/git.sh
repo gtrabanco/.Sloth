@@ -1,126 +1,132 @@
 #!/usr/bin/env bash
 
+#
+#  - You can force the usage of specific git binary by defining SLOTH_USE_GIT_BIN.
+#  - Also can pass git args forcely to all these git command by passing an array
+#  of args with the array variable SLOTH_ALWAYS_USE_GIT_ARGS.
+#
+
+if
+  [[ -z "$SLOTH_USE_GIT_BIN" ]] ||
+  [[ -n "$SLOTH_USE_GIT_BIN" ]] &&
+  [[ ! -x "$SLOTH_USE_GIT_BIN" ]] &&
+  command -v git &>/dev/null
+then
+  SLOTH_USE_GIT_BIN="$(command -v git)"
+elif command -v git &>/dev/null; then
+  SLOTH_USE_GIT_BIN="$(command -v git)"
+else
+  echoerr "No git binary found, please install it or review your env \`PATH\` variable or check if defined that \`SLOTH_USE_GIT_BIN\` has a right value" | log::file "Error trying to locate git command"
+fi
+export SLOTH_USE_GIT_BIN
+
+#;
+# git::git()
+# Abstraction function to use with GIT
+#"
+git::git() {
+  [[ ! -x "$SLOTH_USE_GIT_BIN" ]] && return 1
+
+  if [[ -n "${SLOTH_ALWAYS_USE_GIT_ARGS[*]}" && ${#SLOTH_ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
+    "$SLOTH_USE_GIT_BIN" "${SLOTH_ALWAYS_USE_GIT_ARGS[@]}" "$@"
+  else
+    "$SLOTH_USE_GIT_BIN" "$@"
+  fi
+}
+
 git::is_in_repo() {
-  git rev-parse HEAD > /dev/null 2>&1
+  git::git "$@" rev-parse -q --verify HEAD &> /dev/null
 }
 
-git::get_local_HEAD_hash() {
-  local branch
-  branch="${1:-HEAD}"
-  git::is_in_repo && git rev-parse "$branch"
+git::current_branch() {
+  git::git "$@" branch --show-current
 }
 
-git::get_remote_branch_HEAD_hash() {
-  local remote branch
-  remote="${1:-origin}"
-  branch="${2:-master}"
-  git::is_in_repo && git ls-remote --heads "$remote" "$branch"
-}
-
-git::local_current_branch_commit_exists_remote() {
-  local remote branch local_commit
-  remote="${1:-origin}"
-  branch="${2:-master}"
-  local_commit="$(git::get_local_HEAD_hash "$branch")"
-
-  [ -n "$local_commit" ] &&
-    git::is_in_repo &&
-    git ls-remote --symref "$remote" | tail -n +2 | grep -q "$local_commit"
-}
-
-git::remote_branch_by_hash() {
-  [[ -n "${1:-}" ]] && git ls-remote --symref origin | tail -n +2 | grep "${1:-}" | awk '{print $2}' | grep "refs/heads" | sed 's#refs/heads/##'
-}
-
-# shellcheck disable=SC2120
 git::current_commit_hash() {
-  git rev-parse HEAD "$@"
+  local -r branch="${1:-HEAD}"
+  [[ -n "${1:-}" ]] && shift
+  git::git "$@" rev-parse -q --verify "${branch}"
 }
 
 git::is_valid_commit() {
   local -r commit="${1:-HEAD}"
-  git::is_in_repo && [[ $(git cat-file -t "$commit") == commit ]]
+  [[ -n "${1:-}" ]] && shift
+
+  git::is_in_repo "$@" && [[ $(git::git "$@" cat-file -t "$commit") == commit ]]
 }
 
-# shellcheck disable=SC2120
-git::get_commit_tag() {
-  local -r commit="${1:-HEAD}"
+#;
+# git::remote_branch_exists()
+# Check if branch exists in remote
+# @param string remote If only provide one param it will be the branch and takes the remote as origin
+# @param string branch
+# @param any args Additional arguments that will be passed to git
+# @return boolean
+#"
+git::remote_branch_exists() {
+  local remote_branch
 
-  git::is_in_repo && git::is_valid_commit "$commit" && git tag --points-at "$commit"
-}
-
-git::get_current_latest_tag() {
-  local version latest
-
-  for version in $(git::get_all_local_tags); do
-    if
-      [[ -z "${latest:-}" ]] ||
-        [[ $(platform::semver_compare "$latest" "$version" 2> /dev/null) -eq -1 ]]
-    then
-      latest="$version"
-    fi
-  done
-
-  echo "$latest"
-}
-
-# shellcheck disable=SC2120
-git::get_all_local_tags() {
-  #git tag -l --sort="-version:refname" "$@"
-  git show-ref --tags | sort --reverse | awk '{print $2}' | sed 's#refs/tags/##'
-}
-
-git::get_all_remote_tags() {
-  local repository
-  repository="${1:-origin}"
-  git ls-remote --tags --sort "-version:refname" "$repository" "$@"
-}
-
-git::get_all_remote_tags_version_only() {
-  local repository
-  repository="${1:-}"
-  { [[ -n "$repository" ]] && shift; } || repository="origin"
-  git::get_all_remote_tags "$repository" "${@:-*.*.*}" 2> /dev/null | sed 's/.*\///; s/\^{}//' | uniq
-}
-
-git::check_local_tag_exists() {
-  local repository tag_version
-  repository="${1:-}"
-  tag_version="${2:-}"
-
-  { [[ -z "$repository" ]] || [[ -z "$tag_version" ]]; } && return 1
-
-  git::get_all_local_tags | grep -q "$tag_version"
-}
-
-git::check_remote_tag_exists() {
-  local repository tag_version
-  repository="${1:-}"
-  tag_version="${2:-}"
-
-  { [[ -z "$repository" ]] || [[ -z "$tag_version" ]]; } && return 1
-
-  [[ -n "$(git::get_all_remote_tags_version_only "$repository" "$tag_version")" ]]
-}
-
-git::get_submodule_property() {
-  local gitmodules_path submodule_directory property
-
-  if [ $# -gt 2 ]; then
-    gitmodules_path="$1"
+  if [[ $# -gt 1 ]]; then
+    remote="$1"
+    branch="$2"
+    shift 2
+  elif [[ $# -eq 1 ]]; then
+    branch="$1"
+    remote="origin"
     shift
-    submodule_directory="$1"
+  else
+    branch="master"
+    remote="origin"
   fi
 
-  gitmodules_path="${gitmodules_path:-$DOTFILES_PATH/.gitmodules}"
-  submodule_directory="${submodule_directory:-modules/${1:-}}"
-  property="${2:-}"
+  [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2>/dev/null)" ]]
+}
 
-  [[ -f "$gitmodules_path" ]] && [[ -n "$submodule_directory" ]] && [[ -n "$property" ]] && git config -f "$gitmodules_path" submodule."$submodule_directory"."$property"
+#;
+# git::count_different_commits_with_remote_branch()
+# Count number of commits in difference with remote. It will count local against remote and vice-versa, which means that if you are one commit ahead it will show you 1 as if you were 1 commit behind.
+# @param string local_branch HEAD by default
+# @param string remote_branch HEAD by default
+# @param string remote
+# @param any args Additional args for git
+# @return int
+#"
+git::count_different_commits_with_remote_branch() {
+  local local_branch="${1:-HEAD}" remote_branch remote_name
+
+  [[ -n "${1:-}" ]] && shift
+
+  if [[ $# -gt 1 ]]; then
+    remote_branch="$1"
+    remote_name="$2"
+    shift 2
+  elif [[ $# -eq 1 ]]; then
+    remote_branch="$1"
+    remote_name="origin"
+    shift
+  else
+    remote_branch="HEAD"
+    remote_name="origin"
+  fi
+
+  ! git::remote_branch_exists "$@" "${remote_name}" "${local_branch}" && echo -n 0 && return
+  git::git "$@" rev-list "${local_branch}...${remote_name}/${remote_branch}" --count 2>/dev/null
+}
+
+git::check_current_branch_is_behind() {
+  # git status --ahead-behind | head -n2 | tail -n1 | awk '{NF--; print $4"\n"$NF}'
+  [[ $(git status --ahead-behind 2>/dev/null | head -n2 | tail -n1 | awk '{print $4}') == "behind" ]]
+}
+
+
+git::get_remote_head_upstream_branch() {
+  local remote="${1:-origin}"
+  [[ -n "${1:-}" ]] && shift
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null
 }
 
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git rev-parse @~:"${1:-}" > /dev/null 2>&1
+  [[ -n "${1:-}" ]] && ! git::git "${@:1:}" rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
 git::get_file_last_commit_timestamp() {
@@ -146,34 +152,7 @@ git::check_file_is_modified_after_commit() {
   [[ "$file_commit_date" -gt "$commit_to_check_date" ]]
 }
 
-git::check_sloth_repo_is_updated() {
-  local current_branch status_code=0 branch="${1:-master}"
-  # No repository return error
-  ! git::sloth_repository_exec git::is_in_repo && return 1
 
-  # Saving working dir changes
-  git::sloth_repository_exec git add -A && git::sloth_repository_exec git stash
-
-  current_branch="$(git::sloth_repository_exec git branch)"
-  git::sloth_repository_exec git branch "$branch"
-  # If it is behind, status_code must be != 0
-  git::sloth_repository_exec git status -sb --ignore-submodules --ahead-behind 2> /dev/null | grep -q 'behind' && status_code=1
-
-  git::sloth_repository_exec git stash pop && git::sloth_repository_exec git branch "$current_branch"
-
-  return $status_code
-}
-
-git::sloth_repository_exec() {
-  local return_code
-  return_code=0
-  cd "$DOTLY_PATH" || return 1
-
-  if git::is_in_repo; then
-    eval "$@"
-  else
-    return_code=1
-  fi
-
-  return "$return_code"
+myfunc() {
+  echo "${@:1}"
 }
