@@ -43,5 +43,5 @@ utils::curry() {
         more_params=\$*;
         $fun $params \$more_params;
     }"
-  eval $cmd
+  eval "$cmd"
 }
