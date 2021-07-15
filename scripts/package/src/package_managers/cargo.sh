@@ -84,10 +84,8 @@ cargo::update_apps() {
 
     cargo install-update "$outdated_app" 2>&1 | log::file "Updating ${cargo_title} app: $outdated_app"
   done
-  
+
   if ! $cargo_has_updated_apps; then
     output::answer "Already up-to-date"
   fi
 }
-
-

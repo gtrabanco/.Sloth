@@ -34,7 +34,7 @@ registry::is_outdated() {
 registry::upgrade() {
   local recipe_title icon="📃"
   local -r recipe="${1:-}"
-  
+
   if [[ -z "$recipe" ]] || ! registry::is_installed "$recipe"; then
     return 1
   fi
@@ -47,7 +47,7 @@ registry::upgrade() {
 
   if registry::command_exists "$recipe" "is_outdated"; then
     if registry::is_outdated "$recipe"; then
-      registry::command "$recipe" "upgrade"  2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
+      registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
 
     else
       output::solution "${icon} Already has lastest version of ${recipe_title}"
@@ -56,7 +56,7 @@ registry::upgrade() {
 
   elif registry::command_exists "$recipe" "upgrade"; then
     output::answer "Can not check if ${recipe_title} is outdated, trying to update it."
-    registry::command "$recipe" "upgrade"  2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
+    registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
     output::empty_line
   fi
 }
@@ -106,7 +106,7 @@ registry::_recipe_info() {
     recipe_all_info+=("$(registry::command "$recipe" "url")")
   fi
 
-  last_pos=$(( ${#recipe_all_info[@]} - 1 ))
+  last_pos=$((${#recipe_all_info[@]} - 1))
   last_info="${recipe_all_info[$last_pos]}"
   first_info="${recipe_all_info[0]}"
 
@@ -131,7 +131,7 @@ registry::_recipe_info() {
 #"
 registry::list_all_recipes() {
   local all_recipes_full_path recipe_path recipe_filename recipe recipes_name=() unique_recipes=()
-  readarray -t all_recipes_full_path < <(find "${SLOTH_RECIPE_PATHS[@]}" -maxdepth 1 -name "*.sh" -type f 2>/dev/null)
+  readarray -t all_recipes_full_path < <(find "${SLOTH_RECIPE_PATHS[@]}" -maxdepth 1 -name "*.sh" -type f 2> /dev/null)
   for recipe_path in "${all_recipes_full_path[@]}"; do
     recipe_filename="$(basename "$recipe_path")"
 
@@ -170,11 +170,11 @@ registry::update_all() {
 
     if
       registry::is_installed "$recipe" &&
-      registry::command_exists "$recipe" "upgrade"
+        registry::command_exists "$recipe" "upgrade"
     then
       if
         registry::command_exists "$recipe" "is_outdated" &&
-        registry::command "$recipe" "is_outdated"
+          registry::command "$recipe" "is_outdated"
       then
         registry::upgrade "$recipe"
         any_update=true
@@ -187,7 +187,7 @@ registry::update_all() {
       fi
     fi
   done
-  
+
   if ! $any_update; then
     output::answer "Already up-to-date"
   fi

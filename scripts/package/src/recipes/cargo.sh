@@ -30,9 +30,9 @@ cargo::is_installed() {
 }
 
 cargo::version() {
-  local -r cargo="$(cargo --version 2>/dev/null | awk '{print $2}')"
+  local -r cargo="$(cargo --version 2> /dev/null | awk '{print $2}')"
   local -r rustup="$(rustup --version 2> /dev/null | head -n1 | awk '{print $2}')"
-  local -r rustc="$(rustc --version 2>/dev/null | awk '{print $2}')"
+  local -r rustc="$(rustc --version 2> /dev/null | awk '{print $2}')"
   echo -n "${cargo} (rustup ${rustup} - rustc ${rustc})"
 }
 
@@ -45,7 +45,7 @@ cargo::is_outdated() {
 }
 
 cargo::upgrade() {
-  rustup update &>/dev/null
+  rustup update &> /dev/null
 }
 
 cargo::description() {

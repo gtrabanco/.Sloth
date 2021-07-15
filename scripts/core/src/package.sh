@@ -76,7 +76,7 @@ package::get_all_package_managers() {
         ! script::function_exists "$package_manager_src" "${package_manager}::${command}" && has_all=false
       done
     fi
-    
+
     $has_all && echo "$package_manager_src"
   done
 }
