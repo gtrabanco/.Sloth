@@ -18,29 +18,23 @@ docs::parse "$@"
 output::h1_without_margin "♻️  Updating all the apps on your system"
 output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
 
-for package_manager in $(package::get_available_package_managers); do
+for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
+  package_manager_filename="$(basename "$package_manager_src")"
+  package_manager="${package_manager_filename%%.sh}"
+
   {
-    package::load_manager "$package_manager" &&
-      package::command_exists "$package_manager" "update_all" &&
+    package::command "$package_manager" "is_available" &&
       output::h2 "$(eval echo "\$${package_manager}_title")" &&
       package::command "$package_manager" "update_all"
   } || update_all_error "$(eval echo "\$${package_manager}_title")"
 done
 
 {
-  platform::command_exists rustup && output::h2 '☢️ Rust compiler' && rustup update
-} || update_all_error '☢️ Rust compiler'
-
-{
-  platform::command_exists deno && output::h2 '🦕 deno' && deno upgrade
-} || update_all_error '🦕 deno'
-
-{
   platform::command_exists tldr && output::h2 '📜 tldr database' && tldr --update
 } || update_all_error '📜 tldr database'
 
 {
-  output::h2 "Zim Framework" && zsh "$DOTLY_PATH/modules/zimfw/zimfw.zsh" upgrade 2>&1 | log::file "Updating Zim"
+  output::h2 "Zim Framework" && zsh "${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw/zimfw.zsh" upgrade 2>&1 | log::file "Updating Zim"
 } || update_all_error '(Zim:FW) Zim Framework'
 
 output::empty_line

@@ -55,27 +55,29 @@ package::load_manager() {
 }
 
 #;
-# package::get_available_package_managers()
-# Output a full list of available package managers
+# package::get_all_package_managers()
+# Output a full list of all package managers. If any param provided will list only package managers with subcommand(s) (functions)
+# @param any commands command or command that must have the package managers to list them as available
 #"
-package::get_available_package_managers() {
-  local package_manager_src package_manager
+package::get_all_package_managers() {
+  local package_manager_src package_manager command has_all
   find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2> /dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
+    has_all=true
 
     # Check if it is a valid package manager
     [[ -z "$(package::manager_exists "$package_manager")" ]] && continue
 
-    # Load package manager
-    package::load_manager "$package_manager"
-
-    # Check if package manager is available
-    if command -v "${package_manager}::is_available" &> /dev/null && "${package_manager}::is_available"; then
-      echo "$package_manager"
+    if [[ -n "$*" ]]; then
+      for command in "$@"; do
+        ! script::function_exists "$package_manager_src" "${package_manager}::${command}" && has_all=false
+      done
     fi
+    
+    $has_all && echo "$package_manager_src"
   done
 }
 
@@ -111,6 +113,7 @@ package::command_exists() {
     return 1
   fi
 
+  # TODO Change this to use the new way
   package::load_manager "$package_manager"
 
   # If function does not exists for the package manager it will return 0 (true) always
