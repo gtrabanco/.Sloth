@@ -61,22 +61,22 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -f "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
 
 # Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
-user_paths="$path"
+user_paths=("${path[@]}")
 # Define PATH to be used with brew and use of uname, we keep user paths because maybe brew is installled in other path
 PATH="${PATH:+$PATH}:/usr/bin:/bin:/usr/sbin:/sbin"
 
 # Define variables for OS, arch and shell
 #shellcheck disable=SC2034,SC2207
 SLOTH_UNAME=($(uname -sm))
-if [[ -n "${DOTLY_UNAME[0]:-}" ]]; then
-  SLOTH_OS="${DOTLY_UNAME[0]}"
-  SLOTH_ARCH="${DOTLY_UNAME[1]}"
+if [[ -n "${SLOTH_UNAME[0]:-}" ]]; then
+  SLOTH_OS="${SLOTH_UNAME[0]}"
+  SLOTH_ARCH="${SLOTH_UNAME[1]}"
 else
-  SLOTH_OS="${DOTLY_UNAME[1]}"
-  SLOTH_ARCH="${DOTLY_UNAME[2]}"
+  SLOTH_OS="${SLOTH_UNAME[1]}"
+  SLOTH_ARCH="${SLOTH_UNAME[2]}"
 fi
 
-DOTLY_SHELL="${SHELL##*/}"
+SLOTH_SHELL="${SHELL##*/}"
 # PR Note about this: $SHELL sometimes see zsh under certain circumstances in macOS
 if [[ -n "${BASH_VERSION:-}" ]]; then
   SLOTH_SHELL="bash"
@@ -105,7 +105,7 @@ if [[ -n "$BREW_BIN" ]]; then
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 
   # Brew add gnutools in macos or bsd only and brew paths
-  if [[ "$DOTLY_OS" == Darwin* || "$DOTLY_OS" == *"BSD"* ]]; then
+  if [[ "$SLOTH_OS" == Darwin* || "$SLOTH_OS" == *"BSD"* ]]; then
     export path=(
       "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/findutils/libexec/gnubin"
@@ -158,11 +158,11 @@ unset BREW_BIN user_paths
 [[ -d "/sbin" ]] && path+=("/sbin")
 
 # Load dotly core for your current BASH
-if [[ "$CURRENT_SHELL" != "unknown" && -f "$SLOTH_PATH/shell/${DOTLY_SHELL}/init.sh" ]]; then
+if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
   #shellcheck source=/dev/null
-  . "$DOTLY_PATH/shell/${DOTLY_SHELL}/init.sh"
+  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh"
 else
-  echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${CURRENT_SHELL}\`\033[0m"
+  echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
 fi
 
 # Aliases
