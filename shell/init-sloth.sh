@@ -147,15 +147,17 @@ fi
 unset BREW_BIN user_paths
 
 # Conditional paths
-[[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
+[[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
-[[ -d "/usr/bin" ]] && path+=("/usr/bin")
-[[ -d "/bin" ]] && path+=("/bin")
-[[ -d "/usr/sbin" ]] && path+=("/usr/sbin")
-[[ -d "/sbin" ]] && path+=("/sbin")
+
+# System paths
+path+=("/usr/bin")
+path+=("/bin")
+path+=("/usr/sbin")
+path+=("/sbin")
 
 # Load dotly core for your current BASH
 if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
