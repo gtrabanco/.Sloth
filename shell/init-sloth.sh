@@ -99,6 +99,7 @@ elif command -v brew &> /dev/null; then
   BREW_BIN="$(command -v brew)"
 fi
 
+# Check with -x has no sense because we have done it before :)
 if [[ -n "$BREW_BIN" ]]; then
   HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
   HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
