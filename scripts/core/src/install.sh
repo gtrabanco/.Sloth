@@ -55,7 +55,7 @@ install_macos_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine docpars zsh fzf python-yq jq tee realpath
+    custom::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine docpars zsh fzf python-yq jq
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
@@ -99,6 +99,6 @@ install_linux_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh hyperfine docpars zsh fzf python-yq jq tee realpath
+    custom::install bash zsh hyperfine docpars zsh fzf python-yq jq
   fi
 }
