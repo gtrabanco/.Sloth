@@ -11,6 +11,14 @@
 ##?   zsh reload_completions
 ##?   zsh clean_cache
 ##?   zsh fix_permissions
+##?
+##? Arguments:
+##?   optimize             
+##?   test_performance     Check how much time is the loading of zsh shell 
+##?   reload_completions   
+##?   clean_cache          
+##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
+##?
 docs::parse "$@"
 
 case $1 in
@@ -52,9 +60,7 @@ case $1 in
     output::answer 'Now restart your terminal'
     ;;
   "fix_permissions")
-    sudo -v
-    sudo chown -R "$(whoami)" /usr/local/share/zsh /usr/local/share/zsh/site-functions
-    chmod u+w /usr/local/share/zsh /usr/local/share/zsh/site-functions
+    chmod -R go-w "${HOMEBREW_PREFIX}/share/zsh"
     ;;
   *)
     exit 1
