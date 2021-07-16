@@ -3,7 +3,7 @@
 hyperfine::install() {
   script::depends_on cargo
 
-  cargo install docpars
+  cargo install hyperfine
 }
 
 hyperfine::is_installed() {

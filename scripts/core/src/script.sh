@@ -19,3 +19,17 @@ script::depends_on() {
     fi
   done
 }
+
+script::list_functions() {
+  [[ -f "${1:-}" ]] && bash -c ". \"${1:-}\"; typeset -F" | awk '{print $3}'
+}
+
+script::function_exists() {
+  local fns
+  local -r script_path="${1:-}"
+  local -r function_name="${2:-}"
+  [[ -z "$script_path" || -z "$function_name" || ! -f "$script_path" ]] && return 1
+  declare -a fns
+  readarray -t fns < <(script::list_functions "$script_path")
+  array::exists_value "$function_name" "${fns[@]}"
+}
