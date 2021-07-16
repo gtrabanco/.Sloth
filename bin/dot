@@ -94,7 +94,7 @@ elif args::total_is 1 "$@"; then
 else
   context="$1"
   script="$2"
-  firstarg="$3"
+  firstarg="${3:-}"
 
   shift 2
 
