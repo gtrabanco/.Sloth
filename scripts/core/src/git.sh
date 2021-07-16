@@ -1,58 +1,85 @@
 #!/usr/bin/env bash
 
 #
-#  - You can force the usage of specific git binary by defining SLOTH_USE_GIT_BIN.
+#  - You can force the usage of specific git binary by defining GIT_EXECUTABLE.
 #  - Also can pass git args forcely to all these git command by passing an array
-#  of args with the array variable SLOTH_ALWAYS_USE_GIT_ARGS.
+#  of args with the array variable ALWAYS_USE_GIT_ARGS.
 #
 
 if
-  [[ -z "$SLOTH_USE_GIT_BIN" ]] ||
-  [[ -n "$SLOTH_USE_GIT_BIN" ]] &&
-  [[ ! -x "$SLOTH_USE_GIT_BIN" ]] &&
+  [[ -z "$GIT_EXECUTABLE" ]] ||
+  [[ -n "$GIT_EXECUTABLE" ]] &&
+  [[ ! -x "$GIT_EXECUTABLE" ]] &&
   command -v git &>/dev/null
 then
-  SLOTH_USE_GIT_BIN="$(command -v git)"
+  GIT_EXECUTABLE="$(command -v git)"
 elif command -v git &>/dev/null; then
-  SLOTH_USE_GIT_BIN="$(command -v git)"
+  GIT_EXECUTABLE="$(command -v git)"
 else
-  echoerr "No git binary found, please install it or review your env \`PATH\` variable or check if defined that \`SLOTH_USE_GIT_BIN\` has a right value" | log::file "Error trying to locate git command"
+  echoerr "No git binary found, please install it or review your env \`PATH\` variable or check if defined that \`GIT_EXECUTABLE\` has a right value" | log::file "Error trying to locate git command"
 fi
-export SLOTH_USE_GIT_BIN
+export GIT_EXECUTABLE
 
 #;
 # git::git()
 # Abstraction function to use with GIT
 #"
 git::git() {
-  [[ ! -x "$SLOTH_USE_GIT_BIN" ]] && return 1
+  [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
-  if [[ -n "${SLOTH_ALWAYS_USE_GIT_ARGS[*]}" && ${#SLOTH_ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
-    "$SLOTH_USE_GIT_BIN" "${SLOTH_ALWAYS_USE_GIT_ARGS[@]}" "$@"
+  if [[ -n "${ALWAYS_USE_GIT_ARGS[*]}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
+    "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
   else
-    "$SLOTH_USE_GIT_BIN" "$@"
+    "$GIT_EXECUTABLE" "$@"
   fi
 }
 
+#;
+# git::is_in_repo()
+# check if a directory is a repository
+#"
 git::is_in_repo() {
   git::git "$@" rev-parse -q --verify HEAD &> /dev/null
 }
 
+#;
+# git::current_branch()
+# Get the current active branch
+#"
 git::current_branch() {
   git::git "$@" branch --show-current
 }
 
+#;
+# git::check_remote_exists()
+# @param string remote Optional remote, use "origin" as default
+#"
+git::check_remote_exists() {
+  local -r remote="${1:-origin}"
+  [[ -n "${1:-}" ]] && shift
+  git::git "$@" remote get-url "$remote" &> /dev/null
+}
+
+#;
+# git::current_commit_hash()
+# Get the most recent commit of given branch or HEAD
+# @param string branch Optiona, by default is HEAD
+#"
 git::current_commit_hash() {
   local -r branch="${1:-HEAD}"
   [[ -n "${1:-}" ]] && shift
   git::git "$@" rev-parse -q --verify "${branch}"
 }
 
+#;
+# git::is_valid_commit()
+# Check if a given commit is a valid commit in the local repository
+#"
 git::is_valid_commit() {
   local -r commit="${1:-HEAD}"
   [[ -n "${1:-}" ]] && shift
 
-  git::is_in_repo "$@" && [[ $(git::git "$@" cat-file -t "$commit") == commit ]]
+  [[ $(git::git "$@" cat-file -t "$commit") == commit ]]
 }
 
 #;
@@ -113,30 +140,78 @@ git::count_different_commits_with_remote_branch() {
   git::git "$@" rev-list "${local_branch}...${remote_name}/${remote_branch}" --count 2>/dev/null
 }
 
+#;
+# git::check_current_branch_is_behind()
+# Check if current branch is behind default remote
+#"
 git::check_current_branch_is_behind() {
   # git status --ahead-behind | head -n2 | tail -n1 | awk '{NF--; print $4"\n"$NF}'
-  [[ $(git status --ahead-behind 2>/dev/null | head -n2 | tail -n1 | awk '{print $4}') == "behind" ]]
+  [[ $(git::git "$@" status --ahead-behind 2>/dev/null | head -n2 | tail -n1 | awk '{print $4}') == "behind" ]]
 }
 
-
+#;
+# git::get_remote_head_upstream_branch()
+# Get which is the branch or the remote head if any
+#"
 git::get_remote_head_upstream_branch() {
   local remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null || true
 }
 
+#;
+# git::set_remote_head_upstream_branch()
+# Set which is the branch HEAD considered as remote/HEAD for a remote
+#"
+git::set_remote_head_upstream_branch() {
+  local remote branch
+  if [[ $# -gt 1 ]]; then
+    remote="$1"
+    branch="$2"
+    shift 2
+  elif [[ $# -eq 1 ]]; then
+    remote="origin"
+    branch="$1"
+    shift
+  else
+    remote="origin"
+    branch="master"
+  fi
+
+  git::git "$@" remote set-head "$remote" master
+}
+
+#;
+# git::check_file_exists_in_previous_commit()
+#"
 git::check_file_exists_in_previous_commit() {
   [[ -n "${1:-}" ]] && ! git::git "${@:1:}" rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
+#;
+# git::get_file_last_commit_timestamp()
+# The timestamp of were a file was modified/included/deleted in a commit
+# @param string file
+#"
 git::get_file_last_commit_timestamp() {
   [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp -1 "${1:-}" 2> /dev/null | awk '{print $1}'
 }
 
+#;
+# git::get_commit_timestamp()
+# @param string commit
+#"
 git::get_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp | grep "${1:-}" | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp 2> /dev/null | grep "${1:-}" | awk '{print $1}'
 }
 
+#;
+# git::check_file_is_modified_after_commit()
+# Given a file and commit gets if the file was modified after that commit
+# @param string file
+# @param string commit
+# @return boolean
+#"
 git::check_file_is_modified_after_commit() {
   local file_path file_commit_date commit_to_check commit_to_check_date
   file_path="${1:-}"
@@ -152,7 +227,73 @@ git::check_file_is_modified_after_commit() {
   [[ "$file_commit_date" -gt "$commit_to_check_date" ]]
 }
 
+#;
+# git::check_working_dir_is_clean()
+# @return boolean
+#"
+git::check_working_dir_is_clean() {
+  [[ $(git::git "$@" status -sb | wc -l) -eq 1 ]]
+}
 
-myfunc() {
-  echo "${@:1}"
+#;
+# git::check_is_shallow()
+# Check if a repository is a shallow repository
+#"
+git::check_is_shallow() {
+  [[ -f "${1:-}/.git/shallow" ]]
+}
+
+#;
+# git::unshallow()
+#"
+git::unshallow() {
+  git::git "$@" fetch --unsallow
+}
+
+#;
+# git::clone_track_branch()
+# Clone and track a remote branch
+# @param string remote If no second parameter is give, this will be the branch
+# @param string branch
+#"
+git::clone_track_branch() {
+  local remote branch
+  if [[ $# -ge 2 ]]; then
+    remote="${1:-}"
+    branch="${2:-}"
+    shift 2
+  elif [[ $# -eq 1 ]]; then
+    remote="origin"
+    branch="${1:-}"
+    shift
+  else
+    remote="origin"
+    branch="master"
+  fi
+
+  ! git::check_remote_exists "$remote" "$@" && return 1
+  [[ -z "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" checkout -t "$remote_branch" 1>&2
+  [[ -n "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
+}
+
+#;
+# git::clone_branches()
+# Bulk clone of remote branches
+#"
+git::clone_branches() {
+  local remote_branch branch
+  local -r remote="${1:-origin}"
+  [[ -n "${1:-}" ]] && shift
+
+  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
+    branch="${remote_branch//remotes\/${remote}\//}"
+    git::clone_track_branch "$remote" "$branch" "$@"
+  done
+}
+
+#;
+# git::current_branch_is_tracked()
+#"
+git::current_branch_is_tracked() {
+  git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
 }
