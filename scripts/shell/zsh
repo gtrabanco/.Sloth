@@ -45,6 +45,7 @@ case $1 in
     find "$HOME" -name '*.zwc' -delete
     ;;
   "reload_completions")
+    rm -f "$HOME/.zcompdump"
     zsh -i -c "autoload -U compaudit && autoload -Uz compinit && compinit"
 
     output::empty_line
