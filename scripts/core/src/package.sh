@@ -124,21 +124,22 @@ package::manager_preferred() {
 package::command_exists() {
   local -r package_manager="${1:-}"
   local -r command="${2:-}"
+  local -r package_command="${package_manager}::${command}"
+  local -r package_manager_src="$(package::manager_exists "$package_manager")"
 
-  if [[ "$package_manager" == "none" ]] ||
-    [[ -z "$(package::manager_exists "$package_manager")" ]]; then
+  if  
+    [[ 
+      "$package_manager" == "none" ||
+      -z "$package_manager" ||
+      -z "$command" ||
+      -z "$package_manager_src"
+    ]] ||
+    ! scripts::function_exists "$package_manager_src" "$package_command"
+  then
     return 1
   fi
 
-  # TODO Change this to use the new way
-  package::load_manager "$package_manager"
-
-  # If function does not exists for the package manager it will return 0 (true) always
-  if declare -F "${package_manager}::${command}" &> /dev/null; then
-    return
-  fi
-
-  return 1
+  return 0
 }
 
 #;
