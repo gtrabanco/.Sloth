@@ -145,7 +145,6 @@ else
     "${user_paths[@]}"
   )
 fi
-unset BREW_BIN user_paths
 
 # Conditional paths
 [[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
@@ -185,4 +184,6 @@ if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; t
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
-unset init_script init_scripts_path
+
+# Unset loader variables
+unset init_script init_scripts_path BREW_BIN user_paths
