@@ -99,6 +99,7 @@ elif command -v brew &> /dev/null; then
   BREW_BIN="$(command -v brew)"
 fi
 
+# Check with -x has no sense because we have done it before :)
 if [[ -n "$BREW_BIN" ]]; then
   HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
   HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
@@ -114,16 +115,16 @@ if [[ -n "$BREW_BIN" ]]; then
       "${HOMEBREW_PREFIX}/opt/gnu-which/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/grep/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/make/libexec/gnubin"
+      "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${user_paths[@]}"
     )
   else
     # Brew paths
     export path=(
+      "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${user_paths[@]}"
     )
   fi
 
@@ -144,18 +145,19 @@ else
     "${user_paths[@]}"
   )
 fi
-unset BREW_BIN user_paths
 
 # Conditional paths
-[[ -f "$HOME/.cargo/env" ]] && path+=("$HOME/.cargo/bin")
+[[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
-[[ -d "/usr/bin" ]] && path+=("/usr/bin")
-[[ -d "/bin" ]] && path+=("/bin")
-[[ -d "/usr/sbin" ]] && path+=("/usr/sbin")
-[[ -d "/sbin" ]] && path+=("/sbin")
+
+# System paths
+path+=("/usr/bin")
+path+=("/bin")
+path+=("/usr/sbin")
+path+=("/sbin")
 
 # Load dotly core for your current BASH
 if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
@@ -182,4 +184,6 @@ if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; t
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
-unset init_script init_scripts_path
+
+# Unset loader variables
+unset init_script init_scripts_path BREW_BIN user_paths
