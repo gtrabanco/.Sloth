@@ -114,16 +114,16 @@ if [[ -n "$BREW_BIN" ]]; then
       "${HOMEBREW_PREFIX}/opt/gnu-which/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/grep/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/make/libexec/gnubin"
+      "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${user_paths[@]}"
     )
   else
     # Brew paths
     export path=(
+      "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
-      "${user_paths[@]}"
     )
   fi
 
