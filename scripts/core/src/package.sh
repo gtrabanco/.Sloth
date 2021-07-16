@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
-export PACKAGE_MANAGERS_SRC=(
-  "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
-  "${DOTFILES_PATH:-}/package/managers"
-  "${PACKAGE_MANAGERS_SRC[@]:-}"
-)
 
-# if [[ -z "${_SLOTH_PACKAGE_MANAGERS_SRC_PATH[*]:-}" ]]; then
-#   declare -A _SLOTH_PACKAGE_MANAGERS_SRC_PATH
-#   for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ echo _); do
-#     # Get package manager name
-#     #shellcheck disable=SC2030
-#     package_manager="$(basename "$package_manager_src")"
-#     package_manager="${package_manager%%.sh}"
-#     _SLOTH_PACKAGE_MANAGERS_SRC_PATH+=([$package_manager]="$package_manager_src")
-#   done
-# fi
-# export _SLOTH_PACKAGE_MANAGERS_SRC_PATH
+if [[ -n "${PACKAGE_MANAGERS_SRC[*]:-}" ]]; then
+  if
+    ! array::exists_value "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
+      ! array::exists_value "${DOTFILES_PATH:-}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
+  then
+    export PACKAGE_MANAGERS_SRC=(
+      "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
+      "${DOTFILES_PATH:-}/package/managers"
+      "${PACKAGE_MANAGERS_SRC[@]}"
+    )
+  fi
+else
+  export PACKAGE_MANAGERS_SRC=(
+    "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
+    "${DOTFILES_PATH:-}/package/managers"
+  )
+fi
 
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
@@ -140,14 +141,13 @@ package::command_exists() {
   local -r package_command="${package_manager}::${command}"
   local -r package_manager_src="${3:-$(package::manager_exists "$package_manager")}"
 
-  if  
+  if
     [[ 
       "$package_manager" == "none" ||
       -z "$package_manager" ||
       -z "$command" ||
-      ! -f "$package_manager_src"
-    ]] ||
-    ! script::function_exists "$package_manager_src" "$package_command"
+      ! -f "$package_manager_src" ]] ||
+      ! script::function_exists "$package_manager_src" "$package_command"
   then
     return 1
   fi
@@ -218,7 +218,7 @@ package::is_installed() {
 
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-    package::command "$package_manager" is_installed "$package_name" && echo "is true" && return
+      package::command "$package_manager" is_installed "$package_name" && echo "is true" && return
   done
 
   return 1
