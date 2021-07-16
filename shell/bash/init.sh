@@ -21,16 +21,8 @@ themes_paths=(
   "$SLOTH_PATH/shell/bash/themes"
 )
 
-# bash completion
-export BASH_COMPLETION_COMPAT_DIR="/usr/local/etc/bash_completion.d"
-if [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]]; then
-  #shellcheck source=/dev/null
-  . "/usr/local/etc/profile.d/bash_completion.sh"
-fi
-
-# brew Bash completion
+# brew Bash completion & completions
 if type brew &> /dev/null; then
-  HOMEBREW_PREFIX="$(brew --prefix)"
   if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]; then
     #shellcheck source=/dev/null
     . "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
