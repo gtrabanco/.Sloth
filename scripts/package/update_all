@@ -24,7 +24,10 @@ for package_manager_src in $(package::get_all_package_managers "is_available" "u
   package_manager="${package_manager_filename%%.sh}"
   package_title="${package_manager}_title"
 
-  if package::command "$package_manager" "is_available"; then
+  if
+    package::command "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "update_all"
+  then
     output::h2 "${!package_title}"
     package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
   fi
