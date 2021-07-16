@@ -26,7 +26,7 @@ setopt +o nomatch
 
 # Start zim
 #shellcheck source=/dev/null
-. "$ZIM_HOME/init.zsh"
+. "${ZIM_HOME}/init.zsh"
 
 # Async mode for autocompletion
 # shellcheck disable=SC2034
@@ -35,10 +35,10 @@ ZSH_AUTOSUGGEST_USE_ASYNC=true
 ZSH_HIGHLIGHT_MAXLENGTH=300
 
 fpath=(
-  "$DOTFILES_PATH/shell/zsh/themes"
-  "$DOTFILES_PATH/shell/zsh/autocompletions"
-  "$SLOTH_PATH/shell/zsh/themes"
-  "$SLOTH_PATH/shell/zsh/completions"
+  "${DOTFILES_PATH}/shell/zsh/themes"
+  "${DOTFILES_PATH}/shell/zsh/autocompletions"
+  "${SLOTH_PATH}/shell/zsh/themes"
+  "${SLOTH_PATH}/shell/zsh/completions"
   "${fpath[@]}"
 )
 
@@ -53,8 +53,8 @@ autoload -Uz promptinit && promptinit
 prompt "${SLOTH_THEME:-codely}"
 
 #shellcheck source=/dev/null
-. "$SLOTH_PATH/shell/zsh/bindings/dot.zsh"
+. "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
 #shellcheck source=/dev/null
-. "$SLOTH_PATH/shell/zsh/bindings/reverse_search.zsh"
+. "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
 #shellcheck source=/dev/null
-. "$DOTFILES_PATH/shell/zsh/key-bindings.zsh"
+. "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh"
