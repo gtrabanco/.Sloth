@@ -5,6 +5,18 @@ export PACKAGE_MANAGERS_SRC=(
   "${PACKAGE_MANAGERS_SRC[@]:-}"
 )
 
+# if [[ -z "${_SLOTH_PACKAGE_MANAGERS_SRC_PATH[*]:-}" ]]; then
+#   declare -A _SLOTH_PACKAGE_MANAGERS_SRC_PATH
+#   for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ echo _); do
+#     # Get package manager name
+#     #shellcheck disable=SC2030
+#     package_manager="$(basename "$package_manager_src")"
+#     package_manager="${package_manager%%.sh}"
+#     _SLOTH_PACKAGE_MANAGERS_SRC_PATH+=([$package_manager]="$package_manager_src")
+#   done
+# fi
+# export _SLOTH_PACKAGE_MANAGERS_SRC_PATH
+
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
@@ -28,7 +40,6 @@ package::manager_exists() {
   local -r package_manager="${1:-}"
   for package_manager_src in "${PACKAGE_MANAGERS_SRC[@]}"; do
     [[ -f "${package_manager_src}/${package_manager}.sh" ]] &&
-      head -n 1 "${package_manager_src}/${package_manager}.sh" | grep -q "^#\!/" &&
       echo "${package_manager_src}/${package_manager}.sh" &&
       return
   done
@@ -61,7 +72,8 @@ package::load_manager() {
 #"
 package::get_all_package_managers() {
   local package_manager_src package_manager command has_all
-  find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -print0 2> /dev/null | xargs -0 -I _ echo _ | while read -r package_manager_src; do
+
+  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ echo _); do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
@@ -77,18 +89,18 @@ package::get_all_package_managers() {
       done
     fi
 
-    $has_all && echo "$package_manager_src"
+    $has_all && echo "$package_manager"
   done
 }
 
 #;
 # package::get_available_package_managers()
-# Output a full list of available package managers
+# Output a full list of available package managers (those with ::is_available and return success)
 #"
 package::get_available_package_managers() {
   local package_manager_src package_manager_filename package_manager
 
-  for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
+  for package_manager_src in $(package::get_all_package_managers "is_available"); do
     package_manager_filename="$(basename "$package_manager_src")"
     package_manager="${package_manager_filename%%.sh}"
 
@@ -119,22 +131,23 @@ package::manager_preferred() {
 # Execute if a command (function) is defined for a given package manager
 # @param string package_manager
 # @param string command The function to be check
+# @param string package_mananager_src Optional param to provide the package manager library (useful to avoid check if exists again)
 # @return boolean
 #"
 package::command_exists() {
   local -r package_manager="${1:-}"
   local -r command="${2:-}"
   local -r package_command="${package_manager}::${command}"
-  local -r package_manager_src="$(package::manager_exists "$package_manager")"
+  local -r package_manager_src="${3:-$(package::manager_exists "$package_manager")}"
 
   if  
     [[ 
       "$package_manager" == "none" ||
       -z "$package_manager" ||
       -z "$command" ||
-      -z "$package_manager_src"
+      ! -f "$package_manager_src"
     ]] ||
-    ! scripts::function_exists "$package_manager_src" "$package_command"
+    ! script::function_exists "$package_manager_src" "$package_command"
   then
     return 1
   fi
@@ -157,12 +170,16 @@ package::command() {
 
   # If function does not exists for the package manager it will return 0 (true) always
   if package::command_exists "$package_manager" "${command}"; then
+    package::load_manager "$package_manager"
     if [[ "$command" == "install" ]]; then
       "${package_manager}::${command}" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
     else
       "${package_manager}::${command}" "${args[@]}"
     fi
+    return $?
   fi
+
+  return 1
 }
 
 #;
@@ -177,7 +194,7 @@ package::manager_self_update() {
   if [[ -n "$package_manager" ]]; then
     package::command_exists "$package_manager" self_update && package::command "$package_manager" self_update
   else
-    for package_manager in $(package::get_available_package_managers); do
+    for package_manager_src in $(package::get_available_package_managers); do
       [[ -n "$package_manager" ]] && package::manager_self_update "$package_manager"
     done
   fi
@@ -194,10 +211,14 @@ package::is_installed() {
   local -r package_name="${1:-}"
   [[ -z "$package_name" ]] && return 1
 
-  registry::is_installed "$package_name" && return
+  if [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
+    registry::is_installed "$package_name" && return
+    return 1
+  fi
 
-  for package_manager in $(package::get_all_package_managers "is_installed"); do
-    package::command "$package_manager" is_installed "$package_name" && return
+  for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
+    package::command "$package_manager" "is_available" &&
+    package::command "$package_manager" is_installed "$package_name" && echo "is true" && return
   done
 
   return 1
@@ -234,8 +255,6 @@ package::_install() {
     fi
 
     package::command "$package_manager" "is_installed" "$package" && return
-
-    return 1
 
   elif
     package::command_exists "$package_manager" "is_available" &&
