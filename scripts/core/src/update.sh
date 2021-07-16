@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# https://github.com/Homebrew/brew/blob/master/Library/Homebrew/cmd/update.sh
+
 update::git_upstream_branch() {
   local upstream_branch
 
