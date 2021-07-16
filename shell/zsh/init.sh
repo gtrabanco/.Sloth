@@ -43,9 +43,9 @@ fpath=(
 )
 
 # Brew ZSH Completions
-if type brew &>/dev/null; then
-  fpath+=("$(brew --prefix)/share/zsh-completions")
-  fpath+=("$(brew --prefix)/share/zsh/site-functions")
+if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+  fpath+=("${HOMEBREW_PREFIX}/share/zsh-completions")
+  fpath+=("${HOMEBREW_PREFIX}/share/zsh/site-functions")
 fi
 
 
