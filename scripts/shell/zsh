@@ -13,12 +13,14 @@
 ##?   zsh fix_permissions
 ##?
 ##? Arguments:
-##?   optimize             
-##?   test_performance     Check how much time is the loading of zsh shell 
-##?   reload_completions   
-##?   clean_cache          
+##?   optimize
+##?   test_performance     Check how much time is the loading of zsh shell
+##?   reload_completions
+##?   clean_cache
 ##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
 ##?
+##?
+##? SCRIPT_VERSION "2.1.0"
 docs::parse "$@"
 
 case $1 in
@@ -60,7 +62,7 @@ case $1 in
     output::answer 'Now restart your terminal'
     ;;
   "fix_permissions")
-    if [[ -z "${HOMEBREW_PREFIX:-}" ]] && command -v brew &>/dev/null; then
+    if [[ -z "${HOMEBREW_PREFIX:-}" ]] && command -v brew &> /dev/null; then
       HOMEBREW_PREFIX="$(brew --prefix)"
     elif [[ -d "/usr/local/share/zsh" ]]; then
       HOMEBREW_PREFIX="/usr/local"
