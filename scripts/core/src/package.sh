@@ -211,7 +211,10 @@ package::is_installed() {
   local -r package_name="${1:-}"
   [[ -z "$package_name" ]] && return 1
 
-  if [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
+  if
+    [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+      registry::command_exists "$package_name" "is_installed"
+  then
     registry::is_installed "$package_name" && return
     return 1
   fi
