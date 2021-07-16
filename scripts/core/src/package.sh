@@ -172,9 +172,9 @@ package::command() {
   if package::command_exists "$package_manager" "${command}"; then
     package::load_manager "$package_manager"
     if [[ "$command" == "install" ]]; then
-      "${package_manager}::${command}" "${args[@]}" | log::file "Trying to install ${args[*]} using $package_manager" || return
+      "${package_manager}::${command}" "${args[@]:-}" | log::file "Trying to install ${args[*]} using $package_manager" || return
     else
-      "${package_manager}::${command}" "${args[@]}"
+      "${package_manager}::${command}" "${args[@]:-}"
     fi
     return $?
   fi
