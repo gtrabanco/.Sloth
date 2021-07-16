@@ -56,7 +56,7 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
-script::depends_on docpars zsh fzf python3 python-yq jq tee realpath
+script::depends_on cargo cargo-update docpars zsh fzf python3 python-yq jq tee realpath
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
@@ -107,7 +107,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platfor
       ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
       sudo -v
   then
-    echo "$zsh_shell_path" >> "/etc/shells"
+    echo "$zsh_shell_path" | sudo tee "/etc/shells" &> /dev/null
   fi
 
   {
