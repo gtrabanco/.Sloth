@@ -28,8 +28,7 @@ update_repository::upstream_branch() {
 # 1.9 Check if repository is a shallow by checkign .git/shallow file exists
 #     If it is a shallow, unshallow by executing:
 #     git fetch --unsallow
-# 2. Set all remote branches to the local
-# 3. Track all local/remote branches
+# 2 & 3. Clone & track all remote branches
 # 4. Change to the the remote HEAD branch in local and set it up as tracked branch
 # 5. git fetch --all
 # 6. In every branch that is locally and remotely perform a git pull
@@ -43,6 +42,7 @@ update_repository::upstream_branch() {
 # 9. If previous step has conflicts say it to the user
 # 10. Show message next time terminal is open in async or now in sync mode
 
+# git::update_repository will do steps from 2 to 6
 
 # Update fully a local repository Option 2: normal way
 # This way should be used if working dir is clean
@@ -69,3 +69,48 @@ update_repository::upstream_branch() {
 
 
 
+#;
+# update::sloth_repository()
+# Update a local git repository if it has changes
+# @param string repository_path
+# @param string branch
+# @param string repository_url
+#"
+update::sloth_repository() {
+  local workdir_is_clean upstream_branch=""
+  local _git_args branch repository_url
+
+  DEFAULT_SUBMODULE_NAME="${DEFAULT_SUBMODULE_NAME:-sloth}"
+  DEFAULT_REPOSITORY_URL="${DEFAULT_REPOSITORY_URL:-$(git::get_submodule_property "${DEFAULT_SUBMODULE_NAME:-sloth}" "url")}"
+  DEFAULT_REPOSITORY_BRANCH="${DEFAULT_REPOSITORY_BRANCH:-$(git::get_submodule_property "${DEFAULT_SUBMODULE_NAME:-sloth}" "branch")}"
+
+  case $# in
+    0)
+      branch="$DEFAULT_REPOSITORY_BRANCH"
+      repository_url="$DEFAULT_REPOSITORY_URL"
+      _git_args=(-C "${SLOTH_PATH:-$DOTLY_PATH}")
+      ;;
+    1)
+      branch="$DEFAULT_REPOSITORY_BRANCH"
+      repository_url="$DEFAULT_REPOSITORY_URL"
+      _git_args=(-C "$1")
+      shift
+      ;;
+    2)
+      branch="$2"
+      repository_url="$DEFAULT_REPOSITORY_URL"
+      _git_args=(-C "$1")
+      shift 2
+      ;;
+    *)
+      branch="$2"
+      repository_url="$3"
+      _git_args=(-C "$1")
+      shift 3
+      ;;
+  esac
+
+  # Add all other arguments for git
+  _git_args+=("$@")
+  upstream_branch="$()"
+}

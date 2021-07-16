@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+
 #
 #  - You can force the usage of specific git binary by defining GIT_EXECUTABLE.
 #  - Also can pass git args forcely to all these git command by passing an array
@@ -7,8 +9,8 @@
 #
 
 if
-  [[ -z "$GIT_EXECUTABLE" ]] ||
-  [[ -n "$GIT_EXECUTABLE" ]] &&
+  [[ -z "${GIT_EXECUTABLE:-}" ]] ||
+  [[ -n "${GIT_EXECUTABLE:-}" ]] &&
   [[ ! -x "$GIT_EXECUTABLE" ]] &&
   command -v git &>/dev/null
 then
@@ -32,6 +34,33 @@ git::git() {
   else
     "$GIT_EXECUTABLE" "$@"
   fi
+}
+
+#;
+# git::get_submodule_property()
+# Get the property of a submodule, by default get properties of DOTFILES_PATH submodules
+# @param string gitmodules_path The path to .gitmodules file
+# @param string submodule directory if no gitmodules is provided this will be the first argument
+# @param string property
+# @return string|void
+#"
+git::get_submodule_property() {
+  local gitmodules_path submodule_directory property
+
+  if [ $# -gt 2 ]; then
+    gitmodules_path="$1"
+    shift
+    submodule_directory="$1"
+  fi
+
+  gitmodules_path="${gitmodules_path:-${DOTFILES_PATH:-}/.gitmodules}"
+  submodule_directory="${submodule_directory:-modules/${1:-}}"
+  property="${2:-}"
+
+  [[ -f "$gitmodules_path" ]] &&
+    [[ -n "$submodule_directory" ]] &&
+    [[ -n "$property" ]] &&
+    git config -f "$gitmodules_path" submodule."$submodule_directory"."$property" || return
 }
 
 #;
@@ -141,8 +170,8 @@ git::count_different_commits_with_remote_branch() {
 }
 
 #;
-# git::check_current_branch_is_behind()
-# Check if current branch is behind default remote
+# git::get_current_branch_status()
+# Get the current branch status (ahead, up, behind)
 #"
 git::check_current_branch_is_behind() {
   # git status --ahead-behind | head -n2 | tail -n1 | awk '{NF--; print $4"\n"$NF}'
@@ -152,11 +181,12 @@ git::check_current_branch_is_behind() {
 #;
 # git::get_remote_head_upstream_branch()
 # Get which is the branch or the remote head if any
+# @return string|false
 #"
 git::get_remote_head_upstream_branch() {
   local remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null || true
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null
 }
 
 #;
@@ -296,4 +326,28 @@ git::clone_branches() {
 #"
 git::current_branch_is_tracked() {
   git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
+}
+
+#;
+# git::update_repository()
+# Update a local git repository if it has changes
+# @param string repository_path
+# @param string branch
+# @param string repository_url
+#"
+git::update_repository() {
+  local _git_args branch repository_url upstream_branch
+
+
+  [[ ! -d "${1:-}" || $# -lt 3 ]]
+  branch="${2:-}"
+  repository_url="${3:-}"
+  _git_args=(-C "${1:-}")
+  shift 3
+
+  # Add all other arguments for git
+  _git_args+=("$@")
+
+  # Check if is a git repository
+  upstream_branch="$()"
 }
