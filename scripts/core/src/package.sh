@@ -218,7 +218,7 @@ package::is_installed() {
 
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && echo "is true" && return
+      package::command "$package_manager" is_installed "$package_name" && return
   done
 
   return 1
