@@ -14,7 +14,7 @@ uninstall_package_output() {
     output::answer "Package \`$package_name\` is not installed"
   else
     package::uninstall "$package_name" | log::file "Trying to remove \`$package_name\`"
-    
+
     if ! package::is_installed "$package_name"; then
       output::answer "Package \`$package_name\` was uninstalled"
     else
