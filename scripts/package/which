@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[[ -z "${DOTLY_PATH:-$SLOTH_PATH}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/src/_main.sh"
+
+##? Gives user information about which package manager have been used to install a package
+##?
+##?
+##? Usage:
+##?   which [-h | --help]
+##?   which [-v | --version]
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+docs::parse "$@"
+
+SCRIPT_NAME="dot package which"
+SCRIPT_VERSION="1.0.0"
+
+# Print name and version
+if ${version:-}; then
+  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  exit
+fi
+
+# Here begin your script
+
+case ${1-} in
+  # Any subcommand should be here
+  *)
+    exit 1
+    ;;
+esac
