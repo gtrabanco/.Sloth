@@ -7,6 +7,7 @@ brew::is_available() {
 }
 
 brew::install() {
+  ! brew::is_available && return 1
   # Some aliases
   case "${1:-}" in
     "docpars") package="denisidoro/tools/docpars" ;;
@@ -17,14 +18,16 @@ brew::install() {
 }
 
 brew::uninstall() {
-  [[ $# -gt 0 ]] && brew uninstall "$@"
+  [[ $# -gt 0 ]] && brew::is_available && brew uninstall "$@"
 }
 
 brew::package_exists() {
-  [[ -n "${1:-}" ]] && brew info "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && brew::is_available && brew info "$1" &> /dev/null
 }
 
 brew::is_installed() {
+  ! brew::is_available && return 1
+
   platform::command_exists brew && brew list --formula "$@" &> /dev/null && return
   platform::command_exists brew && brew list --cask "$@" &> /dev/null && return
 
@@ -37,10 +40,11 @@ brew::update_all() {
 }
 
 brew::self_update() {
-  brew update 2>&1 | log::file "Updating ${brew_title}"
+  brew::is_available && brew update 2>&1 | log::file "Updating ${brew_title}"
 }
 
 brew::update_apps() {
+  ! brew::is_available && return 1
   local outdated_apps outdated_app outdated_app_info app_new_version app_old_version app_info app_url
   outdated_apps=$(brew outdated)
 
@@ -67,11 +71,13 @@ brew::update_apps() {
 }
 
 brew::cleanup() {
+  ! brew::is_available && return 1
   brew cleanup -s
   brew cleanup --prune=all
 }
 
 brew::dump() {
+  ! brew::is_available && return 1
   HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
 
   if package::common_dump_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
@@ -85,6 +91,7 @@ brew::dump() {
 }
 
 brew::import() {
+  ! brew::is_available && return 1
   HOMEBREW_DUMP_FILE_PATH="${1:-$HOMEBREW_DUMP_FILE_PATH}"
 
   if package::common_import_check brew "$HOMEBREW_DUMP_FILE_PATH"; then
