@@ -8,12 +8,12 @@ gem::is_available() {
 }
 
 gem::install() {
-  [[ -n "${1:-}" ]] && gem::::is_available && gem install "$@"
+  [[ -n "${1:-}" ]] && gem::is_available && gem install "$@"
 }
 
 gem::is_installed() {
   [[ -z "${1:-}" ]] && return 1
-  ! gem::::is_available && return 1
+  ! gem::is_available && return 1
   gem list | awk '{print $1}' | grep -q "^${1}$" || return 1
 
   if [[ $# -gt 1 ]]; then
@@ -23,17 +23,17 @@ gem::is_installed() {
 
 gem::package_exists() {
   [[ -z "${1:-}" ]] && return 1
-  ! gem::::is_available && return 1
+  ! gem::is_available && return 1
 
   gem query -r "$1" | awk '{print $1}' | grep -q "^${1}$"
 }
 
 gem::self_update() {
-  gem::::is_available && sudo gem update --system
+  gem::is_available && sudo gem update --system
 }
 
 gem::update_apps() {
-  ! gem::::is_available && return 1
+  ! gem::is_available && return 1
   outdated=$(gem outdated)
 
   if [ -n "$outdated" ]; then
