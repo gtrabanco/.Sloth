@@ -17,7 +17,11 @@ pip::is_installed() {
 # }
 
 pip::install() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip3 install "$1"
+  [[ -n "${1:-}" ]] && pip::is_available && pip3 install --no-cache-dir "$@"
+}
+
+pip::uninstall() {
+  [[ -n "${1:-}" ]] && pip::is_available && pip3 uninstall "$@"
 }
 
 pip::update_all() {

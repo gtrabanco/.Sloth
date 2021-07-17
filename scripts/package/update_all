@@ -19,9 +19,7 @@ output::h1_without_margin "♻️  Updating all the apps on your system"
 output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
 output::empty_line
 
-for package_manager_src in $(package::get_all_package_managers "is_available" "update_all"); do
-  package_manager_filename="$(basename "$package_manager_src")"
-  package_manager="${package_manager_filename%%.sh}"
+for package_manager in $(package::get_all_package_managers "is_available" "update_all"); do
   package_title="${package_manager}_title"
 
   if

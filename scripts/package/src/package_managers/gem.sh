@@ -3,11 +3,37 @@
 #shellcheck disable=SC2034
 gem_title='♦️  gem'
 
-gem::::is_available() {
+gem::is_available() {
   platform::command_exists gem
 }
 
-gem::update_all() {
+gem::install() {
+  [[ -n "${1:-}" ]] && gem::is_available && gem install "$@"
+}
+
+gem::is_installed() {
+  [[ -z "${1:-}" ]] && return 1
+  ! gem::is_available && return 1
+  gem list | awk '{print $1}' | grep -q "^${1}$" || return 1
+
+  if [[ $# -gt 1 ]]; then
+    gem::is_installed "${@:2}" || return 1
+  fi
+}
+
+gem::package_exists() {
+  [[ -z "${1:-}" ]] && return 1
+  ! gem::is_available && return 1
+
+  gem query -r "$1" | awk '{print $1}' | grep -q "^${1}$"
+}
+
+gem::self_update() {
+  gem::is_available && gem update --system
+}
+
+gem::update_apps() {
+  ! gem::is_available && return 1
   outdated=$(gem outdated)
 
   if [ -n "$outdated" ]; then
@@ -25,4 +51,13 @@ gem::update_all() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+gem::update_all() {
+  gem::self_update
+  gem::update_apps
+}
+
+gem::cleanup() {
+  gem::is_available && gem cleanup
 }

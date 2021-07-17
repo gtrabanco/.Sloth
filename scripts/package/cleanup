@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[[ -z "${DOTLY_PATH:-$SLOTH_PATH}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/src/_main.sh"
+
+##? Perform a cleanup in all available package managers
+##?
+##?
+##? Usage:
+##?   cleanup [-h | --help]
+##?   cleanup [-v | --version]
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+docs::parse "$@"
+
+output::h1_without_margin "🧹 Performing a cleanup in all available package managers"
+output::empty_line
+
+for package_manager in $(package::get_all_package_managers "is_available" "cleanup"); do
+  package_title="${package_manager}_title"
+
+  if
+    package::command "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "cleanup"
+  then
+    output::h2 "${!package_title}"
+    package::command "$package_manager" "cleanup" || output::error "😵 Something was wrong cleaning the house"
+  fi
+done
+
+output::empty_line
+output::solution '🧼 The house is cleaner!'

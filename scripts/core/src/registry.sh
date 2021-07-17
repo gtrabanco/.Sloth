@@ -94,6 +94,20 @@ registry::install() {
 }
 
 #;
+# registry::uninstall()
+# Uninstall the given recipe
+# @param string recipe
+# @return boolean
+#"
+registry::install() {
+  local -r recipe="${1:-}"
+  local -r command="uninstall"
+  [[ -z "$recipe" ]] && return 1
+
+  registry::command "$recipe" "${command}"
+}
+
+#;
 # registry::is_installed()
 # Check if a recipe is installed
 # @param string recipe
