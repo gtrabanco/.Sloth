@@ -74,6 +74,7 @@ brew::cleanup() {
   ! brew::is_available && return 1
   brew cleanup -s
   brew cleanup --prune=all
+  output::answer "${brew_title} cleanup complete"
 }
 
 brew::dump() {
