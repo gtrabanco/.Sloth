@@ -29,7 +29,7 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  gem::is_available && sudo gem update --system
+  gem::is_available && gem update --system
 }
 
 gem::update_apps() {
