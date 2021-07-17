@@ -6,9 +6,6 @@ cargo::is_available() {
   platform::command_exists cargo
 }
 
-cargo::is_installed() {
-  [[ -n "${1:-}" ]] && cargo::is_available && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "^${1}$"
-}
 
 cargo::package_exists() {
   [[ -n "${1:-}" ]] && cargo::is_available && cargo search "$1" | awk '{print $1}' | grep -v '\.\.\.' | xargs -0 | grep -q "^${1}$"
@@ -23,14 +20,14 @@ cargo::is_installed() {
   if [[ $# -gt 1 ]]; then
     for package in "$@"; do
       if ! platform::command_exists cargo &&
-        cargo install --list | grep -q "$package"; then
+        cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "$package"; then
         return 1
       fi
     done
 
     return 0
   else
-    [[ -n "${1:-}" ]] && platform::command_exists cargo && cargo install --list | grep -q "${1:-}"
+    [[ -n "${1:-}" ]] && platform::command_exists cargo && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "${1:-}"
   fi
 }
 
