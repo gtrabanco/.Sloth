@@ -6,7 +6,6 @@ cargo::is_available() {
   platform::command_exists cargo
 }
 
-
 cargo::package_exists() {
   [[ -n "${1:-}" ]] && cargo::is_available && cargo search "$1" | awk '{print $1}' | grep -v '\.\.\.' | xargs -0 | grep -q "^${1}$"
 }

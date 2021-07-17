@@ -219,7 +219,7 @@ package::is_installed() {
     return 1
   fi
 
-  package::which_package_manager "$package_name" &>/dev/null && return 0
+  package::which_package_manager "$package_name" &> /dev/null && return 0
 
   return 1
 }
