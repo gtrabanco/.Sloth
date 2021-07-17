@@ -240,7 +240,7 @@ for file in "${yaml_files[@]}"; do
 done
 
 if ${core:-false}; then
-  log::success "Core done!"
+  log::success "Core symlinks done!"
 else
-  log::success "Done!"
+  log::success "Symlinks Done!"
 fi

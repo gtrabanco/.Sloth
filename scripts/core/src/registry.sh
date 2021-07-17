@@ -104,5 +104,6 @@ registry::is_installed() {
   local -r command="is_installed"
   [[ -z "$recipe" ]] && return 1
 
-  registry::command "$recipe" "${command}"
+  registry::command_exists "$recipe" "${command}" && registry::command "$recipe" "${command}" && return 0
+  return 1
 }

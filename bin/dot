@@ -94,7 +94,7 @@ elif args::total_is 1 "$@"; then
 else
   context="$1"
   script="$2"
-  firstarg="$3"
+  firstarg="${3:-}"
 
   shift 2
 
@@ -108,14 +108,16 @@ else
   fi
 
   script_full_path="${script_path}/scripts/${context}/${script}"
-  if grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
-    grep -q "docs::parse" "${script_full_path}" ||
-    grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "${script_full_path}" ||
-    grep -q "\$DOTLY_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
-    grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" ||
-    grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
-    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" ||
-    grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"; then
+  if
+    grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
+      grep -q "docs::parse" "${script_full_path}" ||
+      grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "${script_full_path}" ||
+      grep -q "\$DOTLY_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
+      grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" ||
+      grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
+      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" ||
+      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"
+  then
     if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
       docs::parse_script "${script_full_path}" "--help"
     elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
