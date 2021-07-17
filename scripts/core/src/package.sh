@@ -219,10 +219,35 @@ package::is_installed() {
     return 1
   fi
 
+  package::which_package_manager "$package_name" &>/dev/null && return 0
+
+  return 1
+}
+
+#;
+# package::which_package_manager()
+# Output which package manager was used to install a package
+# @param string package
+# @return boolean If package is not installed
+#"
+package::which_package_manager() {
+  local package_manager
+  local -r package_name="${1:-}"
+  [[ -z "$package_name" ]] && return 1
+
+  # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && return
+      package::command "$package_manager" is_installed "$package_name" && echo "$package_manager" && return
   done
+
+  if
+    [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+      registry::command_exists "$package_name" "is_installed"
+  then
+    registry::is_installed "$package_name" && echo "registry" && return
+    return 1
+  fi
 
   return 1
 }
