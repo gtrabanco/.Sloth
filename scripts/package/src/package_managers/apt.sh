@@ -7,7 +7,21 @@ apt::is_available() {
 }
 
 apt::install() {
-  apt::is_available && sudo apt-get -y install "$@"
+  [[ $# -gt 0 ]] && apt::is_available && sudo apt-get -y install "$@"
+}
+
+apt::cleanup() {
+  if platform::command_exists apt; then
+    sudo apt clean
+    sudo apt autoremove --purge
+    sudo apt -f install
+  fi
+}
+
+apt::uninstall() {
+  sudo -v
+  apt::is_available && sudo apt-get -y purge "$@"
+  apt::cleanup
 }
 
 apt::is_installed() {

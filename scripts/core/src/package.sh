@@ -86,7 +86,9 @@ package::get_all_package_managers() {
 
     if [[ -n "$*" ]]; then
       for command in "$@"; do
-        ! script::function_exists "$package_manager_src" "${package_manager}::${command}" && has_all=false
+        if ! script::function_exists "$package_manager_src" "${package_manager}::${command}"; then
+          has_all=false
+        fi
       done
     fi
 
@@ -160,7 +162,7 @@ package::command_exists() {
 # Execute if exists a function for package_manager (example: execute install command for a package manager if that function is defined for the given package manager). If execute install, the output is send also to the log.
 # @param string package_manager
 # @param string command The function to be executed
-# @param array args Arguments for command
+# @param any args Arguments for command
 # @return void
 #"
 package::command() {
@@ -219,10 +221,35 @@ package::is_installed() {
     return 1
   fi
 
+  package::which_package_manager "$package_name" &> /dev/null && return 0
+
+  return 1
+}
+
+#;
+# package::which_package_manager()
+# Output which package manager was used to install a package
+# @param string package
+# @return boolean If package is not installed
+#"
+package::which_package_manager() {
+  local package_manager
+  local -r package_name="${1:-}"
+  [[ -z "$package_name" ]] && return 1
+
+  # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && return
+      package::command "$package_manager" is_installed "$package_name" && echo "$package_manager" && return
   done
+
+  if
+    [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+      registry::command_exists "$package_name" "is_installed"
+  then
+    registry::is_installed "$package_name" && echo "registry" && return
+    return 1
+  fi
 
   return 1
 }
@@ -330,6 +357,47 @@ package::install_recipe_first() {
   else
     package::install "$package_name" "$package_manager"
   fi
+}
+
+#;
+# package::_uninstall()
+# Private helper to uninstall a package
+# @param string package_manager
+# @param string package_name
+# @param any args Additional arguments to be passed to the uninstall function
+# @return boolean True if uninstalled and false if still installed
+#"
+package::_uninstall() {
+  [[ $# -lt 2 ]] && return 1
+  local -r package_manager="$1"
+  local -r package_name="$2"
+  shift 2
+  if [[ -n "$(registry::recipe_exists "$package_name")" ]] && registry::command_exists "$package_name" "uninstall"; then
+    registry::command "$package_name" "uninstall" "$@" && ! registry::is_installed "$package_name"
+  elif package::command_exists "$package_manager" "uninstall"; then
+    package::command "$package_manager" "uninstall" "$package_name" "$@" && package::is_installed "$package_name"
+  fi
+}
+
+#;
+# package::uninstall()
+# Uninstall the given package, if second parameter is given it will try do it with package manager
+# @param string package_name
+# @param string package_manager Optional, if not provided will try to look up which package manager should be used
+# @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
+# @return boolean True if uninstalled and false if still installed
+#"
+package::uninstall() {
+  local package_manager
+  [[ $# -lt 1 ]] && return 1
+  local -r package_name="$1"
+
+  ! package::is_installed "$package_name" && return # Uninstalled because it is not installed
+
+  package_manager="${2:-$(package::which_package_manager "$package_name" || echo -n)}"
+  [[ -z "$package_manager" ]] && return 1 # Could not determine which package manager to be used
+
+  package::_uninstall "$package_manager" "$package_name" "${@:3}"
 }
 
 #;

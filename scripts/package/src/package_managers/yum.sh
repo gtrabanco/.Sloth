@@ -11,6 +11,10 @@ yum::install() {
   platform::command_exists yum && yes | sudo yum install "$@"
 }
 
+yum::uninstall() {
+  [[ $# -gt 0 ]] && dnf::is_available && yum remove "$@"
+}
+
 yum::is_installed() {
   local package
   if [[ $# -gt 1 ]]; then
