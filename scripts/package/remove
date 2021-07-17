@@ -12,14 +12,15 @@ uninstall_package_output() {
   local -r package_name="$1"
   if ! package::is_installed "$package_name"; then
     output::answer "Package \`$package_name\` is not installed"
-  elif
-    package::uninstall "$package_name" | log::file "Trying to remove \`$package_name\`" &&
-      ! package::is_installed "$package_name"
-  then
-    output::answer "Package \`$package_name\` was uninstalled"
   else
-    output::error "Package \`$package_name\` could not be uninstalled"
-    return 1
+    package::uninstall "$package_name" | log::file "Trying to remove \`$package_name\`"
+
+    if ! package::is_installed "$package_name"; then
+      output::answer "Package \`$package_name\` was uninstalled"
+    else
+      output::error "Package \`$package_name\` could not be uninstalled"
+      return 1
+    fi
   fi
 }
 
