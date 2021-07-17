@@ -8,7 +8,11 @@ dnf::is_available() {
 }
 
 dnf::install() {
-  platform::command_exists dnf && sudo dnf -y install "$@"
+  dnf::is_available && sudo dnf -y install "$@"
+}
+
+dnf::uninstall() {
+  [[ $# -gt 0 ]] && dnf::is_available && dnf remove "$@"
 }
 
 dnf::is_installed() {

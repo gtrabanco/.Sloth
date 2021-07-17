@@ -18,6 +18,20 @@ mas::install() {
   [[ -n "${1:-}" ]] && mas::is_available && mas lucky "$1"
 }
 
+mas::uninstall() {
+  if ! mas::is_available || [[ $# -eq 0 ]]; then
+    return 1
+  fi
+
+  id="$(mas list | awk -v"x=$1" '$2 == x {print $1}')"
+  [[ -z "$id" ]] && return 1 # No package to uninstall
+  mas uninstall "$id"
+
+  if [[ $# -gt 1 ]]; then
+    mas::uninstall "${@:2}"
+  fi
+}
+
 mas::update_all() {
   local outdated row app_id app_name app_new_version app_old_version app_url app_list_line
   readarray -t outdated < <(mas outdated)

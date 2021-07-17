@@ -8,11 +8,15 @@ npm::is_available() {
 }
 
 npm::install() {
-  [[ -n "${1:-}" ]] && platform::command_exists npm && npm install --global "$1"
+  [[ -n "${1:-}" ]] && npm::is_available && npm install --global "$1"
 }
 
 npm::is_installed() {
-  [[ -n "${1:-}" ]] && platform::command_exists npm && npm list --global "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && npm::is_available && npm list --global "$1" &> /dev/null
+}
+
+npm::uninstall() {
+  [[ -n "${1:-}" ]] && npm::is_available && npm uninstall --global "$1"
 }
 
 npm::package_exists() {

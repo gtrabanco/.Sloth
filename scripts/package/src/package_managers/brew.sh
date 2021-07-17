@@ -8,12 +8,16 @@ brew::is_available() {
 
 brew::install() {
   # Some aliases
-  case "$1" in
+  case "${1:-}" in
     "docpars") package="denisidoro/tools/docpars" ;;
-    *) package="$1" ;;
+    *) package="${1:-}" ;;
   esac
 
   brew install "$package"
+}
+
+brew::uninstall() {
+  [[ $# -gt 0 ]] && brew uninstall "$@"
 }
 
 brew::package_exists() {
@@ -60,6 +64,11 @@ brew::update_apps() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+brew::cleanup() {
+  brew cleanup -s
+  brew cleanup --prune=all
 }
 
 brew::dump() {

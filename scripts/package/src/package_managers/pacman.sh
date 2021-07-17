@@ -15,6 +15,14 @@ pacman::install() {
   fi
 }
 
+pacman::uninstall() {
+  [[ $# -gt 0 ]] && pacman::is_available && yes | sudo pacman -Rcns "$@"
+}
+
+pacman::cleanup() {
+  pacman::is_available && yes | sudo pacman -R "$(pacman -Qdtq)"
+}
+
 pacman::is_installed() {
   platform::command_exists pacman && pacman -Qs "$@" | grep -q 'local'
 }

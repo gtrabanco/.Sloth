@@ -11,22 +11,25 @@ cargo::package_exists() {
 }
 
 cargo::install() {
-  platform::command_exists cargo && cargo install "$@"
+  cargo::is_available && cargo install "$@"
+}
+
+cargo::uninstall() {
+  [[ $# -gt 0 ]] && cargo::is_available && cargo uninstall "$@"
 }
 
 cargo::is_installed() {
   local package
   if [[ $# -gt 1 ]]; then
     for package in "$@"; do
-      if ! platform::command_exists cargo &&
-        cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "$package"; then
+      if ! cargo::is_installed "$package"; then
         return 1
       fi
     done
 
     return 0
   else
-    [[ -n "${1:-}" ]] && platform::command_exists cargo && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "${1:-}"
+    [[ -n "${1:-}" ]] && cargo::is_available && cargo install --list | grep -E '^[a-z0-9_-]+ v[0-9.]+:$' | cut -f1 -d ' ' | grep -q "${1:-}"
   fi
 }
 

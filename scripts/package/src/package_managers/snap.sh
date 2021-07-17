@@ -19,6 +19,18 @@ snap::install() {
   [[ -n "${1:-}" ]] && snap::is_available && snap install -y "${1:-}"
 }
 
+snap::uninstall() {
+  [[ -n "${1:-}" ]] && snap::is_available && sudo snap remove "$@"
+}
+
+snap::cleanup() {
+  output::write "If snap cleanup fails, try to close first all snaps"
+  # Credits: https://www.debugpoint.com/2021/03/clean-up-snap/
+  snap list --all | awk '/disabled/{print $1, $3}' | while read -r snapname revision; do
+    snap remove "$snapname" --revision="$revision"
+  done
+}
+
 snap::dump() {
   SNAP_DUMP_FILE_PATH="${1:-$SNAP_DUMP_FILE_PATH}"
 
