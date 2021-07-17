@@ -62,16 +62,7 @@ case $1 in
     output::answer 'Now restart your terminal'
     ;;
   "fix_permissions")
-    if [[ -z "${HOMEBREW_PREFIX:-}" ]] && command -v brew &> /dev/null; then
-      HOMEBREW_PREFIX="$(brew --prefix)"
-    elif [[ -d "/usr/local/share/zsh" ]]; then
-      HOMEBREW_PREFIX="/usr/local"
-    else
-      output::error "Brew not detected if you want to fix any other insecure path use \`chmod -R go-w <your_path>\`"
-      exit 1
-    fi
-
-    chmod -R go-w "${HOMEBREW_PREFIX}/share/zsh"
+    compaudit 2> /dev/null | xargs chmod -R go-w
     ;;
   *)
     exit 1
