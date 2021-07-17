@@ -62,7 +62,7 @@ case $1 in
     output::answer 'Now restart your terminal'
     ;;
   "fix_permissions")
-    compaudit 2>/dev/null | xargs chmod -R go-w
+    compaudit 2> /dev/null | xargs chmod -R go-w
     ;;
   *)
     exit 1
