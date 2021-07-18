@@ -21,13 +21,7 @@ install_macos_custom() {
       export CI=1
     fi
 
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
-
-  if platform::is_macos_arm; then
-    export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
-  else
-    export PATH="$PATH:/usr/local/bin"
+    registry::install "brew"
   fi
 
   mkdir -p "$HOME/bin"
@@ -36,6 +30,8 @@ install_macos_custom() {
   if platform::command_exists brew; then
     brew cleanup -s | log::file "Brew executing cleanup"
     brew cleanup --prune-prefix | log::file "Brew removing dead symlinks"
+  else
+    output::answer "Brew not found"
   fi
 
   # To make CI Cheks faster avoid brew update & upgrade
@@ -70,15 +66,22 @@ install_macos_custom() {
     output::answer "Installing mas"
     custom::install mas
   fi
+
+  # Required packages output an error
+  if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
+    output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
+  fi
 }
 
 install_linux_custom() {
+  local any_pkgmgr=false package_manager
+  local -r LINUX_PACKAGE_MANAGERS=(apt brew dnf pacman yum)
   custom::install() {
     if [[ $# -eq 0 ]]; then
       return
     fi
 
-    package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1"
+    package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1" || true
     shift
 
     if [[ $# -gt 0 ]]; then
@@ -91,7 +94,17 @@ install_linux_custom() {
     package::manager_self_update | log::file "Update package managers list of packages" || true
   fi
 
-  output::answer "Installing needed packages"
+  # If no package manager detected try to install brew
+  for package_manager in "${LINUX_PACKAGE_MANAGERS[@]}"; do
+    platform::command_exists "$package_manager" && any_pkgmgr=true && break
+  done
+
+  if ! $any_pkgmgr; then
+    registry::install "brew" | log::file "Trying to install brew"
+  fi
+  
+
+  output::answer "Installing Linux Packages"
   custom::install build-essential coreutils findutils python3-pip
 
   # Python setup tools
@@ -100,5 +113,10 @@ install_linux_custom() {
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     custom::install bash zsh hyperfine docpars zsh fzf python-yq jq
+  fi
+
+  # Required packages output an error
+  if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
+    output::error "🚨 Any of the following packages \`docpars\`, \`python3-pip\`, \`python-yq\` could not be installed, and are required"
   fi
 }
