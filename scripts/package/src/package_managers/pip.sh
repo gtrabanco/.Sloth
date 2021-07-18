@@ -24,7 +24,7 @@ pip::uninstall() {
   [[ -n "${1:-}" ]] && pip::is_available && pip3 uninstall "$@"
 }
 
-pip::update_all() {
+pip::update_apps() {
   outdated=$(pip3 list --outdated | tail -n +3)
 
   if [ -n "$outdated" ]; then
@@ -48,6 +48,16 @@ pip::update_all() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+pip::self_update() {
+  pip3 install --upgrade pip --user
+}
+
+pip::update_all() {
+  ! pip::is_available && return 1
+  pip::self_update
+  pip::update_apps
 }
 
 pip::dump() {
