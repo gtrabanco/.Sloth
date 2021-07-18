@@ -167,6 +167,12 @@ else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
 fi
 
+# If nix package manager is installed load the env
+if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
+  #shellcheck disable=SC1091
+  . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
+fi
+
 # Aliases
 #shellcheck source=/dev/null
 { [[ -f "$DOTFILES_PATH/shell/aliases.sh" ]] && . "$DOTFILES_PATH/shell/aliases.sh"; } || true
