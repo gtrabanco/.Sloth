@@ -169,9 +169,15 @@ else
 fi
 
 # If nix package manager is installed load the env
+# Load single user nix installation in the shell
 if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
   #shellcheck disable=SC1091
   . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
+
+# Load nix env when installed for all os users
+elif [[ -r "/etc/profile.d/nix.sh" ]]; then
+  #shellcheck disable=SC1091
+  . "/etc/profile.d/nix.sh"
 fi
 
 # Aliases
