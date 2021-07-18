@@ -44,6 +44,11 @@ nix::install() {
   else
     nix::execute_from_url "$nix_install_script"
   fi
+
+  if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
+    #shellcheck disable=SC1091
+    . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
+  fi
 }
 
 nix::uninstall() {
