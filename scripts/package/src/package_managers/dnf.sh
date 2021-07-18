@@ -36,7 +36,7 @@ dnf::package_exists() {
   [[ -z "${1:-}" ]] && return 1
   local -r package_name="${1:-}"
   local -r arch="${SLOT_ARCH:-$(uname -m)}"
-  dnf search -q "$package_name" 2>/dev/null | awk '{print $1}' | grep  -qw "^${package_name}.${arch}"
+  dnf search -q "$package_name" 2> /dev/null | awk '{print $1}' | grep -qw "^${package_name}.${arch}"
 }
 
 dnf::cleanup() {
@@ -49,7 +49,7 @@ dnf::update_apps() {
   for outdated_app in $(dnf::outdated_app); do
     outdated_app_name="${outdated_app%%.*}"
     outdated_app_full_info="$(dnf info "$outdated_app_name" | cut -d " " -f 3-)"
-    
+
     outdated_app_version="$(echo "$outdated_app_info" | head -n 5 | tail -n 1)"
     outdated_app_info="$(outdated_app_full_info | head -n 9 | tail -n 1)"
     outdated_app_url="$(outdated_app_full_info | head -n 10 | tail -n 1)"
@@ -78,9 +78,9 @@ dnf::dump() {
   DNF_DUMP_FILE_PATH="${1:-$DNF_DUMP_FILE_PATH}"
 
   if package::common_dump_check apt "$DNF_DUMP_FILE_PATH"; then
-    dnf repoquery --qf '%{name}' --userinstalled \
-      | grep -v -- '-debuginfo$' \
-      | grep -v '^\(kernel-modules\|kernel\|kernel-core\|kernel-devel\)$' | tee "$DNF_DUMP_FILE_PATH" | log::file "Exporting ${dnf_title} packages"
+    dnf repoquery --qf '%{name}' --userinstalled |
+      grep -v -- '-debuginfo$' |
+      grep -v '^\(kernel-modules\|kernel\|kernel-core\|kernel-devel\)$' | tee "$DNF_DUMP_FILE_PATH" | log::file "Exporting ${dnf_title} packages"
 
     return 0
   fi

@@ -76,7 +76,7 @@ registry::command() {
 
   if
     registry::command_exists "$recipe" "$command" &&
-    registry::load_recipe "$recipe"
+      registry::load_recipe "$recipe"
   then
     if [[ "$command" == "install" ]]; then
       "$recipe_command" "$@" | log::file "Installing package \`$recipe\` using registry"

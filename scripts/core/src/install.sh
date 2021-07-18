@@ -102,7 +102,6 @@ install_linux_custom() {
   if ! $any_pkgmgr; then
     registry::install "brew" | log::file "Trying to install brew"
   fi
-  
 
   output::answer "Installing Linux Packages"
   custom::install build-essential coreutils findutils python3-pip
