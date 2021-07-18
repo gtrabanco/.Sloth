@@ -85,7 +85,6 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
 fi
 export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
 
-# LOAD BREW PATHS
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
 BREW_BIN=""
 # Locating brew binary
@@ -93,6 +92,8 @@ if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew
   BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
 elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
   BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+  BREW_BIN="/opt/homebrew/bin/brew"
 elif [[ -x "/usr/local/bin/brew" ]]; then
   BREW_BIN="/usr/local/bin/brew"
 elif command -v brew &> /dev/null; then

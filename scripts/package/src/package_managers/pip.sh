@@ -21,7 +21,7 @@ pip::install() {
 }
 
 pip::uninstall() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip3 uninstall "$@"
+  [[ -n "${1:-}" ]] && pip::is_available && pip3 uninstall --yes "$@"
 }
 
 pip::update_apps() {
