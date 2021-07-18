@@ -74,9 +74,18 @@ registry::command() {
   [[ -z "$recipe" || -z "$command" ]] && return 1
   shift 2
 
-  registry::command_exists "$recipe" "$command" &&
-    registry::load_recipe "$recipe" &&
-    "$recipe_command" "$@"
+  if
+    registry::command_exists "$recipe" "$command" &&
+    registry::load_recipe "$recipe"
+  then
+    if [[ "$command" == "install" ]]; then
+      "$recipe_command" "$@" | log::file "Installing package \`$recipe\` using registry"
+    else
+      "$recipe_command" "$@"
+    fi
+  else
+    return 1
+  fi
 }
 
 #;
