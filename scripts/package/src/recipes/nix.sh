@@ -33,6 +33,8 @@ nix::install() {
   case "$(uname -s).$(uname -m)" in
     Linux.x86_64 | Linux.i?86 | Linux.aarch64 | Darwin.x86_64 | Darwin.arm64)
       # Can be installed
+      # Avoid modify the bash profile and zsh env
+      export NIX_INSTALLER_NO_MODIFY_PROFILE=1
       ;;
     *)
       output::error "Nix is not compatible with your system"
