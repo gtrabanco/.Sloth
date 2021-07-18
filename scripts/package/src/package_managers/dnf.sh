@@ -31,6 +31,49 @@ dnf::is_installed() {
   fi
 }
 
+dnf::package_exists() {
+  ! dnf::is_available && return 1
+  [[ -z "${1:-}" ]] && return 1
+  local -r package_name="${1:-}"
+  local -r arch="${SLOT_ARCH:-$(uname -m)}"
+  dnf search -q "$package_name" 2>/dev/null | awk '{print $1}' | grep  -qw "^${package_name}.${arch}"
+}
+
+dnf::cleanup() {
+  dnf::is_available && dnf clean all
+}
+
+dnf::update_apps() {
+  local outdated_app outdated_app_full_info outdated_app_name outdated_app_version outdated_app_info outdated_app_url
+
+  for outdated_app in $(dnf::outdated_app); do
+    outdated_app_name="${outdated_app%%.*}"
+    outdated_app_full_info="$(dnf info "$outdated_app_name" | cut -d " " -f 3-)"
+    
+    outdated_app_version="$(echo "$outdated_app_info" | head -n 5 | tail -n 1)"
+    outdated_app_info="$(outdated_app_full_info | head -n 9 | tail -n 1)"
+    outdated_app_url="$(outdated_app_full_info | head -n 10 | tail -n 1)"
+
+    output::write "▣ $outdated_app_name"
+    output::write "├ $outdated_app_version -> latest"
+    output::write "├ $outdated_app_info"
+    output::write "└ $outdated_app_url"
+    output::empty_line
+
+    dnf update -y "$outdated_app_name"
+  done
+}
+
+dnf::outdated_app() {
+  ! dnf::is_available && return 1
+  dnf check-update | awk '{print $1}'
+}
+
+dnf::update_all() {
+  ! dnf::is_available && return 1
+  dnf::update_apps
+}
+
 dnf::dump() {
   DNF_DUMP_FILE_PATH="${1:-$DNF_DUMP_FILE_PATH}"
 
