@@ -47,9 +47,10 @@ nix::install() {
 }
 
 nix::uninstall() {
-  sudo -v
-  sudo rm -rf /etc/profile/nix.sh /etc/nix /nix ~root/.nix-profile ~root/.nix-defexpr ~root/.nix-channels
-  rm -rf "${HOME}/.nix-profile" "${HOME}/.nix-defexpr" "${HOME}/.nix-channels" &>/dev/null
+  if sudo -v; then
+    sudo rm -rf /etc/profile/nix.sh /etc/nix /nix ~root/.nix-profile ~root/.nix-defexpr ~root/.nix-channels
+    rm -rf "${HOME}/.nix-profile" "${HOME}/.nix-defexpr" "${HOME}/.nix-channels" &>/dev/null
+  fi
 
   if platform::is_linux; then
     # If you are on Linux with systemd, you will need to run:
@@ -62,6 +63,11 @@ nix::uninstall() {
     # If you are on macOS, you will need to run:
     sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
     sudo rm /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+    output::write "To finish the installation you must manually do these steps:"
+    output::answer "1. Remove the entry from fstab using \`sudo vifs\`" 
+    output::answer "2. Locate the volumen that mounts \`/Nix\` by executing \`diskutil apfs list\`."
+    output::answer "3. Destroy the data volume using \`diskutil apfs deleteVolume <disk> (<disk> should be somthing similar to \`disk1s7\`)\`" 
+    output::answer "4. Execute \` sudo vim /etc/synthetic.conf\` and remove the 'nix' line or remove the entire file \`sudo rm -f /etc/synthetic.conf\`" 
   fi
 
   ! nix::is_installed
