@@ -99,7 +99,7 @@ registry::install() {
 # @param string recipe
 # @return boolean
 #"
-registry::install() {
+registry::uninstall() {
   local -r recipe="${1:-}"
   local -r command="uninstall"
   [[ -z "$recipe" ]] && return 1
