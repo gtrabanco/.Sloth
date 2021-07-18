@@ -12,7 +12,6 @@ brew::execute_from_url() {
 
     if platform::command_exists curl; then
       brew::execute_from_url "$1"
-      return $?
     else
       return 1
     fi
