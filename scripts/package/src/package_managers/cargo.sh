@@ -78,7 +78,7 @@ cargo::update_apps() {
     app_new_version="$(echo "$row" | awk '{print $3}')"
 
     [[ -z "$row" || $outdated_app == "Package" ]] && continue
-    cargo::_helper_has_updated 1
+    cargo::has_updated
 
     output::write "📦 $outdated_app"
     output::write " └ $app_old_version -> $app_new_version"
