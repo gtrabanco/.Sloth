@@ -56,6 +56,10 @@ nix::menu() {
   done
 }
 
+nix::is_installed() {
+  platform::command_exists nix
+}
+
 nix::install() {
   local option single_user=true
   local -r nix_install_script="https://nixos.org/nix/install"
@@ -157,8 +161,4 @@ nix::uninstall() {
   fi
 
   ! nix::is_installed
-}
-
-nix::is_installed() {
-  platform::command_exists nix
 }
