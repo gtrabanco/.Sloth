@@ -45,7 +45,8 @@ nix::delete_rc_modifications_by_nix() {
 nix::menu() {
   local PS3 title
   [[ $# -lt 2 ]] && return
-  title="$1"; shift
+  title="$1"
+  shift
 
   output::write "$title"
   PS3="Choose an option: "
