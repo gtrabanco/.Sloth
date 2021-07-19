@@ -5,9 +5,9 @@ nix::execute_from_url() {
   local -r url="$1"
   shift
   if platform::command_exists curl; then
-    sh <(curl -L "$url") "$@" 2>&1
+    sh <(curl -L "$url") "$@"
   elif platform::command_exists wget; then
-    sh <(curl -q0 - "$url") "$@" 2>&1
+    sh <(curl -q0 - "$url") "$@"
   else
     script::depends_on curl
 
@@ -29,17 +29,20 @@ nix::macos_version_apfs() {
 
 nix::delete_rc_modifications_by_nix() {
   local file
-  local -r pattern="/# added by Nix installer/d"
+  local -r text='# added by Nix installer'
   local -r files=(
     "${HOME}/.bash_profile"
     "${HOME}/.zshenv"
-    "/etc/bashrc"
-    "/etc/zshrc"
   )
 
   for file in "${files[@]}"; do
-    wrapped::sed -i "$pattern" "$file"
+    if [[ -f "$file" ]] && grep -q "${text}$" "$file"; then
+      printf "%s\n" "g/${text}$/d" w q | ed -s "$file" || true
+    fi
   done
+
+  [[ -f "/etc/bashrc" ]] && grep -q "${text}$" "/etc/bashrc" && sudo -v -B && sudo bash -c 'printf "%s\n" "g/^${text}/d" w q | ed -s "/etc/bashrc"'
+  [[ -f "/etc/zshrc" ]] && grep -q "${text}$" "/etc/zshrc" && sudo -v -B && sudo bash -c 'printf "%s\n" "g/^${text}/d" w q | ed -s "/etc/zshrc"'
 }
 
 nix::menu() {
@@ -119,46 +122,47 @@ nix::install() {
 
 nix::uninstall() {
   if sudo -v; then
-    sudo rm -rf /etc/profile/nix.sh /etc/nix /nix ~root/.nix-profile ~root/.nix-defexpr ~root/.nix-channels
-    rm -rf "${HOME}/.nix-profile" "${HOME}/.nix-defexpr" "${HOME}/.nix-channels" &> /dev/null
+    sudo rm -rf /etc/profile/nix.sh /etc/nix ~root/.nix-profile ~root/.nix-defexpr ~root/.nix-channels
+    rm -rf "${HOME}/.nix-profile" "${HOME}/.nix-defexpr" "${HOME}/.nix-channels"
   fi
 
-  if platform::is_linux; then
+  nix::delete_rc_modifications_by_nix
+
+  if platform::is_linux && sudo -v -B; then
     # If you are on Linux with systemd, you will need to run:
     sudo systemctl stop nix-daemon.socket
     sudo systemctl stop nix-daemon.service
     sudo systemctl disable nix-daemon.socket
     sudo systemctl disable nix-daemon.service
     sudo systemctl daemon-reload
-  elif platform::is_macos; then
+  elif platform::is_macos && sudo -v -B; then
+    local -r disk="$(mount | awk '$3 == "/nix" {print $1}')"
+    if [[ -n "$disk" ]]; then
+      sudo diskutil apfs deleteVolume "$disk"
+    fi
+
+    [[ -f '/etc/fstab' ]] && grep -q '^LABEL=Nix' '/etc/fstab' 2> /dev/null && sudo bash -c 'printf "%s\n" "g/^LABEL=Nix/d" w q | ed -s "/etc/fstab" || true'
+
     if ! sudo -v; then
       output::error "You need to run this script with sudo"
       return 1
     fi
     # If you are on macOS, you will need to run:
-    sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-    sudo rm /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-    local -r disk="$(mount | awk '$3 == "/nix" {print $1}')"
-    if [[ -n "$disk" ]]; then
-      diskutil apfs deleteVolume "$disk"
-    fi
-
-    sudo wrapped::sed --silent -i '/^LABEL=Nix/d' '/etc/fstab'
-
-    output::write "Tried to have it done automatically but check these steps are done and if not, do it automatically:"
-    output::answer "1. Remove the entry from fstab using \`sudo vifs\`"
-    output::answer "2. Locate the volumen that mounts \`/Nix\` by executing \`diskutil apfs list\`."
-    output::answer "3. Destroy the data volume using \`diskutil apfs deleteVolume <disk> (<disk> should be somthing similar to \`disk1s7\`)\`"
-    output::answer "4. Execute \` sudo vim /etc/synthetic.conf\` and remove the 'nix' line or remove the entire file \`sudo rm -f /etc/synthetic.conf\`"
+    [[ -f "/Library/LaunchDaemons/org.nixos.nix-daemon.plist" ]] && sudo launchctl unload "/Library/LaunchDaemons/org.nixos.nix-daemon.plist"
+    [[ -f "/Library/LaunchDaemons/org.nixos.nix-daemon.plist" ]] && sudo rm "/Library/LaunchDaemons/org.nixos.nix-daemon.plist"
   fi
 
-  nix::delete_rc_modifications_by_nix
-
-  if [[ $(wc -l < /etc/synthetic.conf) -gt 1 ]]; then
-    sudo wrapped::sed --silent -i '/^nix/d' /etc/synthetic.conf
-  else
-    sudo rm -f /etc/synthetic.conf
+  if [[ -f "/etc/synthetic.conf" && $(wc -l < "/etc/synthetic.conf") -gt 1 ]] && sudo -v -B; then
+    sudo bash -c 'printf "%s\n" "g/^nix/d" w q | ed -s "/etc/synthetic.conf" || true'
+  elif [[ -f "/etc/synthetic.conf" ]] && grep -q '^nix' "/etc/synthetic.conf" && sudo -v -B; then
+    sudo rm -f "/etc/synthetic.conf"
   fi
+
+  {
+    [[ -d "/nix" ]] && sudo -v -B && sudo rm -rf /nix 2> /dev/null
+  } || true
+
+  output::write "Reboot to make dissapear the directory \`/nix\` on macOS"
 
   ! nix::is_installed
 }
