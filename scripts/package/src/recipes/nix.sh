@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+command -v wrapped::sed
+exit
+
 nix::execute_from_url() {
   [[ -z "${1:-}" ]] && return 1
   local -r url="$1"
@@ -113,8 +116,6 @@ nix::install() {
 }
 
 nix::uninstall() {
-  # TODO Automate single user uninstall
-  # TODO Adds multi user uninstall
   if sudo -v; then
     sudo rm -rf /etc/profile/nix.sh /etc/nix /nix ~root/.nix-profile ~root/.nix-defexpr ~root/.nix-channels
     rm -rf "${HOME}/.nix-profile" "${HOME}/.nix-defexpr" "${HOME}/.nix-channels" &> /dev/null
@@ -140,6 +141,8 @@ nix::uninstall() {
       diskutil apfs deleteVolume "$disk"
     fi
 
+    sudo wrapped::sed --silent -i '/^LABEL=Nix/d' '/etc/fstab'
+
     output::write "Tried to have it done automatically but check these steps are done and if not, do it automatically:"
     output::answer "1. Remove the entry from fstab using \`sudo vifs\`"
     output::answer "2. Locate the volumen that mounts \`/Nix\` by executing \`diskutil apfs list\`."
@@ -147,15 +150,13 @@ nix::uninstall() {
     output::answer "4. Execute \` sudo vim /etc/synthetic.conf\` and remove the 'nix' line or remove the entire file \`sudo rm -f /etc/synthetic.conf\`"
   fi
 
-  delete_rc_modifications_by_nix
+  nix::delete_rc_modifications_by_nix
 
   if [[ $(wc -l < /etc/synthetic.conf) -gt 1 ]]; then
     sudo wrapped::sed --silent -i '/^nix/d' /etc/synthetic.conf
   else
     sudo rm -f /etc/synthetic.conf
   fi
-
-  sudo wrapped::sed --silent -i '/^LABEL=Nix/d' '/etc/fstab'
 
   ! nix::is_installed
 }
