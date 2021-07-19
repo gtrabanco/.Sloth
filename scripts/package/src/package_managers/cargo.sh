@@ -63,6 +63,9 @@ cargo::update_all() {
 
 cargo::update_apps() {
   local outdated_app app_new_version app_old_version cargo_has_updated_apps=false
+
+  script::depends_on cargo-update
+  
   cargo::has_updated() {
     cargo_has_updated_apps=true
   }
