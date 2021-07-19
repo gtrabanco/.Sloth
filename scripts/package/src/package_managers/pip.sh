@@ -8,7 +8,7 @@ pip::is_available() {
 }
 
 pip::is_installed() {
-  [[ -n "${1:-}" ]] && pip3 show "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && python3 -m pip show "$1" &> /dev/null
 }
 
 # Not define the function because it is not possible to do it with pip
@@ -17,22 +17,22 @@ pip::is_installed() {
 # }
 
 pip::install() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip3 install --no-cache-dir "$@"
+  [[ -n "${1:-}" ]] && pip::is_available && python3 -m pip install --no-cache-dir "$@"
 }
 
 pip::uninstall() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip3 uninstall --yes "$@"
+  [[ -n "${1:-}" ]] && pip::is_available && python3 -m pip uninstall --yes "$@"
 }
 
 pip::update_apps() {
-  outdated=$(pip3 list --outdated | tail -n +3)
+  outdated=$(python3 -m pip list --outdated | tail -n +3)
 
   if [ -n "$outdated" ]; then
     echo "$outdated" | while IFS= read -r outdated_app; do
       package=$(echo "$outdated_app" | awk '{print $1}')
       current_version=$(echo "$outdated_app" | awk '{print $2}')
       new_version=$(echo "$outdated_app" | awk '{print $3}')
-      info=$(pip3 show "$package")
+      info=$(python3 -m pip show "$package")
 
       summary=$(echo "$info" | head -n3 | tail -n1 | sed 's/Summary: //g')
       url=$(echo "$info" | head -n4 | tail -n1 | sed 's/Home-page: //g')
@@ -51,7 +51,7 @@ pip::update_apps() {
 }
 
 pip::self_update() {
-  pip3 install --upgrade pip --user
+  python3 -m pip install --upgrade --user pip
 }
 
 pip::update_all() {
@@ -63,8 +63,8 @@ pip::update_all() {
 pip::dump() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
-  if package::common_dump_check pip3 "$PYTHON_DUMP_FILE_PATH"; then
-    pip3 freeze | tee "$PYTHON_DUMP_FILE_PATH" | log::file "Exporting ${pip_title} packages"
+  if package::common_dump_check python3 -m pip "$PYTHON_DUMP_FILE_PATH"; then
+    python3 -m pip freeze | tee "$PYTHON_DUMP_FILE_PATH" | log::file "Exporting ${pip_title} packages"
 
     return 0
   fi
@@ -75,8 +75,8 @@ pip::dump() {
 pip::import() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
-  if package::common_import_check pip3 "$PYTHON_DUMP_FILE_PATH"; then
-    pip3 install -r "$PYTHON_DUMP_FILE_PATH" | log::file "Importing ${pip_title} packages"
+  if package::common_import_check python3 -m pip "$PYTHON_DUMP_FILE_PATH"; then
+    python3 -m pip install -r "$PYTHON_DUMP_FILE_PATH" | log::file "Importing ${pip_title} packages"
 
     return 0
   fi
