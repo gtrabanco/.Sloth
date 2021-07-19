@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-command -v wrapped::sed
-exit
-
 nix::execute_from_url() {
   [[ -z "${1:-}" ]] && return 1
   local -r url="$1"
