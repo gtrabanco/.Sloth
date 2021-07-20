@@ -139,6 +139,21 @@ git::remote_branch_exists() {
 }
 
 #;
+# git::remote_latest_tag_version()
+# Get the latest tag version of a given repository url or upstream
+# @param string remote_url Remote upstream or repository url
+# @param any args Additional arguments that will be passed to git command
+# @return string|void (output) if any
+#"
+git::remote_latest_tag_version() {
+  local -r remote_url="${1:-}"
+  [[ -z "$remote_url" ]] && return
+  shift
+
+  git::git "$@" ls-remote --tags --refs "$remote_url" 'v*' 2>/dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1 || true
+}
+
+#;
 # git::count_different_commits_with_remote_branch()
 # Count number of commits in difference with remote. It will count local against remote and vice-versa, which means that if you are one commit ahead it will show you 1 as if you were 1 commit behind.
 # @param string local_branch HEAD by default
@@ -350,4 +365,5 @@ git::update_repository() {
 
   # Check if is a git repository
   upstream_branch="$()"
+  # TODO
 }
