@@ -27,28 +27,7 @@ platform::macos_version() {
 }
 
 platform::macos_version_name() {
-  local version_name="macOS"
-
-  ! platform::is_macos && return
-
-  case "$(platform::macos_version)" in
-    "10.4"*) version_name="Mac OS X Tiger" ;;
-    "10.5"*) version_name="Mac OS X Leopard" ;;
-    "10.6"*) version_name="Mac OS X Snow Leopard" ;;
-    "10.7"*) version_name="Mac OS X Lion" ;;
-    "10.8"*) version_name="OS X Mountain Lion" ;;
-    "10.9"*) version_name="OS X Mavericks" ;;
-    "10.10"*) version_name="OS X Yosemite" ;;
-    "10.11"*) version_name="OS X El Capitan" ;;
-    "10.12"*) version_name="macOS Sierra" ;;
-    "10.13"*) version_name="macOS High Sierra" ;;
-    "10.14"*) version_name="macOS Mojave" ;;
-    "10.15"*) version_name="macOS Catalina" ;;
-    "11"*) version_name="macOS Big Sur" ;;
-    "12"*) version_name="macOS Monterey" ;;
-  esac
-
-  echo "$version_name"
+  platform::is_macos && awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | awk -F 'macOS ' '{print $NF}' | awk '{print substr($0, 0, length($0)-1)}'
 }
 
 platform::get_os() {

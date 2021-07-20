@@ -239,8 +239,4 @@ for file in "${yaml_files[@]}"; do
   output::empty_line
 done
 
-if ${core:-false}; then
-  log::success "Core symlinks done!"
-else
-  log::success "Symlinks Done!"
-fi
+log::success "Symlinks Done!"
