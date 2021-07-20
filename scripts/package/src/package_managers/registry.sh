@@ -43,7 +43,6 @@ registry::upgrade() {
 
   output::empty_line
   registry::_recipe_info "$recipe"
-  output::empty_line
 
   if registry::command_exists "$recipe" "is_outdated"; then
     if registry::is_outdated "$recipe"; then
@@ -55,7 +54,8 @@ registry::upgrade() {
     output::empty_line
 
   elif registry::command_exists "$recipe" "upgrade"; then
-    output::answer "Can not check if ${recipe_title} is outdated, trying to update it."
+    output::empty_line
+    output::answer "Can not check if \`${recipe_title}\` is outdated, trying to update it."
     registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
     output::empty_line
   fi

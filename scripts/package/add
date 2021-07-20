@@ -86,7 +86,7 @@ else
 fi
 
 # Force to use package manager, skip recipe always
-if [[ -z "${FORCED_PKGMGR}" ]]; then
+if [[ -n "${package_manager:-}" ]]; then
   # Used in package::command
   #shellcheck disable=SC2034
   FORCED_PKGMGR="${package_manager:-}"
@@ -119,10 +119,11 @@ package::is_installed "$package_name" && log::success "$package_name already ins
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
-  package::install_recipe_first "$package_name" "${FORCED_PKGMGR:-}" 2>&1; then
-  output::write "✅ \`$package_name\` installed"
-
-  exit 0
+  [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
+  if registry::install "$package_name"; then
+    output::write "✅ \`$package_name\` installed"
+    exit 0
+  fi
 else
   package::install "$package_name" "${FORCED_PKGMGR:-}" 2>&1 || true
 

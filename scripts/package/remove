@@ -13,14 +13,19 @@ uninstall_package_output() {
   if ! package::is_installed "$package_name"; then
     output::answer "Package \`$package_name\` is not installed"
   else
-    package::uninstall "$package_name" | log::file "Trying to remove \`$package_name\`"
+    uninstall_package_force "$package_name"
+  fi
+}
 
-    if ! package::is_installed "$package_name"; then
-      output::answer "Package \`$package_name\` was uninstalled"
-    else
-      output::error "Package \`$package_name\` could not be uninstalled"
-      return 1
-    fi
+uninstall_package_force() {
+  [[ -z "${1:-}" ]] && return 1
+  local -r package_name="$1"
+
+  if package::uninstall "$package_name" && ! package::is_installed "$package_name"; then
+    output::answer "Package \`$package_name\` was uninstalled"
+  else
+    output::error "Package \`$package_name\` could not be uninstalled"
+    return 1
   fi
 }
 
@@ -30,11 +35,16 @@ uninstall_package_output() {
 ##? Usage:
 ##?   delete [-h | --help]
 ##?   delete [-v | --version]
-##?   delete <packages_names>...
+##?   delete [-f | --force] <packages_names>...
 ##?
 ##? Options:
 ##?   -h --help     Show this help
 ##?   -v --version  Show the program version
+##?   -f --force    Does not check if package is installed before uninstalling.
+##?                 If it is a recipe and has uninstall function it will be
+##?                 executed but if the package is installed with any package
+##?                 manager and could not found which one was used it won't
+##?                 execute any uninstall command.
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
@@ -51,10 +61,18 @@ fi
 
 output_code=0
 if [[ ${#packages_names[@]} -eq 1 ]]; then
-  uninstall_package_output "${packages_names[*]}" || output_code=1
+  if ${force:-false}; then
+    uninstall_package_force "${packages_names[*]}" || output_code=1
+  else
+    uninstall_package_output "${packages_names[*]}" || output_code=1
+  fi
 else
   for package_name in "${packages_names[@]}"; do
-    uninstall_package_output "$package_name" || output_code=1
+    if ${force:-false}; then
+      uninstall_package_force "$package_name" || output_code=1
+    else
+      uninstall_package_output "$package_name" || output_code=1
+    fi
   done
 fi
 

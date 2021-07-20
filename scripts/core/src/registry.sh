@@ -74,9 +74,20 @@ registry::command() {
   [[ -z "$recipe" || -z "$command" ]] && return 1
   shift 2
 
-  registry::command_exists "$recipe" "$command" &&
-    registry::load_recipe "$recipe" &&
-    "$recipe_command" "$@"
+  if
+    registry::command_exists "$recipe" "$command" &&
+      registry::load_recipe "$recipe"
+  then
+    if [[ "$command" == "install" ]]; then
+      "$recipe_command" "$@" 2>&1 | log::file "Installing package \`$recipe\` using registry"
+    elif [[ "$command" == "uninstall" ]]; then
+      "$recipe_command" "$@" 2>&1 | log::file "Uninstalling package \`$recipe\` using registry"
+    else
+      "$recipe_command" "$@"
+    fi
+  else
+    return 1
+  fi
 }
 
 #;
@@ -99,7 +110,7 @@ registry::install() {
 # @param string recipe
 # @return boolean
 #"
-registry::install() {
+registry::uninstall() {
   local -r recipe="${1:-}"
   local -r command="uninstall"
   [[ -z "$recipe" ]] && return 1
