@@ -29,7 +29,9 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  gem::is_available && gem update --system
+  # Disabled because sudo is required
+  # gem::is_available && sudo -v -B && sudo gem update --system
+  return
 }
 
 gem::update_apps() {
