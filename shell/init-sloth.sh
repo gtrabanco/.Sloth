@@ -170,11 +170,14 @@ fi
 
 ###### PATHS ######
 # Conditional paths
-[[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
+[[ -d "${HOME}/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
-[[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
+[[ -d "${HOME}/.deno/bin" ]] && path+=("$HOME/.deno/bin")
+if [[ -x "/usr/bin/python3" && -d "$(/usr/bin/python3 -c 'import site; print(site.USER_BASE)' | xargs)/bin" ]]; then
+  path+=("$(/usr/bin/python3 -c 'import site; print(site.USER_BASE)' | xargs)/bin")
+fi
 
 # System paths
 path+=("/usr/bin")
