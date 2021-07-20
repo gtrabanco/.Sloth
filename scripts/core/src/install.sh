@@ -65,11 +65,11 @@ install_macos_custom() {
 
     output::answer "Installing mas"
     custom::install mas
-  fi
 
-  # Required packages output an error
-  if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
-    output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
+    # Required packages output an error
+    if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
+      output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
+    fi
   fi
 }
 
@@ -112,10 +112,10 @@ install_linux_custom() {
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     custom::install bash zsh hyperfine docpars zsh fzf python-yq jq
-  fi
 
-  # Required packages output an error
-  if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
-    output::error "🚨 Any of the following packages \`docpars\`, \`python3-pip\`, \`python-yq\` could not be installed, and are required"
+    # Required packages output an error
+    if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
+      output::error "🚨 Any of the following packages \`docpars\`, \`python3-pip\`, \`python-yq\` could not be installed, and are required"
+    fi
   fi
 }
