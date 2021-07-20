@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
-
 macports_repository_url="https://github.com/macports/macports-base.git"
 macports_download_base_url="https://github.com/macports/macports-base/releases/download"
 
