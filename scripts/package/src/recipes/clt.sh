@@ -6,7 +6,6 @@
 
 # This install function was created using brew installation script as reference
 clt::install() {
-  local answer
   if ! platform::is_macos; then
     output::error "This package is only for macOS"
     return 1
