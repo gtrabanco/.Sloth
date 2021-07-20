@@ -85,6 +85,26 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
 fi
 export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
 
+###### Macports support ######
+# Load macports paths in user paths because we prefer brew over macports
+if [[ -x "/opt/local/bin/port" && -n "$BREW_PREFIX" ]]; then
+  export user_paths=(
+    "/opt/local/bin"
+    "/opt/local/sbin"
+    "${user_paths[@]}"
+  )
+  export MANPATH="/opt/local/share/man:$MANPATH"
+elif [[ -x "/opt/local/bin/port" ]]; then
+  export user_paths=(
+    "/opt/local/bin"
+    "/opt/local/sbin"
+    "${user_paths[@]}"
+  )
+  export MANPATH="/opt/local/share/man:$MANPATH"
+fi
+###### End of Macports support ######
+
+###### Brew Package manager support ######
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
 BREW_BIN=""
 # Locating brew binary
@@ -146,7 +166,9 @@ else
     "${user_paths[@]}"
   )
 fi
+###### End of Brew Package manager support ######
 
+###### PATHS ######
 # Conditional paths
 [[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
@@ -159,6 +181,7 @@ path+=("/usr/bin")
 path+=("/bin")
 path+=("/usr/sbin")
 path+=("/sbin")
+###### END OF PATHS ######
 
 # Load dotly core for your current BASH
 if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
