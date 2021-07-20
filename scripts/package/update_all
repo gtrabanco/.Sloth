@@ -12,14 +12,23 @@ update_all_error() {
 ##? Update all packages
 ##?
 ##? Usage:
-##?   update_all
+##?   update_all [<package_managers>...]
+##?
+##? Arguments:
+##?   package_manager  Package manager to use for updating (could be registry, cargo, apt, yum, etc.)
+##?
+##? SCRIPT_VERSION "3.1.0"
 docs::parse "$@"
 
 output::h1_without_margin "♻️  Updating all the apps on your system"
 output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
 output::empty_line
 
-for package_manager in $(package::get_all_package_managers "is_available" "update_all"); do
+if [[ -z "${package_managers[*]:-}" ]]; then
+  readarray -t package_managers < <(package::get_all_package_managers "is_available" "update_all")
+fi
+
+for package_manager in "${package_managers[@]}"; do
   package_title="${package_manager}_title"
 
   if
@@ -30,14 +39,6 @@ for package_manager in $(package::get_all_package_managers "is_available" "updat
     package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
   fi
 done
-
-{
-  platform::command_exists tldr && output::h2 '📜 tldr database' && tldr --update
-} || update_all_error '📜 tldr database'
-
-{
-  output::h2 "Zim Framework" && zsh "${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw/zimfw.zsh" upgrade 2>&1 | log::file "Updating Zim"
-} || update_all_error '(Zim:FW) Zim Framework'
 
 output::empty_line
 output::solution '👌 All your packages have been successfully updated'
