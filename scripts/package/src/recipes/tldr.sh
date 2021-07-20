@@ -9,7 +9,12 @@ tldr::install() {
 }
 
 tldr::is_outdated() {
-  return 0
+  local -r tldr_path="${HOME}/.tldrc"
+  if [[ ! -d "$tldr_path" ]] || [[ -d "$tldr_path" ]] && files::check_if_path_is_older "$tldr_path" 7 days; then
+    return 0
+  fi
+
+  return 1
 }
 
 tldr::upgrade() {
