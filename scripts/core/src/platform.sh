@@ -68,7 +68,11 @@ platform::get_arch() {
       architecture="ppc64"
       ;;
     i?86)
-      architecture="x86"
+      if platform::is_macos && sysctl hw.optional.x86_64 | grep -q ': 1$'; then
+        architecture="amd64"
+      else
+        architecture="x86"
+      fi
       ;;
   esac
 

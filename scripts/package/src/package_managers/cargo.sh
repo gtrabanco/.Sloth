@@ -63,6 +63,9 @@ cargo::update_all() {
 
 cargo::update_apps() {
   local outdated_app app_new_version app_old_version cargo_has_updated_apps=false
+
+  script::depends_on cargo-update
+
   cargo::has_updated() {
     cargo_has_updated_apps=true
   }
@@ -75,7 +78,7 @@ cargo::update_apps() {
     app_new_version="$(echo "$row" | awk '{print $3}')"
 
     [[ -z "$row" || $outdated_app == "Package" ]] && continue
-    cargo::_helper_has_updated 1
+    cargo::has_updated
 
     output::write "📦 $outdated_app"
     output::write " └ $app_old_version -> $app_new_version"

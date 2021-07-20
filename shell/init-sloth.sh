@@ -85,7 +85,6 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
 fi
 export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
 
-# LOAD BREW PATHS
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
 BREW_BIN=""
 # Locating brew binary
@@ -93,6 +92,8 @@ if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew
   BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
 elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
   BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+  BREW_BIN="/opt/homebrew/bin/brew"
 elif [[ -x "/usr/local/bin/brew" ]]; then
   BREW_BIN="/usr/local/bin/brew"
 elif command -v brew &> /dev/null; then
@@ -165,6 +166,18 @@ if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/i
   . "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh"
 else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
+fi
+
+# If nix package manager is installed load the env
+# Load single user nix installation in the shell
+if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
+  #shellcheck disable=SC1091
+  . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
+
+# Load nix env when installed for all os users
+elif [[ -r "/etc/profile.d/nix.sh" ]]; then
+  #shellcheck disable=SC1091
+  . "/etc/profile.d/nix.sh"
 fi
 
 # Aliases

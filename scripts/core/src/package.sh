@@ -174,7 +174,9 @@ package::command() {
   if package::command_exists "$package_manager" "${command}"; then
     package::load_manager "$package_manager"
     if [[ "$command" == "install" ]]; then
-      "${package_manager}::${command}" "${args[@]:-}" | log::file "Trying to install ${args[*]} using $package_manager" || return
+      "${package_manager}::${command}" "${args[@]:-}" 2>&1 | log::file "Installing ${args[*]} using $package_manager" || return
+    elif [[ "$command" == "uninstall" ]]; then
+      "${package_manager}::${command}" "${args[@]:-}" 2>&1 | log::file "Uninstalling ${args[*]} using $package_manager" || return
     else
       "${package_manager}::${command}" "${args[@]:-}"
     fi
@@ -375,7 +377,7 @@ package::_uninstall() {
   if [[ -n "$(registry::recipe_exists "$package_name")" ]] && registry::command_exists "$package_name" "uninstall"; then
     registry::command "$package_name" "uninstall" "$@" && ! registry::is_installed "$package_name"
   elif package::command_exists "$package_manager" "uninstall"; then
-    package::command "$package_manager" "uninstall" "$package_name" "$@" && package::is_installed "$package_name"
+    package::command "$package_manager" "uninstall" "$package_name" "$@" && ! package::is_installed "$package_name"
   fi
 }
 
@@ -391,13 +393,20 @@ package::uninstall() {
   local package_manager
   [[ $# -lt 1 ]] && return 1
   local -r package_name="$1"
+  shift
 
-  ! package::is_installed "$package_name" && return # Uninstalled because it is not installed
+  local -r recipe_path="$(registry::recipe_exists "$package_name")"
 
-  package_manager="${2:-$(package::which_package_manager "$package_name" || echo -n)}"
-  [[ -z "$package_manager" ]] && return 1 # Could not determine which package manager to be used
+  if [[ -f "$recipe_path" ]] && registry::command_exists "$package_name" "uninstall"; then
+    registry::command "$package_name" "uninstall" "$@" && ! registry::is_installed "$package_name"
+  else
+    package_manager="${2:-$(package::which_package_manager "$package_name" || echo -n)}"
+    [[ -z "$package_manager" ]] && return 1 # Could not determine which package manager to be used
 
-  package::_uninstall "$package_manager" "$package_name" "${@:3}"
+    if package::command_exists "$package_manager" "uninstall"; then
+      package::command "$package_manager" "uninstall" "$package_name" "$@" && ! package::is_installed "$package_name"
+    fi
+  fi
 }
 
 #;
