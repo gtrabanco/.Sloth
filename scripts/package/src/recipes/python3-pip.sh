@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 python3-pip::is_installed() {
-  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &>/dev/null
+  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &> /dev/null
 }
 
 python3-pip::install() {
@@ -14,7 +14,7 @@ python3-pip::install() {
   if python3-pip::is_installed; then
     output::answer "Upgrading setuptools & wheel"
     "$(command -v python3)" -m pip install --upgrade --user setuptools wheel
-    
+
     output::empty_line
     output::answer "Python3 & pip3 are installed"
     return
