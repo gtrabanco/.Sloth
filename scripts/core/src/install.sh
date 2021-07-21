@@ -1,5 +1,7 @@
 #!/bin/user/env bash
 
+SLOTH_GITHUB_REPOSITORY_NEW_ISSUE_URL="https://github.com/gtrabanco/sloth/issues/new/choose"
+
 custom::install() {
   if [[ $# -eq 0 ]]; then
     return
@@ -75,7 +77,7 @@ install_macos_custom() {
 
 install_linux_custom() {
   local any_pkgmgr=false package_manager
-  local -r LINUX_PACKAGE_MANAGERS=(apt brew dnf pacman yum)
+  local -r LINUX_PACKAGE_MANAGERS=(apt dnf pacman yum brew)
   custom::install() {
     if [[ $# -eq 0 ]]; then
       return
@@ -101,13 +103,30 @@ install_linux_custom() {
 
   if ! $any_pkgmgr; then
     registry::install "brew" | log::file "Trying to install brew"
+    platform::command_exists brew && any_pkgmgr=true
+  fi
+
+  if ! $any_pkgmgr; then
+    output::error "🚨 No package manager detected, and brew not installed, maybe your package manager is not in .Sloth."
+    output::empty_line
+    output::write "Possible solutions are"
+    output::write "  1. Install manually first the following linux packages:"
+    output::answer "\`build-essential coreutils findutils python3-testresources python3-pip bash zsh fzf\`"
+    output::answer "After intall those packages and have available python3 and pip3, execute:"
+    output::answer "\`python3 -m pip install --upgrade setuptools\` and \`dot package add python-yq\`"
+    output::write "  2. Make an issue telling your os and which package manager are you using."
+    output::answer "${SLOTH_GITHUB_REPOSITORY_NEW_ISSUE_URL}"
+    output::empty_line
+    output::anser "Continue with cargo"
+    custom::install cargo cargo-update docpars hyperfine
+    return
   fi
 
   output::answer "Installing Linux Packages"
   custom::install build-essential coreutils findutils python3-testresources python3-pip
 
   # Python setup tools
-  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
+  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools | log::file "Upgrading python setuptools"
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
