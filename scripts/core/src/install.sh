@@ -81,6 +81,8 @@ install_macos_custom() {
       export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
     fi
   fi
+  
+  output::answer "Updating system gems"
   sudo gem update --system | log::file "Update system gems"
 }
 
