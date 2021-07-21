@@ -45,17 +45,17 @@ fi
 GPG_TTY="$(tty || echo -n)"
 export GPG_TTY
 
+# SLOTH_PATH & DOTLY_PATH compatibility
+{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking DOTLY_PATH and SLOTH_PATH. We want both not just one..."; } || true
+[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="$DOTLY_PATH"
+[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
+
 # Sloth aliases and functions
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining Sloth aliases"; } || true
 alias dotly='"$SLOTH_PATH/bin/dot"'
 alias sloth='"$SLOTH_PATH/bin/dot"'
 alias lazy='"$SLOTH_PATH/bin/dot"'
 alias s='"$SLOTH_PATH/bin/dot"'
-
-# SLOTH_PATH & DOTLY_PATH compatibility
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking DOTLY_PATH and SLOTH_PATH. We want both not just one..."; } || true
-[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="$DOTLY_PATH"
-[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user exports"; } || true
 { [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"; } || true
@@ -113,18 +113,19 @@ fi
 ###### Brew Package manager support ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Brew"; } || true
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
-BREW_BIN=""
-# Locating brew binary
-if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-  BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
-elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
-  BREW_BIN="${HOME}/.linuxbrew/bin/brew"
-elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-  BREW_BIN="/opt/homebrew/bin/brew"
-elif [[ -x "/usr/local/bin/brew" ]]; then
-  BREW_BIN="/usr/local/bin/brew"
-elif command -v brew &> /dev/null; then
-  BREW_BIN="$(command -v brew)"
+if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
+  # Locating brew binary
+  if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+  elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+    BREW_BIN="/opt/homebrew/bin/brew"
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    BREW_BIN="/usr/local/bin/brew"
+  elif command -v brew &> /dev/null; then
+    BREW_BIN="$(command -v brew)"
+  fi
 fi
 
 # Check with -x has no sense because we have done it before :)
