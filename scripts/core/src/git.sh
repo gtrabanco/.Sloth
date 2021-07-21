@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2034
 
-
+if [[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]]; then
+  readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/sloth"
+  readonly SLOTH_DEFAULT_GIT_SSH_URL="git@github.com:gtrabanco/sloth.git"
+  readonly SLOTH_DEFAULT_REMOTE="${SLOTH_DEFAULT_REMOTE:-origin}"
+fi
 
 #
 #  - You can force the usage of specific git binary by defining GIT_EXECUTABLE.
@@ -45,7 +50,8 @@ git::git() {
 # @return string|void
 #"
 git::get_submodule_property() {
-  local gitmodules_path submodule_directory property
+  local gitmodules_path submodule_directory property default_submodule_path
+  
 
   if [ $# -gt 2 ]; then
     gitmodules_path="$1"
@@ -57,10 +63,10 @@ git::get_submodule_property() {
   submodule_directory="${submodule_directory:-modules/${1:-}}"
   property="${2:-}"
 
-  [[ -f "$gitmodules_path" ]] &&
-    [[ -n "$submodule_directory" ]] &&
-    [[ -n "$property" ]] &&
-    git config -f "$gitmodules_path" submodule."$submodule_directory"."$property" || return
+  [[ -f "$gitmodules_path" ]] && echo "gitmodules" &&
+    [[ -n "$submodule_directory" ]] && echo "submodule" &&
+    [[ -n "$property" ]] && echo "property" &&
+    echo git config -f "$gitmodules_path" submodule."$submodule_directory"."$property" || return
 }
 
 #;
@@ -76,7 +82,7 @@ git::is_in_repo() {
 # Get the current active branch
 #"
 git::current_branch() {
-  git::git "$@" branch --show-current
+  git::git "$@" branch --show-current 2>/dev/null || return
 }
 
 #;
@@ -92,7 +98,7 @@ git::check_remote_exists() {
 #;
 # git::current_commit_hash()
 # Get the most recent commit of given branch or HEAD
-# @param string branch Optiona, by default is HEAD
+# @param string branch Optional, by default is HEAD
 #"
 git::current_commit_hash() {
   local -r branch="${1:-HEAD}"
@@ -139,18 +145,32 @@ git::remote_branch_exists() {
 }
 
 #;
+# git::local_latest_tag_version()
+# Get the latest tag version in the local repository
+# @param any args Additional arguments that will be passed to git command
+# @return string|void (output) if any
+#"
+git::local_latest_tag_version() {
+  local -r remote_url="${1:-}"
+  [[ -z "$remote_url" ]] && return
+
+  git::git "${@:2}" describe --tags "$(git::git "${@:2}" rev-list --tags --max-count=1)" 2>/dev/null | sed 's/^v//'
+}
+
+#;
 # git::remote_latest_tag_version()
 # Get the latest tag version of a given repository url or upstream
 # @param string remote_url Remote upstream or repository url
-# @param any args Additional arguments that will be passed to git command
+# @param string version_pattern Pattern to match the version by default is "v*"
+# @param any args Additional arguments that will be passed to git command. You must define previous args if you want to give additional arguments to git command.
 # @return string|void (output) if any
 #"
 git::remote_latest_tag_version() {
   local -r remote_url="${1:-}"
+  local -r version_pattern="${2:-v*}"
   [[ -z "$remote_url" ]] && return
-  shift
 
-  git::git "$@" ls-remote --tags --refs "$remote_url" 'v*' 2>/dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1 || true
+  git::git "${@:3}" ls-remote --tags --refs "$remote_url" 'v*' 2>/dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1 || true
 }
 
 #;
@@ -343,27 +363,3 @@ git::current_branch_is_tracked() {
   git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
 }
 
-#;
-# git::update_repository()
-# Update a local git repository if it has changes
-# @param string repository_path
-# @param string branch
-# @param string repository_url
-#"
-git::update_repository() {
-  local _git_args branch repository_url upstream_branch
-
-
-  [[ ! -d "${1:-}" || $# -lt 3 ]]
-  branch="${2:-}"
-  repository_url="${3:-}"
-  _git_args=(-C "${1:-}")
-  shift 3
-
-  # Add all other arguments for git
-  _git_args+=("$@")
-
-  # Check if is a git repository
-  upstream_branch="$()"
-  # TODO
-}
