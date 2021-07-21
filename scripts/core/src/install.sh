@@ -71,9 +71,6 @@ install_macos_custom() {
       output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
     fi
   fi
-
-  output::answer "Updating system gems"
-  gem update --system | log::file "Update system gems"
 }
 
 install_linux_custom() {
@@ -107,7 +104,7 @@ install_linux_custom() {
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install build-essential coreutils findutils python3-pip
+  custom::install build-essential coreutils findutils python3-testresources python3-pip
 
   # Python setup tools
   command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools

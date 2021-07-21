@@ -121,7 +121,7 @@ output::answer '🥳 🎉 SLOTH installed sucessfully'
 if [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh"
+  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file "Loading .Sloth PATH's"
