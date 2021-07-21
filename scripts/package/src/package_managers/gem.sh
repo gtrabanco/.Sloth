@@ -32,11 +32,11 @@ gem::self_update() {
   # Solving a possibly bug updating system gems
   if
     platform::is_macos &&
-    platform::command_exists brew
+      platform::command_exists brew
   then
-    brew unlink openssl &>/dev/null
-    brew link --force openssl &>/dev/null
-    
+    brew unlink openssl &> /dev/null
+    brew link --force openssl &> /dev/null
+
     if ! echo "$PATH" | tr ':' '\n' | grep -q "^${HOMBREW_PREFIX}/opt/openssl@1.1$"; then
       export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
     fi
