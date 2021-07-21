@@ -225,7 +225,7 @@ init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
 if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; then
   for init_script in $(find "$DOTFILES_PATH/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
-    
+
     { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Trying to load \`${init_script}\`"; } || true
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
