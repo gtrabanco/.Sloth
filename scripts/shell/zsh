@@ -46,7 +46,7 @@ case $1 in
     echo ""
     echo "ZSH INFO:"
     echo "  🍎 macOS ZSH 📂 /bin/zsh              - $(/bin/zsh --version)"
-    echo "  🍺 Brew ZSH  📂 /opt/homebrew/bin/zsh - $(/opt/homebrew/bin/zsh --version)"
+    echo "  🍺 Brew ZSH  📂 ${HOMBREW_PREFIX:-$(brew --prefix)}/bin/zsh - $("${HOMBREW_PREFIX:-$(brew --prefix)}/bin/zsh" --version)"
 
     echo ""
     echo "✨ Currently using $(command -v zsh) ✨"
