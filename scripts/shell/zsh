@@ -25,18 +25,30 @@ docs::parse "$@"
 
 case $1 in
   "optimize")
-    asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
-    sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
-    echo "ASL only storing critical files!"
-
+    output::header "Cleaning stuff"
     find "$DOTFILES_PATH/shell/zsh" -name '*.zwc' -exec rm -rf {} \;
     find "$DOTFILES_PATH/shell/zsh" -name '*.old' -exec rm -rf {} \;
-    find "$DOTLY_PATH/modules/zimfw" -name '*.zwc' -exec rm -rf {} \;
-    find "$DOTLY_PATH/modules/zimfw" -name '*.old' -exec rm -rf {} \;
+    zimfw clean
+    zimfw compile
+    output::empty_line
 
-    /bin/zsh -c "source ${ZDOTDIR:-${HOME}}/.zlogin"
+    output::header "Loading zlogin"
+    /bin/zsh -c ". \"${ZDOTDIR:-${HOME}}/.zlogin\""
+    output::empty_line
 
+    output::header "Reloading zsh completions"
     "$DOTLY_PATH/bin/dot" shell zsh reload_completions
+    output::empty_line
+
+    output::header "ASL only storing critical files"
+    if sudo -v -B; then
+      asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
+      sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
+      output::empty_line
+    else
+      output::error "This final step require elevation with sudo"
+    fi
+    output::solution "Done! Restart your terminal"
     ;;
   "test_performance")
     script::depends_on hyperfine
