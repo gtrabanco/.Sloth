@@ -309,7 +309,7 @@ package::_install() {
 # Try to install with any available package manager, but if you provided a package manager (second param) it will only try to use that package manager. This avoids to install from registry recipe (use package::install_recipe_first).
 # @param string package Package to install
 # @param string package_manager Force to use only package manager if define this param
-# @return boolen
+# @return boolean
 #"
 package::install() {
   local all_available_pkgmgrs uniq_values package_manager package
@@ -349,7 +349,7 @@ package::install() {
 # Try to install package with recipe and if not use package::install()
 # @param string package_name
 # @param string package_manager Only used if there is no recipe
-# @return boolen
+# @return boolean
 #"
 package::install_recipe_first() {
   local -r package_name="${1:-}"
