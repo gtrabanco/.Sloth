@@ -22,7 +22,7 @@ pip::is_installed() {
 # }
 
 pip::install() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip::pip install --no-cache-dir "$@"
+  [[ -n "${1:-}" ]] && pip::is_available && pip::pip install --user --no-cache-dir "$@"
 }
 
 pip::uninstall() {
