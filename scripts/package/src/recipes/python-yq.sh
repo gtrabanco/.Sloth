@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 python-yq::install() {
+  script::depends_on python3-pip
+
   if
     platform::command_exists brew &&
       brew install python-yq &&

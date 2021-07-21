@@ -306,7 +306,7 @@ package::_install() {
 
 #;
 # package::install()
-# Try to install with any available package manager, but if you provided a package manager (second param) it will only try to use that package manager
+# Try to install with any available package manager, but if you provided a package manager (second param) it will only try to use that package manager. This avoids to install from registry recipe (use package::install_recipe_first).
 # @param string package Package to install
 # @param string package_manager Force to use only package manager if define this param
 # @return boolen

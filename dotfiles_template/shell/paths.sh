@@ -9,6 +9,5 @@
 #
 export path=(
   "$HOME/bin"
-  "${SLOTH_PATH:-$DOTLY_PATH}/bin"
   "$DOTFILES_PATH/bin"
 )
