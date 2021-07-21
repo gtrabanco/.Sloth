@@ -126,8 +126,9 @@ if [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh" ]]; then
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file "Loading .Sloth PATH's"
 
-    if ! echo "$PATH" | tr ':' '\n' | grep -q "^${SLOTH_PATH:-$DOTLY_PATH}/bin$"; then
-      output::error "You need to add ${SLOTH_PATH:-$DOTLY_PATH}/bin to your PATH"
+    if echo "$PATH" | grep -q "^${SLOTH_PATH:-$DOTLY_PATH}/bin:"; then
+      output::error "You need to add ${SLOTH_PATH:-$DOTLY_PATH}/bin to your PATH at the first place"
+      output::answer "\`export PATH=\"${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH\"\`"
       exit 1
     fi
   fi
