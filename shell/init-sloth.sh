@@ -136,6 +136,7 @@ if [[ -n "$BREW_BIN" ]]; then
   # Brew add gnutools in macos or bsd only and brew paths
   if [[ "$SLOTH_OS" == Darwin* || "$SLOTH_OS" == *"BSD"* ]]; then
     export path=(
+      "${SLOTH_PATH:-$DOTLY_PATH}/bin"
       "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/findutils/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin"
@@ -150,6 +151,7 @@ if [[ -n "$BREW_BIN" ]]; then
   else
     # Brew paths
     export path=(
+      "${SLOTH_PATH:-$DOTLY_PATH}/bin"
       "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
@@ -180,6 +182,7 @@ if [[ -n "$BREW_BIN" ]]; then
 else
   # No brew :(
   export path=(
+    "${SLOTH_PATH:-$DOTLY_PATH}/bin"
     "${user_paths[@]}"
   )
 fi
