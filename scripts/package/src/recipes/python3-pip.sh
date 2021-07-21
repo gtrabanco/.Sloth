@@ -11,8 +11,12 @@ python3-pip::install() {
     package::install python3 python3-testresources python3-pip
   fi
 
-  if python3-pip::is_installed; then
+  if platform::command_exists python3; then
     output::empty_line
+    output::answer "Executing get-pip.py with python3"
+    python3 < <(curl -fsSL "https://bootstrap.pypa.io/get-pip.py") - --upgrade --user
+    output::empty_line
+
     output::answer "Ensurepip"
     python3 -m ensurepip --default-pip
     output::empty_line
