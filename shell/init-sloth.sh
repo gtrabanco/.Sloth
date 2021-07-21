@@ -163,8 +163,18 @@ if [[ -n "$BREW_BIN" ]]; then
   [[ -d "${HOMEBREW_PREFIX}/opt/ruby/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/ruby/bin")
   [[ -d "${HOMEBREW_PREFIX}/opt/python/libexec/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/python/libexec/bin")
 
-  MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${HOMEBREW_PREFIX}/share/man:$MANPATH"
-  INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
+  # MANPATH
+  if [[ -n "${MANPAHT:-}" ]]; then
+    MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${HOMEBREW_PREFIX}/share/man:${MANPATH}"
+  else
+    MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${HOMEBREW_PREFIX}/share/man"
+  fi
+  # INFOPATH
+  if [[ -n "${INFOPATH:-}" ]]; then
+    INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH:-}"
+  else
+    INFOPATH="${HOMEBREW_PREFIX}/share/info"
+  fi
   export MANPATH INFOPATH HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
   [[ -d "${HOMEBREW_PREFIX}/etc/gnutls/" ]] && export GUILE_TLS_CERTIFICATE_DIRECTORY="${GUILE_TLS_CERTIFICATE_DIRECTORY:-${HOMEBREW_PREFIX}/etc/gnutls/}"
 else
