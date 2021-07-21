@@ -248,7 +248,7 @@ unset init_script init_scripts_path BREW_BIN user_paths
 PATH="${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH"
 
 # Remove duplicated PATH's
-PATH=$(printf %s "$PATH" | awk -vRS=: -vORS= '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
+PATH=$(printf %s "$PATH" | awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
 export PATH
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true
