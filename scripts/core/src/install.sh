@@ -73,7 +73,7 @@ install_macos_custom() {
   fi
 
   output::answer "Updating system gems"
-  sudo gem update --system | log::file "Update system gems"
+  gem update --system | log::file "Update system gems"
 }
 
 install_linux_custom() {
