@@ -136,7 +136,6 @@ if [[ -n "$BREW_BIN" ]]; then
   # Brew add gnutools in macos or bsd only and brew paths
   if [[ "$SLOTH_OS" == Darwin* || "$SLOTH_OS" == *"BSD"* ]]; then
     export path=(
-      "${SLOTH_PATH:-$DOTLY_PATH}/bin"
       "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/findutils/libexec/gnubin"
       "${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin"
@@ -151,7 +150,6 @@ if [[ -n "$BREW_BIN" ]]; then
   else
     # Brew paths
     export path=(
-      "${SLOTH_PATH:-$DOTLY_PATH}/bin"
       "${user_paths[@]}"
       "${HOMEBREW_PREFIX}/bin"
       "${HOMEBREW_PREFIX}/sbin"
@@ -182,7 +180,6 @@ if [[ -n "$BREW_BIN" ]]; then
 else
   # No brew :(
   export path=(
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin"
     "${user_paths[@]}"
   )
 fi
@@ -246,6 +243,9 @@ fi
 
 # Unset loader variables
 unset init_script init_scripts_path BREW_BIN user_paths
+
+# Adds SLOTH_PATH or DOTLY_PATH bin directory into the first position if it is not
+PATH="${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH"
 
 # Remove duplicated PATH's
 PATH=$(printf %s "$PATH" | awk -vRS=: -vORS= '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
