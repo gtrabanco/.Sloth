@@ -9,7 +9,7 @@ pip::pip() {
 }
 
 pip::is_available() {
-  platform::command_exists pip3
+  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &> /dev/null
 }
 
 pip::is_installed() {
@@ -22,7 +22,7 @@ pip::is_installed() {
 # }
 
 pip::install() {
-  [[ -n "${1:-}" ]] && pip::is_available && pip::pip install --no-cache-dir "$@"
+  [[ -n "${1:-}" ]] && pip::is_available && pip::pip install --user --no-cache-dir "$@"
 }
 
 pip::uninstall() {

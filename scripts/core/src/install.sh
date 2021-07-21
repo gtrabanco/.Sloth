@@ -1,5 +1,7 @@
 #!/bin/user/env bash
 
+SLOTH_GITHUB_REPOSITORY_NEW_ISSUE_URL="https://github.com/gtrabanco/sloth/issues/new/choose"
+
 custom::install() {
   if [[ $# -eq 0 ]]; then
     return
@@ -44,10 +46,7 @@ install_macos_custom() {
     fi
   fi
 
-  custom::install coreutils findutils gnu-sed python3
-
-  # Python setup tools
-  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
+  custom::install coreutils findutils gnu-sed python3-pip
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
@@ -67,7 +66,7 @@ install_macos_custom() {
     custom::install mas
 
     # Required packages output an error
-    if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
+    if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
       output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
     fi
   fi
@@ -75,19 +74,7 @@ install_macos_custom() {
 
 install_linux_custom() {
   local any_pkgmgr=false package_manager
-  local -r LINUX_PACKAGE_MANAGERS=(apt brew dnf pacman yum)
-  custom::install() {
-    if [[ $# -eq 0 ]]; then
-      return
-    fi
-
-    package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1" || true
-    shift
-
-    if [[ $# -gt 0 ]]; then
-      custom::install "$@"
-    fi
-  }
+  local -r LINUX_PACKAGE_MANAGERS=(apt dnf pacman yum brew)
 
   # To make CI Cheks faster avoid package manager update & upgrade
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
@@ -101,13 +88,27 @@ install_linux_custom() {
 
   if ! $any_pkgmgr; then
     registry::install "brew" | log::file "Trying to install brew"
+    platform::command_exists brew && any_pkgmgr=true
+  fi
+
+  if ! $any_pkgmgr; then
+    output::error "🚨 No package manager detected, and brew not installed, maybe your package manager is not in .Sloth."
+    output::empty_line
+    output::write "Possible solutions are"
+    output::write "  1. Install manually first the following linux packages:"
+    output::answer "\`build-essential coreutils findutils python3 python3-testresources python3-pip bash zsh fzf\`"
+    output::answer "After intall those packages and have available python3 and pip3, execute:"
+    output::answer "\`python3 -m pip install --upgrade setuptools\` and \`dot package add python-yq\`"
+    output::write "  2. Make an issue telling your os and which package manager are you using."
+    output::answer "${SLOTH_GITHUB_REPOSITORY_NEW_ISSUE_URL}"
+    output::empty_line
+    output::anser "Continue with cargo"
+    custom::install cargo cargo-update docpars hyperfine
+    return
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install build-essential coreutils findutils python3-pip
-
-  # Python setup tools
-  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
+  custom::install python3-pip build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
