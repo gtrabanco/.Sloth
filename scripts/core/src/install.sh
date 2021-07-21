@@ -77,11 +77,11 @@ install_macos_custom() {
       output::answer "Installing openssl again"
       brew reinstall --force openssl 1>&2 | log::file "Brew reinstall openssl"
       brew unlink openssl | log::file "Brew unlink openssl"
-      brew link --link openssl | log::file "Brew link openssl"
-      export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+      brew link --force openssl | log::file "Brew link openssl"
+      export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
     fi
   fi
-  sudo gem update --symte | log::file "Update system gems"
+  sudo gem update --system | log::file "Update system gems"
 }
 
 install_linux_custom() {
