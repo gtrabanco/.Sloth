@@ -1,5 +1,5 @@
 # Needed dotly/sloth functions
-#shellcheck disable=SC2148
+#shellcheck disable=SC2148,SC1090,SC1091
 function cdd() {
   #shellcheck disable=SC2012
   cd "$(ls -d -- */ | fzf)" || echo "Invalid directory"
@@ -58,13 +58,11 @@ alias s='"$SLOTH_PATH/bin/dot"'
 [[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user exports"; } || true
-# shellcheck source=/dev/null
-[[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"
+{ [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"; } || true
 
 # Paths
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user PATH's"; } || true
-# shellcheck source=/dev/null
-[[ -f "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
+{ [[ -f "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"; } || true
 
 # Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
 user_paths=("${path[@]}")
@@ -197,7 +195,6 @@ path+=("/sbin")
 # Load dotly core for your current BASH
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Sloth for the shell \`${SLOTH_SHELL}\`"; } || true
 if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
-  #shellcheck source=/dev/null
   . "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh"
 else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
@@ -207,33 +204,29 @@ fi
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Nix package manager if present"; } || true
 # Load single user nix installation in the shell
 if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
-  #shellcheck disable=SC1091
   . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
 
 # Load nix env when installed for all os users
 elif [[ -r "/etc/profile.d/nix.sh" ]]; then
-  #shellcheck disable=SC1091
   . "/etc/profile.d/nix.sh"
 fi
 
 # Aliases
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user aliases"; } || true
-#shellcheck source=/dev/null
 { [[ -f "$DOTFILES_PATH/shell/aliases.sh" ]] && . "$DOTFILES_PATH/shell/aliases.sh"; } || true
 
 # Functions
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user functions"; } || true
-#shellcheck source=/dev/null
 { [[ -f "$DOTFILES_PATH/shell/functions.sh" ]] && . "$DOTFILES_PATH/shell/functions.sh"; } || true
 
 # Auto Init scripts at the end
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Auto init scripts that are enabled"
 init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
 if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; then
-  find "$DOTFILES_PATH/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _ | while read -r init_script; do
+  for init_script in $(find "$DOTFILES_PATH/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
+    
     { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Trying to load \`${init_script}\`"; } || true
-    #shellcheck source=/dev/null
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
