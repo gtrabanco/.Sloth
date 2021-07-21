@@ -150,7 +150,7 @@ if [[ -n "$BREW_BIN" ]]; then
   fi
 
   # Open SSL if exists
-  [[ -d "${HOMEBREW_PREFIX}/opt/openssl/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/openssl/bin")
+  [[ -d "${HOMEBREW_PREFIX}/opt/openssl@1.1/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/openssl@1.1/bin")
 
   #Homebrew ruby and python over the system
   [[ -d "${HOMEBREW_PREFIX}/opt/ruby/bin" ]] && path+=("${HOMEBREW_PREFIX}/opt/ruby/bin")
