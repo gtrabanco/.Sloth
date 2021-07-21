@@ -12,10 +12,15 @@ python3-pip::install() {
   fi
 
   if python3-pip::is_installed; then
+    output::empty_line
+    output::answer "Ensurepip"
+    python3 -m ensurepip --default-pip
+    output::empty_line
+
     output::answer "Upgrading setuptools & wheel"
     "$(command -v python3)" -m pip install --upgrade --user setuptools wheel
-
     output::empty_line
+
     output::answer "Python3 & pip3 are installed"
     return
   fi
