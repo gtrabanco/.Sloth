@@ -11,7 +11,7 @@ custom::install() {
   shift
 
   if [[ $# -gt 0 ]]; then
-    custom::install "$@"
+    custom::install "$@" || true
   fi
 }
 
@@ -111,7 +111,7 @@ install_linux_custom() {
     output::empty_line
     output::write "Possible solutions are"
     output::write "  1. Install manually first the following linux packages:"
-    output::answer "\`build-essential coreutils findutils python3-testresources python3-pip bash zsh fzf\`"
+    output::answer "\`build-essential coreutils findutils python3 python3-testresources python3-pip bash zsh fzf\`"
     output::answer "After intall those packages and have available python3 and pip3, execute:"
     output::answer "\`python3 -m pip install --upgrade setuptools\` and \`dot package add python-yq\`"
     output::write "  2. Make an issue telling your os and which package manager are you using."
@@ -123,7 +123,7 @@ install_linux_custom() {
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install build-essential coreutils findutils python3-testresources python3-pip
+  custom::install python3 python3-testresources python3-pip build-essential coreutils findutils
 
   # Python setup tools
   command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools | log::file "Upgrading python setuptools"
