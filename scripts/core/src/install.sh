@@ -70,7 +70,7 @@ install_macos_custom() {
     if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
       output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
     fi
-  
+
     # Solving a possibly bug updating system gems
     if platform::is_macos && platform::command_exists brew && sudo -v -B; then
       output::header "Solve failing update of gems due openssl"
@@ -80,8 +80,8 @@ install_macos_custom() {
       brew link --link openssl | log::file "Brew link openssl"
       export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
     fi
-    sudo gem update --symte | log::file "Update system gems"
   fi
+  sudo gem update --symte | log::file "Update system gems"
 }
 
 install_linux_custom() {
