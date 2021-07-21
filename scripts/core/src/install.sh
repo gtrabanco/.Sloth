@@ -11,7 +11,7 @@ custom::install() {
   shift
 
   if [[ $# -gt 0 ]]; then
-    custom::install "$@" || true
+    custom::install "$@"
   fi
 }
 
@@ -46,10 +46,7 @@ install_macos_custom() {
     fi
   fi
 
-  custom::install coreutils findutils gnu-sed python3
-
-  # Python setup tools
-  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools
+  custom::install coreutils findutils gnu-sed python3-pip
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
@@ -69,7 +66,7 @@ install_macos_custom() {
     custom::install mas
 
     # Required packages output an error
-    if ! package::is_installed "docpars" || ! package::is_installed "python3" || ! package::is_installed "python-yq"; then
+    if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
       output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
     fi
   fi
@@ -78,18 +75,6 @@ install_macos_custom() {
 install_linux_custom() {
   local any_pkgmgr=false package_manager
   local -r LINUX_PACKAGE_MANAGERS=(apt dnf pacman yum brew)
-  custom::install() {
-    if [[ $# -eq 0 ]]; then
-      return
-    fi
-
-    package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1" || true
-    shift
-
-    if [[ $# -gt 0 ]]; then
-      custom::install "$@"
-    fi
-  }
 
   # To make CI Cheks faster avoid package manager update & upgrade
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
@@ -123,10 +108,7 @@ install_linux_custom() {
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install python3 python3-testresources python3-pip build-essential coreutils findutils
-
-  # Python setup tools
-  command -v python3 &> /dev/null && "$(command -v python3)" -m pip install --upgrade setuptools | log::file "Upgrading python setuptools"
+  custom::install python3-pip build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
