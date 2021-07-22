@@ -43,8 +43,12 @@ jobs:
 
       - name: ZSH Speed test
         run: |
-          ! command -v zsh &>/dev/null && exit
-          zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOT_PATH}/bin/dot\" shell zsh test_performance"
+          ! command -v zsh &>/dev/null && echo "ZSH Speed Test error: Shell not found" | tee -a "${HOME}/dotly.log" && exit
+          echo "DOTFILES_PATH=\"${HOME}/.dotfiles\"" >> $GITHUB_ENV
+          echo "DOTLY_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
+          echo "SLOTH_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
+          echo "ZIM_HOME=\"${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw\"" >> $GITHUB_ENV
+          zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOT_PATH}/bin/dot\" shell zsh test_performance | tee -a \"${HOME}/dotly.log\""
 
       - name: Debug
         if: ${{ always() }}
