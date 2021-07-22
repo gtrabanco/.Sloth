@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
+# TODO
+
 "$SLOTH_PATH/bin/dot" self async-update
