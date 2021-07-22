@@ -7,7 +7,7 @@ custom::install() {
     return
   fi
 
-  package::is_installed "$1" || package::install_recipe_first "$1" | log::file "Installing package $1" || output::error "Package $1 could not be installed"
+  package::is_installed "$1" || package::install "$1" | log::file "Installing package $1" || output::error "Package $1 could not be installed"
   shift
 
   if [[ $# -gt 0 ]]; then
