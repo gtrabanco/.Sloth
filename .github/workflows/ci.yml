@@ -41,14 +41,21 @@ jobs:
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
-      - name: ZSH Speed test
+      - name: ZSH Speed test ENV
         run: |
-          ! command -v zsh &>/dev/null && echo "ZSH Speed Test error: Shell not found" | tee -a "${HOME}/dotly.log" && exit
           echo "DOTFILES_PATH=\"${HOME}/.dotfiles\"" >> $GITHUB_ENV
           echo "DOTLY_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
           echo "SLOTH_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
           echo "ZIM_HOME=\"${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw\"" >> $GITHUB_ENV
           echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
+
+      - name: ZSH Speed test
+        run: |
+          echo "DOTFILES_PATH: $DOTFILES_PATH"
+          echo "DOTLY_PATH: $DOTLY_PATH"
+          echo "SLOTH_PATH: $SLOTH_PATH"
+          echo "ZIM_HOME: $ZIM_HOME"
+          ! command -v zsh &>/dev/null && echo "ZSH is not installed" && exit
           zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOT_PATH}/bin/dot\" shell zsh test_performance | tee -a \"${HOME}/dotly.log\""
 
       - name: Debug
@@ -57,6 +64,8 @@ jobs:
           echo "DOTLY_REPOSITORY: $DOTLY_REPOSITORY"
           echo "DOTLY_BRANCH: $DOTLY_BRANCH"
           echo "DOTLY_ENV: $DOTLY_ENV"
+          echo "DOTFILES_PATH: $DOTFILES_PATH"
+          echo "DOTLY_PATH: $DOTLY_PATH"
           cat "$HOME/dotly.log"
 
   static-analysis:
