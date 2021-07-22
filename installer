@@ -105,7 +105,11 @@ fi
 
 if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
   _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
-  DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  if [[ "$DOTFILES_PATH" == "CI" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+  else
+    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  fi
   DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
 fi
 export DOTFILES_PATH="$DOTFILES_PATH"
