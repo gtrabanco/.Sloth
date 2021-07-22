@@ -3,7 +3,7 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
 dot::load_library "dotbot.sh"
 
 symlinks::get_files() {

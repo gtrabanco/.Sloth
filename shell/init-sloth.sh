@@ -9,7 +9,7 @@ function j() {
   fname=$(declare -f -F _z)
 
   #shellcheck source=/dev/null
-  [ -n "$fname" ] || . "$SLOTH_PATH/modules/z/z.sh"
+  [ -n "$fname" ] || . "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/z/z.sh"
 
   _z "$1"
 }
@@ -29,11 +29,11 @@ if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-
   if [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/dotly"
-    DOTLY_PATH="$SLOTH_PATH"
+    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
   elif [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/sloth" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
-    DOTLY_PATH="$SLOTH_PATH"
+    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
   else
     echo -e "\033[0;31m\033[1mDOTFILES_PATH or SLOTH_PATH is not defined or is wrong, .Sloth will fail\033[0m"
   fi
@@ -48,14 +48,14 @@ export GPG_TTY
 # SLOTH_PATH & DOTLY_PATH compatibility
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking DOTLY_PATH and SLOTH_PATH. We want both not just one..."; } || true
 [[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
-[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
+[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Sloth aliases and functions
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining Sloth aliases"; } || true
-alias dotly='"$SLOTH_PATH/bin/dot"'
-alias sloth='"$SLOTH_PATH/bin/dot"'
-alias lazy='"$SLOTH_PATH/bin/dot"'
-alias s='"$SLOTH_PATH/bin/dot"'
+alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user exports"; } || true
 { [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"; } || true

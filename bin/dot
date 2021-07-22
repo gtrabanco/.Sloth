@@ -24,8 +24,8 @@ SLOTH_SCRIPT_BASE_NAME="sloth"
 ##?    dot
 ##?
 ##? Arguments:
-##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${DOTLY_PATH:-\$SLOTH_PATH}/scripts"
-##?    script   Is the script in "\${DOTFILE${SLOTH_PATH:-S_PATH}/scr}ipts/<context>" or "\${DOTLY_PATH:-\$SLOTH_PATH}/scripts/<conte${SLOTH_PATH:-xt>"
+##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${DOTLY_PATH:-\${SLOTH_PATH:-${DOTLY_PATH:-}}}/scripts"
+##?    script   Is the script in "\${DOTFILE${SLOTH_PATH:-S_PATH}/scr}ipts/<context>" or "\${DOTLY_PATH:-\${SLOTH_PATH:-${DOTLY_PATH:-}}}/scripts/<conte${SLOTH_PATH:-xt>"
 ##?
 #}#? Options:
 ##?    -h --help     Gives help to the user
@@ -56,13 +56,13 @@ fi
 
 # Self-update (Why not in dot directly?)
 if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
-  "$SLOTH_PATH/bin/dot" core update
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
 fi
 
 # Autoupdate (Async update)
 if [[ "$1" == "autoupdate" ]] && args::total_is 1 "$@"; then
-  "$SLOTH_PATH/bin/dot" core async-update
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core async-update
   exit
 fi
 

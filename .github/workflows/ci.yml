@@ -52,7 +52,7 @@ jobs:
       - name: ZSH Speed test
         run: |
           echo "DOTFILES_PATH: $DOTFILES_PATH"
-          echo "SLOTH_PATH: $SLOTH_PATH"
+          echo "SLOTH_PATH: ${SLOTH_PATH:-${DOTLY_PATH:-}}"
           echo "ZIM_HOME: $ZIM_HOME"
           ! command -v zsh &>/dev/null && echo "ZSH Shell not found" && exit
           zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOTH_PATH}/bin/dot\" shell zsh test_performance | tee -a \"${HOME}/dotly.log\""
@@ -60,7 +60,7 @@ jobs:
       - name: BASH Speed test
         run: |
           echo "DOTFILES_PATH: $DOTFILES_PATH"
-          echo "SLOTH_PATH: $SLOTH_PATH"
+          echo "SLOTH_PATH: ${SLOTH_PATH:-${DOTLY_PATH:-}}"
           echo "ZIM_HOME: $ZIM_HOME"
           ! command -v bash &>/dev/null && echo "BASH Shell not found" && exit
           bash -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOTH_PATH}/bin/dot\" shell bash test_performance | tee -a \"${HOME}/dotly.log\""

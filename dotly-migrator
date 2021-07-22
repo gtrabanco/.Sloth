@@ -87,12 +87,12 @@ if $DOTLY_MIGRATION; then
     # Define new variables
     export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"
     export SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
-    export ZIM_HOME="$SLOTH_PATH/modules/zimfw"
+    export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
     # Reinstall zim
     zsh "$ZIM_HOME/zimfw.zsh" install
-    "$SLOTH_PATH/bin/dot" shell zsh reload_completions
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
     #shellcheck disable=SC1091
-    . "$SLOTH_PATH/shell/init-sloth.sh"
-    "$SLOTH_PATH/bin/dot" migration v2.0.0
+    . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" migration v2.0.0
     _w "🎉 Restart your terminal"
 fi
