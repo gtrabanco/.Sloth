@@ -28,24 +28,26 @@ _w() {
 _a() { _w " > ${*}"; }
 _e() { _a "${red}${*}${normal}"; }
 _s() { _a "${green}${*}${normal}"; }
-_q() { 
+_q() {
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "🤔 ${*} : "
     eval "$2='CI'"
   else
-    echo -n "🤔 ${*}: "; read -r "$2"
+    echo -n "🤔 ${*}: "
+    read -r "$2"
   fi
 }
-_yq() { 
+_yq() {
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    _q "${*} [Y/n]"; read -r "$2"
+    _q "${*} [Y/n]"
+    read -r "$2"
   else
     echo -n "🤔 $*: "
     echo y
-    eval "${2}=y"
+    eval "${2}=Y"
   fi
 }
-_is_y() { [[ "${*}" =~ ^[Yy] ]]; }
+_is_y() { [[ "${1:Y}" =~ ^[Yy] ]]; }
 
 _log() {
   log_name="$1"
@@ -89,11 +91,11 @@ _w
 
 if
   [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-  [[ "$OSTYPE" == darwin* ]] &&
-  [[ -d "$ICLOUD_PATH" ]]
+    [[ "$OSTYPE" == darwin* ]] &&
+    [[ -d "$ICLOUD_PATH" ]]
 then
   _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
-  if [[ "${ICLOUD_REPLY:-Y}" =~ ^[Yy] ]]; then
+  if _is_y "${ICLOUD_REPLY:-Y}"; then
     IS_ICLOUD_DOTFILES=true
     _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
     DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
