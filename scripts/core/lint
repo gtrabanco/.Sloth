@@ -89,6 +89,7 @@ for file in "${all_files[@]}"; do
 
   if ${names:-false}; then
     output::answer "$file"
+    exit_code=1
   elif ${patch:-false}; then
     {
       output::answer "Linting \`$file\`" &&
