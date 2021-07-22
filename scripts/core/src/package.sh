@@ -394,13 +394,18 @@ package::uninstall() {
   [[ $# -lt 1 ]] && return 1
   local -r package_name="$1"
   shift
+  package_manager="${2:-}"
 
   local -r recipe_path="$(registry::recipe_exists "$package_name")"
 
-  if [[ -f "$recipe_path" ]] && registry::command_exists "$package_name" "uninstall"; then
+  if
+    [[ -z "$package_manager" || "$package_manager" == "registry" || "$package_manager" == "recipe" ]] &&
+      [[ -f "$recipe_path" ]] &&
+      registry::command_exists "$package_name" "uninstall"
+  then
     registry::command "$package_name" "uninstall" "$@" && ! registry::is_installed "$package_name"
   else
-    package_manager="${2:-$(package::which_package_manager "$package_name" || echo -n)}"
+    package_manager="${package_manager:-$(package::which_package_manager "$package_name" || echo -n)}"
     [[ -z "$package_manager" ]] && return 1 # Could not determine which package manager to be used
 
     if package::command_exists "$package_manager" "uninstall"; then
