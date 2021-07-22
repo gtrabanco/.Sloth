@@ -49,9 +49,9 @@ if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
 fi
 
 
-SLOTH_THEME="${SLOTH_THEME:-DOTLY_THEME}"
+SLOTH_THEME="${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
 autoload -Uz promptinit && promptinit
-prompt "${SLOTH_THEME:-codely}"
+prompt "$SLOTH_THEME"
 
 #shellcheck source=/dev/null
 . "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
