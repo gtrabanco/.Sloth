@@ -7,27 +7,31 @@ set -euo pipefail
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
 
-# Default values
-patch=false
-dotfiles=false
-
 ##? Lint all sloth/dotly related bash files
 ##?
 ##? Usage:
-##?    lint [ --patch | -p ] [--dotfiles | -d]
-##?    lint [--dotfiles | -d]
+##?    lint [[-n | --names] | [-p | --patch]] [-d | --dotfiles]
+##?    lint [[-n | --names] | [-p | --patch]] <all_files>...
+##?
+##? Arguments:
+##?    all_files      Files to be lint
 ##?
 ##? Options:
-##?    --help -h      Gives this help
-##?    --patch -p     Apply a patch
-##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
+##?    -h --help      Gives this help
+##?    -p --patch     Apply a patch
+##?    -d --dotfiles  Execute against your dotfiles instead of Sloth/Dotly core. Implies --names always.
+##?    -n --names     Get only a list of files that needs to apply a patch (can not be used with --patch)
 ##?
-##? SCRIPT_VERSION 3.0.0
-if [ "${1:-}" == "-h" ] || [ "${1:-}" = "--help" ]; then
+##? SCRIPT_VERSION 3.2.0
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" = "--help" ]] || package::is_installed "docpars"; then
   docs::parse "$@"
 else
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --names | -n)
+        names=true
+        shift
+        ;;
       --dotfiles | -d)
         dotfiles=true
         shift
@@ -37,20 +41,33 @@ else
         shift
         ;;
       *)
+        if [[ -n "${*:-}" ]]; then
+          all_files=("$@")
+          shift
+        fi
         break 2
         ;;
     esac
   done
+
+  if ${names:-false} && ${patch:-false}; then
+    output::error "\`--names\` and \`--patch\` arguments can not be used together"
+    docs::parse --help
+    exit 1
+  fi
 fi
 
 script::depends_on shfmt
 
-# Avoid zsh because shfmt show some errors because it do not understand some
-# valid zsh valid syntax
-if ${dotfiles:-false}; then
-  readarray -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
-else
-  readarray -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+# Check if file exists
+if [[ -z "${all_files[*]:-}" ]]; then
+  # Avoid zsh because shfmt show some errors because it do not understand some
+  # valid zsh valid syntax
+  if ${dotfiles:-false}; then
+    readarray -t all_files < <(dotly::list_dotfiles_bash_files | grep -v "${DOTFILES_PATH}/shell/zsh")
+  else
+    readarray -t all_files < <(dotly::list_bash_files | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/shell/zsh")
+  fi
 fi
 
 # No color for shfmt
@@ -60,25 +77,26 @@ TERM=dumb
 exit_code=0
 
 for file in "${all_files[@]}"; do
+  [[ ! -f "$file" ]] &&
+    exit_code=1 &&
+    output::error "File \`${file}\` could not be checked because it could not be found" &&
+    continue
+
   unset patch_content removed_empty
   patch_content="$(shfmt -ln bash -sr -ci -i 2 -d "$file" 2> /dev/null || true)"
   removed_empty="$(echo "$patch_content" | sed 's/[[:space:]]//g')"
+  ! [[ -n "$removed_empty" && "$(echo "$patch_content" | wc -l)" -gt 2 ]] && continue
 
-  if ${patch:-false}; then
+  if ${names:-false}; then
+    output::answer "$file"
+  elif ${patch:-false}; then
     {
-      [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]] &&
-        output::answer "Linting \`$file\`" &&
+      output::answer "Linting \`$file\`" &&
         echo "$patch_content" | patch "$file" &> /dev/null
-    } || {
-      if [[ -n "$patch_content" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
-        exit_code=1
-      fi
-    }
+    } || exit_code=1
   else
-    if [[ -n "$removed_empty" && "$(echo "$patch_content" | wc -l)" -gt 2 ]]; then
-      echo "$patch_content"
-      exit_code=1
-    fi
+    echo "$patch_content"
+    exit_code=1
   fi
 done
 
