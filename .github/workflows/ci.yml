@@ -48,6 +48,7 @@ jobs:
           echo "DOTLY_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
           echo "SLOTH_PATH=\"${DOTFILES_PATH}/modules/sloth\"" >> $GITHUB_ENV
           echo "ZIM_HOME=\"${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw\"" >> $GITHUB_ENV
+          echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
           zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOT_PATH}/bin/dot\" shell zsh test_performance | tee -a \"${HOME}/dotly.log\""
 
       - name: Debug
