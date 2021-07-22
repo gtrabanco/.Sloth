@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2034
 
-if [[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]]; then
-  readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/sloth"
-  readonly SLOTH_DEFAULT_GIT_SSH_URL="git@github.com:gtrabanco/sloth.git"
-  readonly SLOTH_DEFAULT_REMOTE="${SLOTH_DEFAULT_REMOTE:-origin}"
-fi
-
 #
 #  - You can force the usage of specific git binary by defining GIT_EXECUTABLE.
 #  - Also can pass git args forcely to all these git command by passing an array
@@ -93,6 +87,28 @@ git::check_remote_exists() {
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
   git::git "$@" remote get-url "$remote" &> /dev/null
+}
+
+#;
+# git::check_unpushed_commits()
+# Check if there are commits without pushed to remote
+# @param string remote Optional remote, use "origin" as default
+# @param string branch Optional branch, use "master" as default
+# @return boolean
+#"
+git::check_unpushed_commits() {
+  local -r remote="${1:-origin}"
+  local -r branch="${2:-master}"
+  [[ -n "${1:-}" ]] && shift
+  git::git "$@" cherry -v "${remote}/${branch}" &> /dev/null
+}
+
+#;
+# git::check_is_clean()
+# Checks if the repository has local changes
+#"
+git::check_is_clean() {
+  git::git "$@" status --porcelain | grep -q '^[^U]\?\?\?\?'
 }
 
 #;
@@ -216,12 +232,14 @@ git::check_current_branch_is_behind() {
 #;
 # git::get_remote_head_upstream_branch()
 # Get which is the branch or the remote head if any
+# @param string remote Optional, by default is "origin"
+# @param any args Additional arguments that will be passed to git command
 # @return string|false
 #"
 git::get_remote_head_upstream_branch() {
-  local remote="${1:-origin}"
+  local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" 2>/dev/null
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2>/dev/null
 }
 
 #;
@@ -297,7 +315,7 @@ git::check_file_is_modified_after_commit() {
 # @return boolean
 #"
 git::check_working_dir_is_clean() {
-  [[ $(git::git "$@" status -sb | wc -l) -eq 1 ]]
+  [[ $(git::git "$@" status -sb 2> /dev/null | wc -l) -eq 1 ]]
 }
 
 #;
@@ -312,7 +330,7 @@ git::check_is_shallow() {
 # git::unshallow()
 #"
 git::unshallow() {
-  git::git "$@" fetch --unsallow
+  git::git "$@" fetch --unsallow 1>&2
 }
 
 #;
@@ -352,7 +370,7 @@ git::clone_branches() {
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
-    git::clone_track_branch "$remote" "$branch" "$@"
+    git::clone_track_branch "$remote" "$branch" "$@" 1>&2
   done
 }
 
@@ -363,3 +381,45 @@ git::current_branch_is_tracked() {
   git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
 }
 
+#;
+# git::update_repositry()
+# Update repository to the latest version discarding local changes and not commited changes
+# @param string remote
+# @param string branch
+# @param any args Additional arguments to pass to git command
+#"
+git::update_repository() {
+  local -r remote="${1:-origin}"
+  local -r branch="${2:-master}"
+
+  case $# in
+    2)  shift 2  ;;
+    1)  shift    ;;
+  esac
+  
+  git::git "$@" clean -f -q 1>&2
+  git::clone_track_branch "$remote" "$branch" "$@"
+  git::git "$@" fetch --all --tags --force 1>&2
+  git::git "$@" reset --hard "${remote}/${branch}" 1>&2
+  git::git "$@" pull --all -s recursive -X theirs 1>&2
+  git::git "$@" reset --hard 1>&2
+}
+
+#;
+# git::repository_pull_all()
+# Make a pull in all branches of a repository. It also track all branches.
+# @param string remote
+# @param string branch Default branch. If not will try to get from remote
+# @param any args Additional arguments to pass to git command
+#"
+git::repository_pull_all() {
+  local -r remote="${1:-origin}"
+  [[ -n "${1:-}" ]] && shift
+
+  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
+    branch="${remote_branch//remotes\/${remote}\//}"
+    git::clone_track_branch "$remote" "$branch" "$@" 1>&2
+    git::git "$@" reset --hard "${remote}/${branch}" 1>&2
+    git::git "$@" pull --all -s recursive -X theirs 1>&2
+  done
+}
