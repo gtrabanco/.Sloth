@@ -94,7 +94,8 @@ output::question_default() {
   with_code_parsed="$(_output::parse_code --color "${color}" "$question")"
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" == true ]]; then
-    echo "🤔 $with_code_parsed ? [$default_value]:"
+    echo "🤔 ${with_code_parsed} ? [${default_value}]: ${default_value}"
+    PROMPT_REPLY="$default_value"
   else
     read -rp "🤔 $with_code_parsed ? [$default_value]: " PROMPT_REPLY
   fi
