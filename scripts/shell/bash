@@ -43,7 +43,7 @@ case $1 in
     output::write "ZSH INFO:"
     output::write "  💻 System BASH 📂 /bin/bash           - $(/bin/bash --version | head -n1 | awk '{print $4}')"
     if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-    output::write "  🍺 BREW BASH   📂 ${HOMBREW_PREFIX}/bin/bash - $("${HOMBREW_PREFIX}/bin/bash" --version | head -n1 | awk '{print $4}')"
+      output::write "  🍺 BREW BASH   📂 ${HOMBREW_PREFIX}/bin/bash - $("${HOMBREW_PREFIX}/bin/bash" --version | head -n1 | awk '{print $4}')"
     fi
 
     output::empty_line
