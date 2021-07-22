@@ -21,7 +21,9 @@
 ##?
 ##?
 ##? SCRIPT_VERSION "2.1.0"
-docs::parse "$@"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] || package::is_installed docpars; then
+  docs::parse "$@"
+fi
 
 case $1 in
   "optimize")
