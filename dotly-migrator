@@ -52,7 +52,7 @@ call_sed() {
   fi
 }
 
-if [[ -z "$DOTLY_PATH" || -z "$DOTFILES_PATH" ]]; then
+if [[ -z "${DOTLY_PATH:-}" || -z "$DOTFILES_PATH" ]]; then
   DOTLY_MIGRATION=false
   _w "You do not have dotly installed"
   answer_install="$(_q "Do you want to install SLOTH? [Y/n]")"

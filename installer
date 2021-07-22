@@ -116,6 +116,7 @@ export DOTFILES_PATH="$DOTFILES_PATH"
 
 dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
+export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 create_dotfiles_dir "$DOTFILES_PATH"
 cd "$DOTFILES_PATH"
@@ -191,7 +192,7 @@ git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" 
 _a "Installing sloth/dotly dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
-cd "$DOTLY_PATH"
+cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
   if [[ -d "$DOTFILES_LINK_PATH" ]]; then

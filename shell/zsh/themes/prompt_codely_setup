@@ -34,7 +34,7 @@ fi
 
 prompt_codely_pwd() {
   case "$CODELY_THEME_PWD_MODE" in
-    short) local -r prompt_dir=$("$DOTLY_PATH/bin/dot" core short_pwd) ;;
+    short) local -r prompt_dir=$("${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core short_pwd) ;;
     full) local -r prompt_dir="$PWD" ;;
     home_relative) local -r prompt_dir=$(print -rD "$PWD") ;;
   esac

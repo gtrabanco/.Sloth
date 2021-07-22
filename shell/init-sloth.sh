@@ -47,7 +47,7 @@ export GPG_TTY
 
 # SLOTH_PATH & DOTLY_PATH compatibility
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking DOTLY_PATH and SLOTH_PATH. We want both not just one..."; } || true
-[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="$DOTLY_PATH"
+[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 [[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
 
 # Sloth aliases and functions
@@ -205,8 +205,8 @@ path+=("/sbin")
 
 ###### Load dotly core for your current BASH ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Sloth for the shell \`${SLOTH_SHELL}\`"; } || true
-if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
-  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh"
+if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" ]]; then
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh"
 else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
 fi
@@ -225,7 +225,7 @@ fi
 ###### End of load nix package manager if available ######
 
 ###### SLOTH bin path first & Remove duplicated PATHs ######
-PATH="${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH"
+PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH"
 
 # Remove duplicated PATH's
 PATH=$(printf %s "$PATH" | awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')

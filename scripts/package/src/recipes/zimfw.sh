@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 zimfw::is_installed() {
-  [[ -d "${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw/" ]] && command -v git &> /dev/null
+  [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw/" ]] && command -v git &> /dev/null
 }
 
 zimfw::is_outdated() {
@@ -25,7 +25,7 @@ zimfw::version() {
 }
 
 zimfw::latest() {
-  command git -C "${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw/" ls-remote --tags --refs origin 'v*' 2> /dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1
+  command git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw/" ls-remote --tags --refs origin 'v*' 2> /dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1
 }
 
 zimfw::title() {

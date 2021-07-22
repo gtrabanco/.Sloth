@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 ##? ZSH helpers
 ##?
@@ -39,7 +39,7 @@ case $1 in
     output::empty_line
 
     output::header "Reloading zsh completions"
-    "$DOTLY_PATH/bin/dot" shell zsh reload_completions
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
     output::empty_line
 
     output::header "ASL only storing critical files"

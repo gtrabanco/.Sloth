@@ -10,7 +10,7 @@ DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
 
 # Where is placed dotbot
-DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-$DOTLY_PATH}/modules/dotbot/bin/dotbot}"
+DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/dotbot/bin/dotbot}"
 
 #;
 # dotbot::yaml_file_path()

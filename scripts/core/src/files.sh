@@ -67,7 +67,7 @@ files::fzf() {
       -c | --sloth-core | --dotly-core)
         preview=true
         preview_args=(
-          ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
+          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh\";"
           "${preview_args[@]};"
         )
         shift
@@ -83,7 +83,7 @@ files::fzf() {
         done
 
         preview_args=(
-          ". \"$DOTLY_PATH/scripts/core/_main.sh\";"
+          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh\";"
           "${libraries_to_load[@]}"
           "${preview_args[@]}"
         )

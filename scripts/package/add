@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 ##? Install a package
 ##?
@@ -71,9 +71,9 @@ if [[ $number_of_packages -gt 1 ]]; then
   any_error=0
   for pkg in "${packages_names[@]}"; do
     if [[ ${#given_options[@]} -gt 0 ]]; then
-      "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" package add "${given_options[@]}" "$pkg" || any_error=1
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add "${given_options[@]}" "$pkg" || any_error=1
     else
-      "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" package add "$pkg" || any_error=1
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add "$pkg" || any_error=1
     fi
   done
   # Exit here because we want to execute them in order

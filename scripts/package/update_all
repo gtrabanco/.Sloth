@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 update_all_error() {
   [[ -n "${1:-}" ]] && output::write "Error updating ${1:-} apps. See \`dot self debug\` for view errors"

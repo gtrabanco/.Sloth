@@ -158,7 +158,7 @@ git::check_local_repo_is_updated() {
 git::sloth_repository_exec() {
   local return_code
   return_code=0
-  cd "$DOTLY_PATH" || return 1
+  cd "${SLOTH_PATH:-${DOTLY_PATH:-}}" || return 1
 
   if git::is_in_repo; then
     eval "$@"

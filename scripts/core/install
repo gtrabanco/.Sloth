@@ -3,10 +3,10 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
 
-export ZIM_HOME="$DOTLY_PATH/modules/zimfw"
+export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if platform::is_macos; then
@@ -40,7 +40,7 @@ elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
 fi
 
 output::answer "Creating dotfiles structure"
-"$DOTLY_PATH/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
 # Apply user symlinks
 output::answer "Setting up symlinks"
@@ -55,7 +55,7 @@ else
   $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
   ! $bk && symlinks_args=(--ignore-backup)
 fi
-"${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
 unset symlinks_args bk
 
@@ -95,7 +95,7 @@ fi
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
   {
-    zsh "$DOTLY_PATH/bin/dot" shell zsh reload_completions &> /dev/null &&
+    zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
 fi
@@ -119,17 +119,17 @@ output::empty_line
 output::answer '🥳 🎉 SLOTH installed sucessfully'
 
 output::answer "Trying to load .Sloth"
-if [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh" ]]; then
+if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file ".Sloth PATH's for Debugging"
 
-    if echo "$PATH" | grep -q "^${SLOTH_PATH:-$DOTLY_PATH}/bin:"; then
-      output::error "You need to add ${SLOTH_PATH:-$DOTLY_PATH}/bin to your PATH at the first place"
-      output::answer "\`export PATH=\"${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH\"\`"
+    if echo "$PATH" | grep -q "^${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:"; then
+      output::error "You need to add ${SLOTH_PATH:-${DOTLY_PATH:-}}/bin to your PATH at the first place"
+      output::answer "\`export PATH=\"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH\"\`"
       exit 1
     fi
   fi

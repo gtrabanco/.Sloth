@@ -4,12 +4,12 @@
 set -o pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 # Define variables for this script
 SLOTH_LAZY_SCRIPT_NAME="sloth_lazy_script"
 SLOTH_LAZY_SCRIPT_CONTEXT="core"
-SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-$DOTLY_PATH}/scripts/${SLOTH_LAZY_SCRIPT_CONTEXT}/${SLOTH_LAZY_SCRIPT_NAME}"
+SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${SLOTH_LAZY_SCRIPT_CONTEXT}/${SLOTH_LAZY_SCRIPT_NAME}"
 SLOTH_SCRIPT_BASE_NAME="sloth"
 
 ##? Execute lazy scripts in your dotfiles
@@ -74,7 +74,7 @@ fzf_prompt() {
       xargs -I % sh -c 'echo "$(basename $(dirname %)) $(basename %)"' |
       fzf \
         --height 100% \
-        --preview '"$DOTLY_PATH/bin/dot" $(echo {} | cut -d" " -f 1) $(echo {} | cut -d" " -f 2) -h'
+        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" $(echo {} | cut -d" " -f 1) $(echo {} | cut -d" " -f 2) -h'
   )"
 
   printf "%s" "$script"
@@ -100,7 +100,7 @@ else
 
   script_path=""
   script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
-  script_exist "${SLOTH_PATH:-$DOTLY_PATH}" "$context" "$script" && script_path="${SLOTH_PATH:-$DOTLY_PATH}"
+  script_exist "${SLOTH_PATH:-${DOTLY_PATH:-}}" "$context" "$script" && script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
   if [ -z "$script_path" ]; then
     output::error "The script <$context / $script> doesn't exist"
@@ -110,13 +110,9 @@ else
   script_full_path="${script_path}/scripts/${context}/${script}"
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
-      grep -q "docs::parse" "${script_full_path}" ||
-      grep -q "\$DOTLY_PATH/scripts/core/_main.sh" "${script_full_path}" ||
-      grep -q "\$DOTLY_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
-      grep -q "\$SLOTH_PATH/scripts/core/_main.sh" "${script_full_path}" ||
-      grep -q "\$SLOTH_PATH/scripts/core/src/_main.sh" "${script_full_path}" ||
-      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/_main.sh" "${script_full_path}" ||
-      grep -q "\${SLOTH_PATH:-\$DOTLY_PATH}/scripts/core/src/_main.sh" "${script_full_path}"
+      grep -q "^docs::parse" "${script_full_path}" ||
+      grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
+      grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
   then
     if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
       docs::parse_script "${script_full_path}" "--help"

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
 
 ##? Create the dotfiles structure
@@ -34,7 +34,7 @@ dotfiles::apply_templating() {
 }
 
 if [ ! -d "$DOTFILES_PATH/shell" ]; then
-  cp -r "$DOTLY_PATH/dotfiles_template/"* "$DOTFILES_PATH/"
+  cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "$DOTFILES_PATH/"
 
   dotfiles::apply_templating
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 DOTLY_MACOS_SETTINGS_PATH=${DOTLY_MACOS_SETTINGS_PATH:-"${DOTFILES_PATH}/os/mac/settings"}
 
@@ -27,7 +27,7 @@ case $1 in
     current_defaults_path="$(mktemp)"
     defaults read > "$current_defaults_path"
 
-    git diff -w --no-index "$DOTLY_PATH/scripts/mac/utils/macos-11.0-defaults" "$current_defaults_path" | delta --side-by-side
+    git diff -w --no-index "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/mac/utils/macos-11.0-defaults" "$current_defaults_path" | delta --side-by-side
     ;;
   "export")
     if [[ -z "${export_name:-}" ]] || { ${prompt:-false} && ! ${never_prompt:-false}; }; then
