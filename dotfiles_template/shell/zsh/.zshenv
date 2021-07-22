@@ -5,4 +5,4 @@ elif [[ -d "$DOTFILES_PATH/modules/dotly" ]]; then
   export DOTLY_PATH="$DOTFILES_PATH/modules/dotly"
 fi
 export SLOTH_PATH="$DOTLY_PATH"
-export ZIM_HOME="$SLOTH_PATH/modules/zimfw"
+export ZIM_HOME="${SLOTH_PATH:-$DOTLY_PATH}/modules/zimfw"

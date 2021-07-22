@@ -25,7 +25,7 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-#shellcheck source=/dev/null
+#shellcheck disable=SC1091
 . "${ZIM_HOME}/init.zsh"
 
 # Async mode for autocompletion
