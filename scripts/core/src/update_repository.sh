@@ -23,12 +23,11 @@ SLOTH_GITMODULES_BRANCH="${SLOTH_GITMODULES_BRANCH:-master}"
 
 SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}
 
-
 #
 # .Sloth update strategy Configuration
 #
 export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, minor, latest, or any specified version
-export SLOTH_ENV="${SLOTH_ENV:-production}"        # production or development. If you define development
+export SLOTH_ENV="${SLOTH_ENV:-production}"                   # production or development. If you define development
 # all updates must be manually or when you have a clean working directory and
 # pushed your commits.
 # This is done to avoid conflicts and lost changes.
@@ -45,7 +44,7 @@ SLOTH_UPDATE_GIT_ARGS=(
 #"
 update::sloth_repository_set_ready() {
   local remote
-  
+
   if ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && [[ -n "${url:-}" ]]; then
     git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-https://github.com/gtrabanco/sloth}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}"
   fi
@@ -56,7 +55,7 @@ update::sloth_repository_set_ready() {
 # Get which one is your current version or latest downloaded version
 #"
 update::get_current_version() {
-  git describe --tags --abbrev=0 2>/dev/null
+  git describe --tags --abbrev=0 2> /dev/null
 }
 
 #;
@@ -67,7 +66,6 @@ update::sloth_should_be_updated() {
   local IS_WORKING_DIRECTORY_CLEAN HAS_UNPUSHED_COMMITS
   git::check_unpushed_commits "$SLOTH_DEFAULT_REMOTE" "$head_branch" -C "${SLOTH_PATH:-$DOTLY_PATH}"
 }
-
 
 #;
 # update::sloth_repositry()
@@ -127,7 +125,7 @@ update::sloth_repository() {
       output::write "You have commits to be pushed, update can not be done until they have been pushed" &&
       return 1
   fi
-  
+
   # Check if working directory is not clean
   if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}; then
     ! git::is_clean "$remote" "$head_branch" "$@" &&
@@ -136,7 +134,7 @@ update::sloth_repository() {
   fi
 
   # Force unshallow by the way...
-  git fetch --unshallow &>/dev/null || true
+  git fetch --unshallow &> /dev/null || true
 
   git::pull_branch "$remote" "$head_branch" "$@" 1>&2 && output::solution "Repository has been updated"
 }
