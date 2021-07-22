@@ -25,10 +25,27 @@ _w() {
   local -r text="${1:-}"
   echo -e "$text"
 }
-_a() { _w " > $1"; }
-_e() { _a "${red}$1${normal}"; }
-_s() { _a "${green}$1${normal}"; }
-_q() { read -rp "🤔 $1: " "$2"; }
+_a() { _w " > ${*}"; }
+_e() { _a "${red}${*}${normal}"; }
+_s() { _a "${green}${*}${normal}"; }
+_q() { 
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
+    echo "🤔 ${*} : "
+    eval "$2='CI'"
+  else
+    echo -n "🤔 ${*}: "; read -r "$2"
+  fi
+}
+_yq() { 
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    _q "${*} [Y/n]"; read -r "$2"
+  else
+    echo -n "🤔 $*: "
+    echo y
+    eval "${2}=y"
+  fi
+}
+_is_y() { [[ "${*}" =~ ^[Yy] ]]; }
 
 _log() {
   log_name="$1"
@@ -70,7 +87,11 @@ _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
 _w "  └──────────────────────────────────────────┘"
 _w
 
-if [[ "$OSTYPE" =~ ^[darwin] ]] && [[ -d "$ICLOUD_PATH" ]]; then
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+  [[ "$OSTYPE" == darwin* ]] &&
+  [[ -d "$ICLOUD_PATH" ]]
+then
   _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
   if [[ "${ICLOUD_REPLY:-Y}" =~ ^[Yy] ]]; then
     IS_ICLOUD_DOTFILES=true
