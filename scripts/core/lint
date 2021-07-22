@@ -41,7 +41,7 @@ else
         shift
         ;;
       *)
-        if [[ -n "${*:-}" ]]; then
+        if [[ $# -gt 0 ]]; then
           all_files=("$@")
           shift
         fi
