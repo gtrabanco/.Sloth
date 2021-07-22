@@ -13,20 +13,28 @@ dotfiles=false
 ##?
 ##? Usage:
 ##?    static_analysis [--dotfiles | -d]
+##?    static_analysis [<files>...]
 ##?
 ##? Options:
 ##?    --help -h      Gives this help
 ##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
 ##?
-##? SCRIPT_VERSION 2.0.0
-if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" = "--help" ]]; then
+##? SCRIPT_VERSION 2.1.0
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" = "--help" ]] || package::is_installed "docpars"; then
   docs::parse "$@"
 elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
   dotfiles=true
+  shift
+
+  if [[ $# -gt 0 ]]; then
+    files=("$@")
+  fi
 fi
 script::depends_on shellcheck
 
-if ${dotfiles:-false}; then
+if [[ -n "${files[*]:-}" ]]; then
+  printf "%s\n" "${files[@]}" | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+elif ${dotfiles:-false}; then
   dotly::list_dotfiles_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
 else
   dotly::list_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
