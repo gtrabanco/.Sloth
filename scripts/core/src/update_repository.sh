@@ -1,116 +1,142 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2034
 
-# https://github.com/Homebrew/brew/blob/master/Library/Homebrew/cmd/update.sh
+# TODO Add variables to export and document the variables below.
 
-update_repository::upstream_branch() {
-  local upstream_branch
+# Maybe this should be in a different file or provide them in exports.sh
+# .Sloth will be always a submodule so we need that configuration for update
+SLOTH_SUBMODULES_DIRECTORY="$(realpath -qms --relative-to="$DOTFILES_PATH" "${SLOTH_PATH:-$DOTLY_PATH}")"
+SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
+SLOTH_GITMODULES_URL="$(git::get_submodule_property "${DOTFILES_PATH:-}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "url")"
+SLOTH_GITMODULES_URL="${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}"
+SLOTH_GITMODULES_BRANCH="$(git::get_submodule_property "${DOTFILES_PATH:-}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "branch")"
+SLOTH_GITMODULES_BRANCH="${SLOTH_GITMODULES_BRANCH:-master}"
 
-  upstream_branch="$(git::get_remote_head_upstream_branch "$@")"
-  if [[ -z "${upstream_branch}" ]]; then
-    git::git "$@" remote set-head origin --auto > /dev/null
-    upstream_branch="$(git::get_remote_head_upstream_branch "$@")"
+# Defaults values if no values are provided
+[[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/sloth"
+[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git@github.com:gtrabanco/sloth.git"
+[[ -z "${SLOTH_DEFAULT_REMOTE:-}" ]] && readonly SLOTH_DEFAULT_REMOTE="origin"
+# SLOTH_DEFAULT_BRANCH is not the same as SLOTH_GITMODULES_BRANCH
+# SLOTH_GITMODULES_BRANCH is the branch we want to use if we are using always latest version
+# SLOTH_GITMODULES_BRANCH is the HEAD branch of remote repository were Pull Request are merged
+[[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
+
+SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}
+
+
+#
+# .Sloth update strategy Configuration
+#
+export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, minor, latest, or any specified version
+export SLOTH_ENV="${SLOTH_ENV:-production}"        # production or development. If you define development
+# all updates must be manually or when you have a clean working directory and
+# pushed your commits.
+# This is done to avoid conflicts and lost changes.
+# For development all other configuration will be ignored and every time it
+# can be updated you will get the latest version.
+
+SLOTH_UPDATE_GIT_ARGS=(
+  -C "${SLOTH_PATH:-$DOTLY_PATH}"
+)
+
+#;
+# update::sloth_repository_set_ready()
+# Default repository initilisation and first fetch if is not ready to have updates
+#"
+update::sloth_repository_set_ready() {
+  local remote
+  
+  if ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && [[ -n "${url:-}" ]]; then
+    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-https://github.com/gtrabanco/sloth}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}"
   fi
-  upstream_branch="${upstream_branch#origin/}"
-  [[ -z "${upstream_branch}" ]] && upstream_branch="master"
-  echo "${upstream_branch}"
 }
 
-# All ways of update must check if the update is allowed before except Option 3 which force updates
+#;
+# update::get_current_version()
+# Get which one is your current version or latest downloaded version
+#"
+update::get_current_version() {
+  git describe --tags --abbrev=0 2>/dev/null
+}
 
-# Update fully a local repository Option 1: Soft, this is a dev friendly only with latest branch
-# When update starts should ask user if the working dir is not clean to use this method
-
-# 1. Make a git stash of current workdir
-# 1.1. Check if there are untracked files
-# 1.2. Check if there are no staged changes
-# 1.3. Check if there are no commited changes
-#      git add -A && git stash -u will adds everyting
-# 1.9 Check if repository is a shallow by checkign .git/shallow file exists
-#     If it is a shallow, unshallow by executing:
-#     git fetch --unsallow
-# 2 & 3. Clone & track all remote branches
-# 4. Change to the the remote HEAD branch in local and set it up as tracked branch
-# 5. git fetch --all
-# 6. In every branch that is locally and remotely perform a git pull
-#    git pull --ff-only to avoid merge remote branch if conflicts (it will return an error if this happen)
-# 7. Restore to stating branch
-# 8. git stash pop if has something to be stashed but needs to resolve possible conflicts
-#   8.1 stash_pop_info="$(git stash apply)"
-#   8.2 Check any conflic: echo "$stash_pop_info" | grep -qi '^CONFLICT'
-#   8.3 If no conflict execute: git stash drop
-#   8.4 If user had the working dir clean? set current branch as remote head branch or keeps the user branch?
-# 9. If previous step has conflicts say it to the user
-# 10. Show message next time terminal is open in async or now in sync mode
-
-# git::update_repository will do steps from 2 to 6
-
-# Update fully a local repository Option 2: normal way
-# This way should be used if working dir is clean
-
-# 1. Check if the working directory is clean, if it is no clean stop the update else, continue
-# 1.1 Check if repository is shallow
-# 2. Set and track remote HEAD branch locally
-# 3. git fetch --all
-# 4. git pull --force
-# 5. Set to right version if stable, or minor
-# 6. Show message next time terminal is open in async or now in sync mode
-
-
-# Update fully a local repository Option 3: forced way
-# This way should be used if working dir is not clean, this can be done using steps 1 to 
-
-# 1. Check if the working directory is clean, if it is no clean stop the update else, continue
-# 1.1 Check if repository is shallow
-# 2. Set and track remote HEAD branch locally
-# 3. git fetch --all
-# 4. git pull --force
-# 5. Set to right version if stable, or minor
-# 6. Show message next time terminal is open in async or now in sync mode
-
+#;
+# update::sloth_should_be_updated()
+# Check if we should update based on the configured SLOTH_UPDATE_VERSION and SLOTH_ENV. This takes care in production about pending commits and clean working directory as described in the comments for SLOTH_DEV
+#"
+update::sloth_should_be_updated() {
+  local IS_WORKING_DIRECTORY_CLEAN HAS_UNPUSHED_COMMITS
+  git::check_unpushed_commits "$SLOTH_DEFAULT_REMOTE" "$head_branch" -C "${SLOTH_PATH:-$DOTLY_PATH}"
+}
 
 
 #;
-# update::sloth_repository()
-# Update a local git repository if it has changes
-# @param string repository_path
-# @param string branch
-# @param string repository_url
+# update::sloth_repositry()
+# Gracefully update repository to the latest version. Use defined vars in top as default values if no one is provided. If UPDATE_REPOSITORY_FORCE_UPDATE is set to true, it will discard any changes in the local repository and force update (even pending commits).
+# @param string remote
+# @param string url Default url for the remote to be configured if not exists
+# @param string branch Default branch for the remote to be configured if not exists
+# @param any args Additional arguments to pass to git command
 #"
 update::sloth_repository() {
-  local workdir_is_clean upstream_branch=""
-  local _git_args branch repository_url
-
-  DEFAULT_SUBMODULE_NAME="${DEFAULT_SUBMODULE_NAME:-sloth}"
-  DEFAULT_REPOSITORY_URL="${DEFAULT_REPOSITORY_URL:-$(git::get_submodule_property "${DEFAULT_SUBMODULE_NAME:-sloth}" "url")}"
-  DEFAULT_REPOSITORY_BRANCH="${DEFAULT_REPOSITORY_BRANCH:-$(git::get_submodule_property "${DEFAULT_SUBMODULE_NAME:-sloth}" "branch")}"
-
+  local url default_branch head_branch
   case $# in
     0)
-      branch="$DEFAULT_REPOSITORY_BRANCH"
-      repository_url="$DEFAULT_REPOSITORY_URL"
-      _git_args=(-C "${SLOTH_PATH:-$DOTLY_PATH}")
+      remote="${SLOTH_DEFAULT_REMOTE:-origin}"
       ;;
     1)
-      branch="$DEFAULT_REPOSITORY_BRANCH"
-      repository_url="$DEFAULT_REPOSITORY_URL"
-      _git_args=(-C "$1")
-      shift
+      local -r remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
+      [[ -n "${1:-}" ]] && shift
       ;;
     2)
-      branch="$2"
-      repository_url="$DEFAULT_REPOSITORY_URL"
-      _git_args=(-C "$1")
+      local -r remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
+      url="${2:-}"
       shift 2
       ;;
     *)
-      branch="$2"
-      repository_url="$3"
-      _git_args=(-C "$1")
+      local -r remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
+      url="${2:-}"
+      default_branch="${3:-}"
       shift 3
       ;;
   esac
 
-  # Add all other arguments for git
-  _git_args+=("$@")
-  upstream_branch="$()"
+  url="${url:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-}}}"
+  default_branch="${default_branch:-${SLOTH_DEFAULT_BRANCH:-master}}"
+  default_branch="${remote}/${default_branch}"
+
+  if ! git::check_remote_exists "$remote" "$@" && [[ -n "${url:-}" ]]; then
+    git::init_repository_if_necessary "$url" "$remote" "${SLOTH_DEFAULT_BRANCH:-master}"
+  fi
+  ! git::check_remote_exists "$remote" "$@" && output::error "Remote \`${remote}\` does not exists" && return 1
+
+  # Automatic convert windows git crlf to lf
+  git::git "$@" config --bool core.autcrl false
+
+  # Get remote HEAD branch
+  head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
+  if [[ -z "$head_branch" ]]; then
+    git::set_remote_head_upstream_branch "$remote" "$default_branch" "$@"
+    head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
+
+    [[ -z "$head_branch" ]] && output::error "Remote \`${remote}\` does not have a default branch and \`${default_branch}\` could not be set" && return 1
+  fi
+
+  # Check if current branch has something to push
+  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}; then
+    git::check_unpushed_commits "$remote" "$head_branch" "$@" &&
+      output::write "You have commits to be pushed, update can not be done until they have been pushed" &&
+      return 1
+  fi
+  
+  # Check if working directory is not clean
+  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}; then
+    ! git::is_clean "$remote" "$head_branch" "$@" &&
+      output::write "Working directory is not clean, update can not be done until you have commited and pushed your changes" &&
+      return 1
+  fi
+
+  # Force unshallow by the way...
+  git fetch --unshallow &>/dev/null || true
+
+  git::pull_branch "$remote" "$head_branch" "$@" 1>&2 && output::solution "Repository has been updated"
 }
