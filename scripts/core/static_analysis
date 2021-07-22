@@ -6,9 +6,6 @@ set -euo pipefail
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
 
-# Default values
-dotfiles=false
-
 ##? Static analysis of all sloth/dotly related bash files
 ##?
 ##? Usage:
@@ -32,7 +29,7 @@ elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
 fi
 script::depends_on shellcheck
 
-if [[ -n "${files[*]:-}" ]]; then
+if [[ ${#files[@]} -gt 0 ]]; then
   printf "%s\n" "${files[@]}" | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
 elif ${dotfiles:-false}; then
   dotly::list_dotfiles_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
