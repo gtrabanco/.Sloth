@@ -41,6 +41,11 @@ jobs:
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
+      - name: ZSH Speed test
+        run: |
+          ! command -v zsh &>/dev/null && exit
+          zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOT_PATH}/bin/dot\" shell zsh test_performance"
+
       - name: Debug
         if: ${{ always() }}
         run: |
