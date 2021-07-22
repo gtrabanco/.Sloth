@@ -173,7 +173,23 @@ git::remote_branch_exists() {
     remote="origin"
   fi
 
+  ! git::check_remote_exists "$remote" "$@" && return 1
+
   [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2>/dev/null)" ]]
+}
+
+#;
+# git::local_branch_exists()
+# Check if branch exists in local repository
+# @param string branch
+# @param any args Additional arguments that will be passed to git
+# @return boolean
+#"
+git::local_branch_exists() {
+  local -r branch="${1:-}"
+  [[ -n "$branch" ]] && shift
+
+  git::git "$@" show-ref --verify --quiet "refs/heads/${branch}"
 }
 
 #;
@@ -242,6 +258,7 @@ git::count_different_commits_with_remote_branch() {
 #"
 git::check_current_branch_is_behind() {
   # git status --ahead-behind | head -n2 | tail -n1 | awk '{NF--; print $4"\n"$NF}'
+  git::git "$@" fetch --quiet --all --tags
   [[ $(git::git "$@" status --ahead-behind 2>/dev/null | head -n2 | tail -n1 | awk '{print $4}') == "behind" ]]
 }
 
@@ -250,12 +267,14 @@ git::check_current_branch_is_behind() {
 # Get which is the branch or the remote head if any
 # @param string remote Optional, by default is "origin"
 # @param any args Additional arguments that will be passed to git command
-# @return string|false
+# @return string|void
 #"
 git::get_remote_head_upstream_branch() {
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2>/dev/null
+
+  ! git::check_remote_exists "$remote" "$@" && return
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2>/dev/null || return
 }
 
 #;
@@ -277,7 +296,7 @@ git::set_remote_head_upstream_branch() {
     branch="master"
   fi
 
-  git::git "$@" remote set-head "$remote" master
+  git::git "$@" remote set-head "$remote" "$branch"
 }
 
 #;
@@ -335,23 +354,8 @@ git::check_working_dir_is_clean() {
 }
 
 #;
-# git::check_is_shallow()
-# Check if a repository is a shallow repository
-#"
-git::check_is_shallow() {
-  [[ -f "${1:-}/.git/shallow" ]]
-}
-
-#;
-# git::unshallow()
-#"
-git::unshallow() {
-  git::git "$@" fetch --unsallow 1>&2
-}
-
-#;
 # git::clone_track_branch()
-# Clone and track a remote branch
+# Clone and track a remote branch. Makes a forced checkout to that branch.
 # @param string remote If no second parameter is give, this will be the branch
 # @param string branch
 #"
@@ -373,16 +377,22 @@ git::clone_track_branch() {
   ! git::check_remote_exists "$remote" "$@" && return 1
   [[ -z "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" checkout -t "remotes/${remote}/${branch}" 1>&2
   [[ -n "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
+  git::git "$@" checkout --force "${branch}"
 }
 
 #;
 # git::clone_branches()
 # Bulk clone of remote branches
+# @param string remote Should exists
+# @param any args Additional arguments that will be passed to git clone
+# @return boolean
 #"
 git::clone_branches() {
   local remote_branch branch
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
+  
+  ! git::git "$@" remote get-url "$remote" &> /dev/null && return 1
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
@@ -395,30 +405,6 @@ git::clone_branches() {
 #"
 git::current_branch_is_tracked() {
   git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
-}
-
-#;
-# git::update_repositry()
-# Update repository to the latest version discarding local changes and not commited changes
-# @param string remote
-# @param string branch
-# @param any args Additional arguments to pass to git command
-#"
-git::update_repository() {
-  local -r remote="${1:-origin}"
-  local -r branch="${2:-master}"
-
-  case $# in
-    2)  shift 2  ;;
-    1)  shift    ;;
-  esac
-  
-  git::git "$@" clean -f -q 1>&2
-  git::clone_track_branch "$remote" "$branch" "$@"
-  git::git "$@" fetch --all --tags --force 1>&2
-  git::git "$@" reset --hard "${remote}/${branch}" 1>&2
-  git::git "$@" pull --all -s recursive -X theirs 1>&2
-  git::git "$@" reset --hard 1>&2
 }
 
 #;
@@ -447,27 +433,81 @@ git::pull_branch() {
       ;;
   esac
 
+  # Check if remote branch exists
+  git::remote_branch_exists "$remote" "$branch" "$@" || return 1
+
+  # Check if current branch is the same we want to pull and discard any change in the current branch if there are any
+  if [[ $(git::current_branch "$@") != "${branch}" ]]; then
+    git::git "$@" clean -f -q 1>&2
+    git::git "$@" reset --hard HEAD 1>&2
+    git::git "$@" checkout "${branch}" 1>&2
+  fi
+
+  # Clone and track the remote branch to make sure we have the branch
+  git::clone_track_branch "$remote" "$branch" "$@" 1>&2
+  git::git "$@" checkout --force "$branch" 1>&2
   git::git "$@" reset --hard "${remote}/${branch}" 1>&2
-  git::clone_track_branch "$remote" "$branch" "$@" 1>&2 # I know it is not necessary but I want to make it explicit
-  git::git "$@" checkout --force 
+  git::git "$@" fetch --all --tags --force 1>&2
   git::git "$@" pull --all -s recursive -X theirs 1>&2
+  git::git "$@" reset --hard HEAD 1>&2
 }
 
 #;
 # git::repository_pull_all()
 # Make a pull in all branches of a repository. It also track all branches.
 # @param string remote
-# @param string branch Default branch. If not will try to get from remote
 # @param any args Additional arguments to pass to git command
 #"
 git::repository_pull_all() {
   local -r remote="${1:-origin}"
-  [[ -n "${1:-}" ]] && shift
+
+  ! git::check_remote_exists "$remote" "$@" && return 1
+
+  git::git "$@" clean -f -q 1>&2
+  git::git "$@" reset --hard HEAD 1>&2
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
     git::clone_track_branch "$remote" "$branch" "$@" 1>&2
+    git::git "$@" checkout --force "$branch" 1>&2
     git::git "$@" reset --hard "${remote}/${branch}" 1>&2
     git::git "$@" pull --all -s recursive -X theirs 1>&2
+    git::git "$@" reset --hard HEAD 1>&2
   done
+}
+
+#;
+# git::init_repository_if_necessary()
+# Initialize a git repository only if necessary only
+# @param string url Mandatory if git::is_in_repo fails
+# @param string remote origin by default
+# @param string branch master by default. Only used if not any branch
+# @param any args Additional arguments to pass to git command. Url, remote and branch arguments are mandatory if you want to pass arguments to git.
+#"
+git::init_repository_if_necessary() {
+  local head_branch
+  local -r url="${1:-}"
+  local -r remote="${2:-origin}"
+  local -r branch="${3:-master}"
+  [[ -n "${url}" ]] && shift
+  [[ -n "${1:-}" ]] && shift
+  [[ -n "${1:-}" ]] && shift
+  git::is_in_repo "$@" && return
+
+  if ! git::is_in_repo "$@" && [[ -n "$url" ]]; then
+    git::git "$@" config "remote.${remote}.url" "$url" 1>&2
+    git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
+    git::git "$@" fetch --force --tags "$remote" 1>&2
+    git::git "$@" remote set-head "$remote" --auto &> /dev/null 1>&2
+    head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
+
+    if [[ -z "$head_branch" ]]; then
+      head_branch="${remote}/${branch}"
+      git::set_remote_head_upstream_branch "$remote" "$head_branch" "$@" 1>&2
+    fi
+
+    git::git "$@" reset --hard "${head_branch}" 1>&2
+  else
+    return 1
+  fi
 }
