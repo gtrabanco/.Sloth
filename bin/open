@@ -4,23 +4,24 @@
 SCRIPT_PATH="$(cd -- "$(dirname "$0")" && pwd -P)"
 FULL_SCRIPT_PATH="$SCRIPT_PATH/$(basename "$0")"
 
+# I know this could be done with command -p, but I want to use any other defined binary and not any
+# other function and not only system default PATH. With this you can write your own open command in
+# your dotfiles if you want to :D emoji :smile: 
 readarray -c 1 -t all_open_bin < <(type -a open | sed 's/open is //g' | grep -v "$FULL_SCRIPT_PATH")
 OPEN_BIN=""
-if [[ "${#all_open_bin[@]}" -gt 0 ]]; then
+if [[ "${#all_open_bin[@]}" -gt 0 && -x "${all_open_bin[0]}" ]]; then
   OPEN_BIN="${all_open_bin[0]}"
 fi
-
-os="$(echo "${SLOTH_OS:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')"
 
 if [[ -x "$OPEN_BIN" ]]; then
   "$OPEN_BIN" "$@"
 else
+  os="$(echo "${SLOTH_OS:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')"
+  
   case "$os" in
-    Linux*)
+    linux*)
       if grep -q Microsoft /proc/version; then
         cmd.exe /C start "$@"
-      elif [[ -n "$OPEN_BIN" && -x "$OPEN_BIN" ]]; then
-        "$OPEN_BIN" "$@"
       elif ! which xdg-open | grep 'not found'; then
         xdg-open "$@"
       elif ! which gnome-open | grep 'not found'; then
