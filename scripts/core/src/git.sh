@@ -99,16 +99,32 @@ git::check_remote_exists() {
 git::check_unpushed_commits() {
   local -r remote="${1:-origin}"
   local -r branch="${2:-master}"
-  [[ -n "${1:-}" ]] && shift
+  case $# in
+    1)  shift    ;;
+    0)           ;;
+    *)  shift 2  ;;
+  esac
   git::git "$@" cherry -v "${remote}/${branch}" &> /dev/null
 }
 
 #;
-# git::check_is_clean()
-# Checks if the repository has local changes
+# git::is_clean()
+# Checks if the repository has local changes even if they were commited
+# @param string remote Optional remote, use "origin" as default
+# @param string branch Optional branch, use "master" as default
+# @param any args Additional git command args. Mandatory to pass previous two arguments (remote & branch) to give arguments to git command.
+# @return boolean
 #"
-git::check_is_clean() {
-  git::git "$@" status --porcelain | grep -q '^[^U]\?\?\?\?'
+git::is_clean() {
+  local -r remote="${1:-origin}"
+  local -r branch="${2:-master}"
+  case $# in
+    1)  shift    ;;
+    0)           ;;
+    *)  shift 2  ;;
+  esac
+  
+  [[ $(git::git "$@" status --porcelain | wc -l) -eq 0 ]] && git::git "$@" diff --quiet --exit-code "${remote}/${branch}" &> /dev/null
 }
 
 #;
@@ -355,7 +371,7 @@ git::clone_track_branch() {
   fi
 
   ! git::check_remote_exists "$remote" "$@" && return 1
-  [[ -z "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" checkout -t "$remote_branch" 1>&2
+  [[ -z "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" checkout -t "remotes/${remote}/${branch}" 1>&2
   [[ -n "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
 }
 
@@ -403,6 +419,38 @@ git::update_repository() {
   git::git "$@" reset --hard "${remote}/${branch}" 1>&2
   git::git "$@" pull --all -s recursive -X theirs 1>&2
   git::git "$@" reset --hard 1>&2
+}
+
+#;
+# git::pull_branch()
+# Pull a branch without fetching it
+# @param string remote
+# @param string branch
+# @param any args Additional arguments to pass to git command
+#"
+git::pull_branch() {
+
+  case $# in
+    1)
+      local -r remote="origin"
+      local -r branch="${1:-master}"
+      shift
+      ;;
+    0)
+      local -r remote="origin"
+      local -r branch="master"
+      ;;
+    *)
+      local -r remote="${1:-origin}"
+      local -r branch="${2:-master}"
+      shift 2
+      ;;
+  esac
+
+  git::git "$@" reset --hard "${remote}/${branch}" 1>&2
+  git::clone_track_branch "$remote" "$branch" "$@" 1>&2 # I know it is not necessary but I want to make it explicit
+  git::git "$@" checkout --force 
+  git::git "$@" pull --all -s recursive -X theirs 1>&2
 }
 
 #;
