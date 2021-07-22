@@ -362,30 +362,10 @@ package::install_recipe_first() {
 }
 
 #;
-# package::_uninstall()
-# Private helper to uninstall a package
-# @param string package_manager
-# @param string package_name
-# @param any args Additional arguments to be passed to the uninstall function
-# @return boolean True if uninstalled and false if still installed
-#"
-package::_uninstall() {
-  [[ $# -lt 2 ]] && return 1
-  local -r package_manager="$1"
-  local -r package_name="$2"
-  shift 2
-  if [[ -n "$(registry::recipe_exists "$package_name")" ]] && registry::command_exists "$package_name" "uninstall"; then
-    registry::command "$package_name" "uninstall" "$@" && ! registry::is_installed "$package_name"
-  elif package::command_exists "$package_manager" "uninstall"; then
-    package::command "$package_manager" "uninstall" "$package_name" "$@" && ! package::is_installed "$package_name"
-  fi
-}
-
-#;
 # package::uninstall()
 # Uninstall the given package, if second parameter is given it will try do it with package manager
 # @param string package_name
-# @param string package_manager Optional, if not provided will try to look up which package manager should be used
+# @param string package_manager Optional, if not provided will try to look up which package manager should be used. If you set to auto it will try to uninstall with any available package manager ignoring registry (recipes).
 # @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
 # @return boolean True if uninstalled and false if still installed
 #"
@@ -400,6 +380,7 @@ package::uninstall() {
 
   if
     [[ -z "$package_manager" || "$package_manager" == "registry" || "$package_manager" == "recipe" ]] &&
+      [[ $package_manager != "auto" ]] &&
       [[ -f "$recipe_path" ]] &&
       registry::command_exists "$package_name" "uninstall"
   then
