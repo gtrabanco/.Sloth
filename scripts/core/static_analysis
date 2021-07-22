@@ -6,6 +6,9 @@ set -euo pipefail
 . "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
 dot::load_library "dotly.sh"
 
+# Default value
+files=()
+
 ##? Static analysis of all sloth/dotly related bash files
 ##?
 ##? Usage:
