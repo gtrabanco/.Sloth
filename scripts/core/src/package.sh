@@ -269,6 +269,7 @@ package::_install() {
   package="${2:-}"
 
   [[ -z "$package_manager" || -z "$package" ]] && return 1
+  shift 2
 
   if
     package::command_exists "$package_manager" "is_available" &&
@@ -281,7 +282,7 @@ package::_install() {
     if
       ! package::command "$package_manager" "is_installed" "$package"
       package::command "$package_manager" "package_exists" "$package" &&
-        package::command "$package_manager" "install" "$package"
+        package::command "$package_manager" "install" "$package" "$@"
     then
       package::command "$package_manager" "is_installed" "$package" && return
     fi
@@ -295,7 +296,7 @@ package::_install() {
       package::command "$package_manager" "is_available"
   then
 
-    package::command "$package_manager" "install" "$package" &&
+    package::command "$package_manager" "install" "$package" "$@" &&
       package::command_exists "$package_manager" "is_installed" &&
       return
 
@@ -309,17 +310,41 @@ package::_install() {
 # Try to install with any available package manager, but if you provided a package manager (second param) it will only try to use that package manager. This avoids to install from registry recipe (use package::install_recipe_first).
 # @param string package Package to install
 # @param string package_manager Force to use only package manager if define this param
+# @param any args Arguments for package manager wrapper
 # @return boolen
 #"
 package::install() {
   local all_available_pkgmgrs uniq_values package_manager package
   [[ -z "${1:-}" ]] && return 1
   package="$1"
+  shift
+  package_manager="${1:-}"
 
-  if [[ -n "${2:-}" ]]; then
-    package_manager="$2"
-    package::_install "$package_manager" "$package"
-    return $?
+  # Allow to use recipe(s) instead of registry
+  [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
+
+  if
+    [[ 
+      -n "$package_manager" &&
+      $package_manager != "auto" ]]
+  then
+
+    if [[ -n "$(package::manager_exists "$package_manager")" ]]; then
+      shift
+      package::_install "$package_manager" "$package" "$@"
+    else
+      output::error "Package manager not found"
+      return 1
+    fi
+  elif
+    [[ 
+      $package_manager != "auto" &&
+      -n "$(registry::recipe_exists "$package_name")" ]]
+  then
+
+    [[ -n "$package_manager" ]] && shift
+
+    registry::install "$package_name" "$@" && registry::is_installed "$package_name" "$@"
   else
     if platform::command_exists readarray; then
       readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
@@ -329,35 +354,20 @@ package::install() {
     fi
     eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
+    [[ -n "$package_manager" ]] && shift
+
     # Try to install from package managers precedence
     for package_manager in "${uniq_values[@]}"; do
       if
         [[ -n "$(package::manager_exists "$package_manager")" ]] &&
           package::load_manager "$package_manager" &&
-          package::_install "$package_manager" "$package"
+          package::_install "$package_manager" "$package" "$@"
       then
         return
       fi
     done
 
     return 1
-  fi
-}
-
-#;
-# package::install_recipe_first()
-# Try to install package with recipe and if not use package::install()
-# @param string package_name
-# @param string package_manager Only used if there is no recipe
-# @return boolen
-#"
-package::install_recipe_first() {
-  local -r package_name="${1:-}"
-  local -r package_manager="${2:-}"
-  if [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
-    registry::install "$package_name" && registry::is_installed "$package_name"
-  else
-    package::install "$package_name" "$package_manager"
   fi
 }
 
