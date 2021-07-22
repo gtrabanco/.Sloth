@@ -339,12 +339,12 @@ package::install() {
   elif
     [[ 
       $package_manager != "auto" &&
-      -n "$(registry::recipe_exists "$package_name")" ]]
+      -n "$(registry::recipe_exists "$package")" ]]
   then
 
     [[ -n "$package_manager" ]] && shift
 
-    registry::install "$package_name" "$@" && registry::is_installed "$package_name" "$@"
+    registry::install "$package" "$@" && registry::is_installed "$package" "$@"
   else
     if platform::command_exists readarray; then
       readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
