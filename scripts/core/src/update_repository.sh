@@ -5,7 +5,7 @@
 
 # Maybe this should be in a different file or provide them in exports.sh
 # .Sloth will be always a submodule so we need that configuration for update
-SLOTH_SUBMODULES_DIRECTORY="$(realpath -qms --relative-to="$DOTFILES_PATH" "${SLOTH_PATH:-$DOTLY_PATH}")"
+SLOTH_SUBMODULES_DIRECTORY="$(realpath -qms --relative-to="$DOTFILES_PATH" "${SLOTH_PATH:-${DOTLY_PATH:-}}")"
 SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
 SLOTH_GITMODULES_URL="$(git::get_submodule_property "${DOTFILES_PATH:-}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "url")"
 SLOTH_GITMODULES_URL="${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}"
@@ -35,7 +35,7 @@ export SLOTH_ENV="${SLOTH_ENV:-production}"                   # production or de
 # can be updated you will get the latest version.
 
 SLOTH_UPDATE_GIT_ARGS=(
-  -C "${SLOTH_PATH:-$DOTLY_PATH}"
+  -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
 )
 
 #;
@@ -64,7 +64,7 @@ update::get_current_version() {
 #"
 update::sloth_should_be_updated() {
   local IS_WORKING_DIRECTORY_CLEAN HAS_UNPUSHED_COMMITS
-  git::check_unpushed_commits "$SLOTH_DEFAULT_REMOTE" "$head_branch" -C "${SLOTH_PATH:-$DOTLY_PATH}"
+  git::check_unpushed_commits "$SLOTH_DEFAULT_REMOTE" "$head_branch" -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
 }
 
 #;
