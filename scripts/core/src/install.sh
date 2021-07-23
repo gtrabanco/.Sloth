@@ -46,11 +46,11 @@ install_macos_custom() {
     fi
   fi
 
-  custom::install coreutils findutils gnu-sed python3-pip
+  custom::install bash zsh coreutils findutils gnu-sed python3-pip
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh gnutls gnu-tar gnu-which gawk grep make hyperfine docpars zsh fzf python-yq jq
+    custom::install gnutls gnu-tar gnu-which gawk grep make hyperfine docpars zsh fzf python-yq jq
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
@@ -108,11 +108,11 @@ install_linux_custom() {
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install python3-pip build-essential coreutils findutils
+  custom::install bash zsh hyperfine docpars python3-pip build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh hyperfine docpars zsh fzf python-yq jq
+    custom::install fzf python-yq jq
 
     # Required packages output an error
     if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then

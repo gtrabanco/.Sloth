@@ -195,6 +195,7 @@ export DOTFILES_PATH
 
 dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
+export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Backup if currently there are any dotfiles and prepare parent directory
 if [[ -d "$DOTFILES_PATH" ]] && ! ${continue:-}; then
@@ -342,7 +343,7 @@ _w "Please be patient this could take some time...🙏"
 # Installing default sloth/dotly tools
 PATH="$PATH:/usr/local/bin:$HOME/.cargo/bin"
 sudo -v
-"$DOTLY_PATH/bin/dot" core install || {
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core install || {
   _e "SLOTH/Dotly Could not be installed but your dotfiles are restored. Use:"
   _e "  tail -f $HOME/dotly.log"
   _e "To know what happened and where is the point of failure"
@@ -356,7 +357,7 @@ if [[ "${USER_IMPORT_PACKAGES:-Y}" =~ ^[Yy] ]]; then
   _w "Importing your packages"
   _w "This can take a very long time, be patient...🙏"
   {
-    "$DOTLY_PATH/bin/dot" package import > /dev/null 2>&1 | _log "Importing user packages" &&
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package import > /dev/null 2>&1 | _log "Importing user packages" &&
       _a "Packages imported 👏" &&
       _w
   } || {
@@ -377,7 +378,7 @@ if [[ "$OSTYPE" =~ ^[darwin] ]]; then
   _q "⚙️ Do you want to import stored macOS configuration? [y/N]" "USER_OSX_SETTINGS"
   {
     [[ "${USER_OSX_SETTINGS:-N}" =~ ^[Yy] ]] &&
-      "$DOTLY_PATH/bin/dot" mac defaults import > /dev/null 2>&1 | _log "Importing macOS user defaults" &&
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" mac defaults import > /dev/null 2>&1 | _log "Importing macOS user defaults" &&
       _w "⚙️ Mac defaults imported 🤙" &&
       _w
   } || {

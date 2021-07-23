@@ -3,12 +3,12 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${DOTLY_PATH:-$SLOTH_PATH}/scripts/core/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
 dot::load_library "dotbot.sh"
 
 symlinks::get_files() {
-  [[ -d "$DOTLY_PATH/symlinks" ]] &&
-    find "$DOTLY_PATH/symlinks" -name "*.yaml" -type f,l -print0 |
+  [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks" ]] &&
+    find "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks" -name "*.yaml" -type f,l -print0 |
     xargs -0 -I _ basename _ | sort
 }
 
@@ -47,7 +47,7 @@ fi
 if [[ -z "$symlinks_file" ]]; then
   symlinks_file="$(symlinks::get_files | symlinks::fzf)"
   [[ -z "$symlinks_file" ]] && exit 0
-  symlinks_file="$DOTLY_PATH/symlinks/$symlinks_file"
+  symlinks_file="${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/$symlinks_file"
 else
   for f in "$symlinks_file" "$symlinks_file.yaml" "$symlinks_file.yml"; do
     [[ -e "$f" ]] && symlinks_file="$f" && break

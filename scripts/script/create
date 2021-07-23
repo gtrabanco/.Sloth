@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-$DOTLY_PATH}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh"
 
 is_valid_name() {
@@ -35,7 +35,7 @@ is_valid_name() {
 ##?   -s --sample        Create a script using more complete example with some comments.
 ##?                      useful if it is your first script. Anyway you can see more help
 ##?                      in the docopt website: http://docopt.org
-##?   -c --core          Create the context and script in "$DOTLY_PATH/scripts" instead of
+##?   -c --core          Create the context and script in "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" instead of
 ##?                      your "$DOTFILES_PATH/scripts" folder
 ##?   -d --dotly         Generate a Dotly compatible script
 ##?   --author <author>  Provide who is the author, if none the default git author will
@@ -85,7 +85,7 @@ case "${1:-}" in
     printf "set -euo pipefail\n\n" >> "$new_script_path"
     printf "#shellcheck disable=SC1091\n" >> "$new_script_path"
     #shellcheck disable=SC2016
-    printf '. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"\n' >> "$new_script_path"
+    printf '. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"\n' >> "$new_script_path"
 
     chmod u+x "$new_script_path"
 
@@ -130,7 +130,7 @@ case "${1:-}" in
       output::empty_line
       output::yesno "Are you sure you still want to coninue" "N" || { output::answer "User aborted" && exit 1; }
 
-      script_path="$DOTLY_PATH/scripts/$context"
+      script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context"
     else
       script_path="$DOTFILES_PATH/scripts/$context"
     fi

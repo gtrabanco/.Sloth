@@ -25,7 +25,7 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-#shellcheck source=/dev/null
+#shellcheck disable=SC1091
 . "${ZIM_HOME}/init.zsh"
 
 # Async mode for autocompletion
@@ -49,9 +49,9 @@ if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
 fi
 
 
-SLOTH_THEME="${SLOTH_THEME:-DOTLY_THEME}"
+SLOTH_THEME="${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
 autoload -Uz promptinit && promptinit
-prompt "${SLOTH_THEME:-codely}"
+prompt "$SLOTH_THEME"
 
 #shellcheck source=/dev/null
 . "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"

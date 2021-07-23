@@ -3,10 +3,10 @@
 set -uo pipefail
 set +e # Avoid crash if any function return false
 
-[[ -z "$SLOTH_PATH" ]] && exit 1
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "$SLOTH_PATH/scripts/core/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
 dot::load_library "templating.sh"
 dot::load_library "update.sh"
 

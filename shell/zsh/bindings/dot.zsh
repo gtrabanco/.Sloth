@@ -1,5 +1,5 @@
 dot-widget() {
-  "$DOTLY_PATH/bin/dot"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"
 }
 
 zle -N dot-widget

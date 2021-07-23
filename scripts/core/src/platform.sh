@@ -128,8 +128,8 @@ platform::semver() {
   local SEMVER_BIN=""
   if command -v semver &> /dev/null; then
     SEMVER_BIN="$(command -v "semver")"
-  elif [[ -f "${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver" ]]; then
-    SEMVER_BIN="${SLOTH_PATH:-$DOTLY_PATH}/modules/semver-tool/src/semver"
+  elif [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver" ]]; then
+    SEMVER_BIN="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver"
   else
     return 1
   fi

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "dotbot.sh"
 dot::load_library "symlinks.sh"
 
@@ -162,7 +162,7 @@ yaml_files=()
 tmp_yaml_files=()
 backup_type="ignore"
 backup_suffix="$(date +%s).bak"
-CORE_SYMLINKS_PATH="${SLOTH_PATH:-$DOTLY_PATH}/scripts/symlinks/src/core"
+CORE_SYMLINKS_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/symlinks/src/core"
 USER_SYMLINKS_PATH="${DOTFILES_PATH}/symlinks"
 #shellcheck disable=SC2034
 DOTBOT_BASE_PATH="$DOTFILES_PATH" # is used in dotbot.sh library
@@ -187,9 +187,9 @@ if ${after_core:-false}; then
   ${continue_on_error:-false} && _after_core_args+=(--continue-on-error)
 
   if [[ ${#_after_core_args[@]} -gt 0 ]]; then
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply "${_after_core_args[@]}" core
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${_after_core_args[@]}" core
   else
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" symlinks apply core
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply core
   fi
 fi
 
