@@ -54,7 +54,7 @@ git::check_unpushed_commits() {
     0)           ;;
     *)  shift 2  ;;
   esac
-  git::git "$@" cherry -v "${remote}/${branch}" &> /dev/null
+  [[ -n "$(git::git "$@" log --branches --not --remotes --pretty="format:%H")" ]]
 }
 
 #;
