@@ -8,4 +8,4 @@ set -euo pipefail
 ##?
 ##? Same usage as dot
 
-"$DOTLY_PATH/bin/dot" "$@"
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$@"

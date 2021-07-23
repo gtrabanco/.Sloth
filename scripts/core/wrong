@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-$DOTLY_PATH}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
 
 #shellcheck source=/dev/null
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 ##? Something went terribly wrong
 ##?
@@ -31,4 +31,4 @@ if ${version:-}; then
   exit
 fi
 
-"$DOTLY_PATH/bin/open" "https://www.youtube.com/watch?v=t3otBjVZzT0"
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/open" "https://www.youtube.com/watch?v=t3otBjVZzT0"

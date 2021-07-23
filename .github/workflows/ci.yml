@@ -41,6 +41,30 @@ jobs:
       - name: Install
         run: echo "$HOME/.dotfiles" | bash installer
 
+      - name: Speed test ENV
+        run: |
+          echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
+          echo "DOTFILES_PATH=${HOME}/.dotfiles" >> $GITHUB_ENV
+          echo "SLOTH_PATH=${HOME}/.dotfiles/modules/sloth" >> $GITHUB_ENV
+          echo "ZIM_HOME=${HOME}/.dotfiles/modules/sloth/modules/zimfw" >> $GITHUB_ENV
+          echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
+
+      - name: ZSH Speed test
+        run: |
+          echo "DOTFILES_PATH: $DOTFILES_PATH"
+          echo "SLOTH_PATH: ${SLOTH_PATH:-${DOTLY_PATH:-}}"
+          echo "ZIM_HOME: $ZIM_HOME"
+          ! command -v zsh &>/dev/null && echo "ZSH Shell not found" && exit
+          zsh -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOTH_PATH}/bin/dot\" shell zsh test_performance | tee -a \"${HOME}/dotly.log\""
+
+      - name: BASH Speed test
+        run: |
+          echo "DOTFILES_PATH: $DOTFILES_PATH"
+          echo "SLOTH_PATH: ${SLOTH_PATH:-${DOTLY_PATH:-}}"
+          echo "ZIM_HOME: $ZIM_HOME"
+          ! command -v bash &>/dev/null && echo "BASH Shell not found" && exit
+          bash -c ". \"$HOME/.dotfiles/modules/sloth/shell/init-sloth.sh\"; \"${SLOTH_PATH}/bin/dot\" shell bash test_performance | tee -a \"${HOME}/dotly.log\""
+
       - name: Debug
         if: ${{ always() }}
         run: |

@@ -3,7 +3,7 @@ if [[ "$(ps -p $$ -ocomm=)" =~ (bash$) ]]; then
     RIGHT_PROMPT=""
     [[ -n $RPS1 ]] && RIGHT_PROMPT=$RPS1 || RIGHT_PROMPT=$RPROMPT
     if [[ -n $RIGHT_PROMPT ]]; then
-      n=$(($COLUMNS - ${#RIGHT_PROMPT}))
+      n=$((COLUMNS - ${#RIGHT_PROMPT}))
       printf "%${n}s$RIGHT_PROMPT\\r"
     fi
   }
@@ -18,7 +18,7 @@ export PATH
 
 themes_paths=(
   "$DOTFILES_PATH/shell/bash/themes"
-  "$SLOTH_PATH/shell/bash/themes"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/bash/themes"
 )
 
 # brew Bash completion & completions
@@ -43,7 +43,7 @@ for THEME_PATH in ${themes_paths[@]}; do
   [ -f "$THEME_PATH" ] && . "$THEME_PATH" && break
 done
 
-find {"$DOTLY_PATH","$DOTFILES_PATH"}"/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _ | while read -r completion; do
+find {"${SLOTH_PATH:-${DOTLY_PATH:-}}","$DOTFILES_PATH"}"/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _ | while read -r completion; do
   [[ -z "$completion" ]] && continue
   #shellcheck source=/dev/null
   . "$completion" || echo -e "\033[0;31mBASH completion '$completion' could not be loaded\033[0m"

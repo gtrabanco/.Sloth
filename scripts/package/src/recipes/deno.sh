@@ -4,7 +4,7 @@ deno::install() {
   if platform::command_exists cargo; then
     cargo install deno
   else
-    "${SLOTH_PATH:-$DOTLY_PATH}/bin/dot" package add --skip-recipe deno
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add --skip-recipe deno
   fi
 
   if ! platform::command_exists deno &&

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 ##? ZSH helpers
 ##?
@@ -20,8 +20,10 @@
 ##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
 ##?
 ##?
-##? SCRIPT_VERSION "2.1.0"
-docs::parse "$@"
+##? SCRIPT_VERSION "2.2.0"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] || package::is_installed docpars; then
+  docs::parse "$@"
+fi
 
 case $1 in
   "optimize")
@@ -37,13 +39,13 @@ case $1 in
     output::empty_line
 
     output::header "Reloading zsh completions"
-    "$DOTLY_PATH/bin/dot" shell zsh reload_completions
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
     output::empty_line
 
     output::header "ASL only storing critical files"
     if sudo -v -B; then
       asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
-      sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
+      sudo sh -c "output::write '$asl_conf' > /etc/asl.conf"
       output::empty_line
     else
       output::error "This final step require elevation with sudo"
@@ -51,18 +53,28 @@ case $1 in
     output::solution "Done! Restart your terminal"
     ;;
   "test_performance")
+    PATH="${HOME}/.cargo/bin:${PATH}"
     script::depends_on hyperfine
-    HOMBREW_PREFIX="${HOMBREW_PREFIX:-$(brew --prefix)}"
+    if platform::command_exists brew; then
+      HOMBREW_PREFIX="${HOMBREW_PREFIX:-$(brew --prefix)}"
+    fi
 
-    hyperfine '/bin/zsh -i -c exit' "${HOMBREW_PREFIX}/bin/zsh -i -c exit" --warmup 1
+    if [[ -n "${HOMEBREW_PREFIX:-}" && -x "${HOMBREW_PREFIX}/bin/zsh" ]]; then
+      hyperfine '/bin/zsh -i -c exit' "${HOMBREW_PREFIX}/bin/zsh -i -c exit" --warmup 1
+    else
+      hyperfine '/bin/zsh -i -c exit' --warmup 1
+    fi
 
-    echo ""
-    echo "ZSH INFO:"
-    echo "  🍎 macOS ZSH 📂 /bin/zsh              - $(/bin/zsh --version)"
-    echo "  🍺 Brew ZSH  📂 ${HOMBREW_PREFIX}/bin/zsh - $("${HOMBREW_PREFIX}/bin/zsh" --version)"
+    output::empty_line
+    output::write "ZSH INFO:"
+    output::write "  💻 System ZSH 📂 /bin/zsh           - $(/bin/zsh --version)"
 
-    echo ""
-    echo "✨ Currently using $(command -v zsh) ✨"
+    if [[ -n "${HOMEBREW_PREFIX:-}" && -x "${HOMBREW_PREFIX}/bin/zsh" ]]; then
+      output::write "  🍺 Brew ZSH   📂 ${HOMBREW_PREFIX}/bin/zsh - $("${HOMBREW_PREFIX}/bin/zsh" --version)"
+    fi
+
+    output::empty_line
+    output::write "✨ Currently using $(command -v zsh) ✨"
     ;;
   "clean_cache")
     find "$HOME" -name '*.zwc' -delete

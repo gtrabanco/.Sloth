@@ -9,7 +9,7 @@ function j() {
   fname=$(declare -f -F _z)
 
   #shellcheck source=/dev/null
-  [ -n "$fname" ] || . "$SLOTH_PATH/modules/z/z.sh"
+  [ -n "$fname" ] || . "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/z/z.sh"
 
   _z "$1"
 }
@@ -29,11 +29,11 @@ if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-
   if [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/dotly"
-    DOTLY_PATH="$SLOTH_PATH"
+    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
   elif [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/sloth" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
-    DOTLY_PATH="$SLOTH_PATH"
+    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
   else
     echo -e "\033[0;31m\033[1mDOTFILES_PATH or SLOTH_PATH is not defined or is wrong, .Sloth will fail\033[0m"
   fi
@@ -47,15 +47,15 @@ export GPG_TTY
 
 # SLOTH_PATH & DOTLY_PATH compatibility
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking DOTLY_PATH and SLOTH_PATH. We want both not just one..."; } || true
-[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="$DOTLY_PATH"
-[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="$SLOTH_PATH"
+[[ -z "${SLOTH_PATH:-}" && -n "${DOTLY_PATH:-}" ]] && SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
+[[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Sloth aliases and functions
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining Sloth aliases"; } || true
-alias dotly='"$SLOTH_PATH/bin/dot"'
-alias sloth='"$SLOTH_PATH/bin/dot"'
-alias lazy='"$SLOTH_PATH/bin/dot"'
-alias s='"$SLOTH_PATH/bin/dot"'
+alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user exports"; } || true
 { [[ -f "$DOTFILES_PATH/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"; } || true
@@ -203,15 +203,16 @@ path+=("/usr/sbin")
 path+=("/sbin")
 ###### END OF PATHS ######
 
-# Load dotly core for your current BASH
+###### Load dotly core for your current BASH ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Sloth for the shell \`${SLOTH_SHELL}\`"; } || true
-if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh" ]]; then
-  . "${SLOTH_PATH:-$DOTLY_PATH}/shell/${SLOTH_SHELL}/init.sh"
+if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" ]]; then
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh"
 else
   echo -e "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`${SLOTH_SHELL}\`\033[0m"
 fi
+###### End of load dotly core for your current BASH ######
 
-# If nix package manager is installed load the env
+###### Load nix package manager if available ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Nix package manager if present"; } || true
 # Load single user nix installation in the shell
 if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
@@ -221,16 +222,25 @@ if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
 elif [[ -r "/etc/profile.d/nix.sh" ]]; then
   . "/etc/profile.d/nix.sh"
 fi
+###### End of load nix package manager if available ######
 
-# Aliases
+###### SLOTH bin path first & Remove duplicated PATHs ######
+PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH"
+
+# Remove duplicated PATH's
+PATH=$(printf %s "$PATH" | awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
+export PATH
+###### End of SLOTH bin path first & Remove duplicated PATHs ######
+
+###### User aliases & functions ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user aliases"; } || true
 { [[ -f "$DOTFILES_PATH/shell/aliases.sh" ]] && . "$DOTFILES_PATH/shell/aliases.sh"; } || true
 
-# Functions
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user functions"; } || true
 { [[ -f "$DOTFILES_PATH/shell/functions.sh" ]] && . "$DOTFILES_PATH/shell/functions.sh"; } || true
+###### End of User aliases & functions ######
 
-# Auto Init scripts at the end
+###### User init scripts ######
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Auto init scripts that are enabled"
 init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
 if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; then
@@ -241,15 +251,9 @@ if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; t
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
+###### End of User init scripts ######
 
 # Unset loader variables
 unset init_script init_scripts_path BREW_BIN user_paths
-
-# Adds SLOTH_PATH or DOTLY_PATH bin directory into the first position if it is not
-PATH="${SLOTH_PATH:-$DOTLY_PATH}/bin:$PATH"
-
-# Remove duplicated PATH's
-PATH=$(printf %s "$PATH" | awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
-export PATH
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true

@@ -74,7 +74,7 @@ update::update_sloth_repository() {
   # Arguments
   update_submodules="${1:-}"
 
-  { [[ -d "$DOTLY_PATH" ]] && cd "$DOTLY_PATH"; } || return 1
+  { [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"; } || return 1
 
   if git::is_in_repo; then
     git discard > /dev/null 2>&1
@@ -136,7 +136,7 @@ update::update_local_sloth_module() {
   fi
 
   # Update local repository
-  if ! git::check_local_repo_is_updated "origin" "$DOTLY_PATH"; then
+  if ! git::check_local_repo_is_updated "origin" "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
     update::update_sloth_repository
     [[ -n "$local_sloth_version" ]] && git checkout "$local_sloth_version" # Keep current tag
   fi
@@ -162,7 +162,7 @@ update::update_local_sloth_module() {
 
 uptate::migration_script_exits() {
   local latest_migration_script update_previous_commit
-  latest_migration_script="$(find "$DOTLY_PATH/migration/" -name "*" -type f,l -executable -print0 -exec echo {} \; | sort --reverse | head -n 1 | xargs)"
+  latest_migration_script="$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/" -name "*" -type f,l -executable -print0 -exec echo {} \; | sort --reverse | head -n 1 | xargs)"
 
   # No update no migration necessary
   if [[ ! -f "$DOTFILES_PATH/.sloth_updated" ]] || [[ -z "$latest_migration_script" ]]; then

@@ -25,10 +25,29 @@ _w() {
   local -r text="${1:-}"
   echo -e "$text"
 }
-_a() { _w " > $1"; }
-_e() { _a "${red}$1${normal}"; }
-_s() { _a "${green}$1${normal}"; }
-_q() { read -rp "🤔 $1: " "$2"; }
+_a() { _w " > ${*}"; }
+_e() { _a "${red}${*}${normal}"; }
+_s() { _a "${green}${*}${normal}"; }
+_q() {
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
+    echo "🤔 ${*} : "
+    eval "$2='CI'"
+  else
+    echo -n "🤔 ${*}: "
+    read -r "$2"
+  fi
+}
+_yq() {
+  if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+    _q "${*} [Y/n]"
+    read -r "$2"
+  else
+    echo -n "🤔 $*: "
+    echo y
+    eval "${2}=Y"
+  fi
+}
+_is_y() { [[ "${1:Y}" =~ ^[Yy] ]]; }
 
 _log() {
   log_name="$1"
@@ -70,9 +89,13 @@ _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
 _w "  └──────────────────────────────────────────┘"
 _w
 
-if [[ "$OSTYPE" =~ ^[darwin] ]] && [[ -d "$ICLOUD_PATH" ]]; then
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    [[ "$OSTYPE" == darwin* ]] &&
+    [[ -d "$ICLOUD_PATH" ]]
+then
   _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
-  if [[ "${ICLOUD_REPLY:-Y}" =~ ^[Yy] ]]; then
+  if _is_y "${ICLOUD_REPLY:-Y}"; then
     IS_ICLOUD_DOTFILES=true
     _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
     DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
@@ -82,13 +105,18 @@ fi
 
 if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
   _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
-  DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  if [[ "$DOTFILES_PATH" == "CI" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+  else
+    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  fi
   DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
 fi
 export DOTFILES_PATH="$DOTFILES_PATH"
 
 dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
+export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 create_dotfiles_dir "$DOTFILES_PATH"
 cd "$DOTFILES_PATH"
@@ -164,7 +192,7 @@ git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" 
 _a "Installing sloth/dotly dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
-cd "$DOTLY_PATH"
+cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
   if [[ -d "$DOTFILES_LINK_PATH" ]]; then

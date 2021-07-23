@@ -12,7 +12,7 @@ script::depends_on() {
     has_to_install=$(output::question "\`$non_existing_command\` is a dependency of this script. Should this be installed? [Y/n]")
 
     if output::answer_is_yes "$has_to_install"; then
-      "$DOTLY_PATH/bin/dot" package add "$non_existing_command"
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add "$non_existing_command"
     else
       output::write "🙅‍ The script can't be ran without \`$non_existing_command\` being installed before."
       exit 1

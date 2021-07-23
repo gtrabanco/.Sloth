@@ -3,7 +3,7 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  dotly_contexts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
   dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_contexts" "$dotfiles_contexts" | grep -v "^_" | sort -u
@@ -12,7 +12,7 @@ dot::list_contexts() {
 dot::list_context_scripts() {
   context="$1"
 
-  dotly_scripts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  dotly_scripts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
   dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
 
   echo "$dotly_scripts" "$dotfiles_scripts" | grep -v "^_" | sort -u
@@ -29,7 +29,7 @@ dot::list_scripts() {
 }
 
 dot::list_scripts_path() {
-  dotly_contexts=$(find "${SLOTH_PATH:-$DOTLY_PATH}/scripts" -maxdepth 2 -perm /+111 -type f | grep -v "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core")
+  dotly_contexts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 2 -perm /+111 -type f | grep -v "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core")
   dotfiles_contexts=$(find "$DOTFILES_PATH/scripts" -maxdepth 2 -perm /+111 -type f)
 
   printf "%s\n%s" "$dotly_contexts" "$dotfiles_contexts" | sort -u
@@ -71,7 +71,7 @@ dot::load_library() {
       # Context
       lib_paths+=(
         "$DOTFILES_PATH/scripts/$2/src"
-        "${SLOTH_PATH:-$DOTLY_PATH}/scripts/$2/src"
+        "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$2/src"
       )
 
       # Valid path
@@ -85,7 +85,7 @@ dot::load_library() {
 
     # Finally core library
     lib_paths+=(
-      "${SLOTH_PATH:-$DOTLY_PATH}/scripts/core/src"
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src"
     )
 
     # Full path library is preferred

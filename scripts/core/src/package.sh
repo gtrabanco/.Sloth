@@ -2,18 +2,18 @@
 
 if [[ -n "${PACKAGE_MANAGERS_SRC[*]:-}" ]]; then
   if
-    ! array::exists_value "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
+    ! array::exists_value "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
       ! array::exists_value "${DOTFILES_PATH:-}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
   then
     export PACKAGE_MANAGERS_SRC=(
-      "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
       "${DOTFILES_PATH:-}/package/managers"
       "${PACKAGE_MANAGERS_SRC[@]}"
     )
   fi
 else
   export PACKAGE_MANAGERS_SRC=(
-    "${SLOTH_PATH:-$DOTLY_PATH}/scripts/package/src/package_managers"
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
     "${DOTFILES_PATH:-}/package/managers"
   )
 fi
@@ -339,12 +339,12 @@ package::install() {
   elif
     [[ 
       $package_manager != "auto" &&
-      -n "$(registry::recipe_exists "$package_name")" ]]
+      -n "$(registry::recipe_exists "$package")" ]]
   then
 
     [[ -n "$package_manager" ]] && shift
 
-    registry::install "$package_name" "$@" && registry::is_installed "$package_name" "$@"
+    registry::install "$package" "$@" && registry::is_installed "$package" "$@"
   else
     if platform::command_exists readarray; then
       readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
