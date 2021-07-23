@@ -35,9 +35,9 @@ case $1 in
     fi
 
     if [[ -n "${HOMEBREW_PREFIX:-}" && -x "${HOMBREW_PREFIX}/bin/bash" ]]; then
-      hyperfine '/bin/bash -i -c exit' --warmup 1
-    else
       hyperfine '/bin/bash -i -c exit' "${HOMBREW_PREFIX}/bin/bash -i -c exit" --warmup 1
+    else
+      hyperfine '/bin/bash -i -c exit' --warmup 1
     fi
 
     output::empty_line

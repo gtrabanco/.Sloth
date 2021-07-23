@@ -60,9 +60,9 @@ case $1 in
     fi
 
     if [[ -n "${HOMEBREW_PREFIX:-}" && -x "${HOMBREW_PREFIX}/bin/zsh" ]]; then
-      hyperfine '/bin/zsh -i -c exit' --warmup 1
-    else
       hyperfine '/bin/zsh -i -c exit' "${HOMBREW_PREFIX}/bin/zsh -i -c exit" --warmup 1
+    else
+      hyperfine '/bin/zsh -i -c exit' --warmup 1
     fi
 
     output::empty_line
