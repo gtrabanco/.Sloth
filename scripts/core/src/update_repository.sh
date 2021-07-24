@@ -14,14 +14,14 @@ SLOTH_GITMODULES_BRANCH="${SLOTH_GITMODULES_BRANCH:-master}"
 
 # Defaults values if no values are provided
 [[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/sloth"
-[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git@github.com:gtrabanco/sloth.git"
+[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git+ssh://git@github.com:gtrabanco/sloth.git"
 [[ -z "${SLOTH_DEFAULT_REMOTE:-}" ]] && readonly SLOTH_DEFAULT_REMOTE="origin"
 # SLOTH_DEFAULT_BRANCH is not the same as SLOTH_GITMODULES_BRANCH
 # SLOTH_GITMODULES_BRANCH is the branch we want to use if we are using always latest version
 # SLOTH_GITMODULES_BRANCH is the HEAD branch of remote repository were Pull Request are merged
 [[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
 
-SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}
+SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 
 #
 # .Sloth update strategy Configuration
@@ -49,7 +49,7 @@ update::sloth_repository_set_ready() {
   local remote
 
   if ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && [[ -n "${url:-}" ]]; then
-    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-https://github.com/gtrabanco/sloth}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
+    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
 }
 
@@ -69,7 +69,7 @@ update::get_current_version() {
 #"
 update::get_latest_version() {
   local latest_version
-  latest_version="$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" ls-remote --tags "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-https://github.com/gtrabanco/sloth}}" | cut -f2 | sed 's/\^{}//g' | sort -Vru | sed 's#refs/tags/v##g' | head -n1)"
+  latest_version="$(git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
 }
 
 #;
@@ -95,10 +95,13 @@ update::sloth_update_repository() {
   local remote url default_branch head_branch
   local -r remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
   local -r remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
-  url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_HTTP_URL:-}}}"
+  url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}}"
   default_branch="${remote}/${3:-${SLOTH_DEFAULT_BRANCH:-master}}"
 
-  if ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" && [[ -n "${url:-}" ]]; then
+  if
+    ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" &&
+    [[ -n "${url:-}" ]]
+  then
     git::init_repository_if_necessary "$url" "$remote" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
   ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" && output::error "Remote \`${remote}\` does not exists" && return 1
@@ -108,7 +111,8 @@ update::sloth_update_repository() {
 
   # Get remote HEAD branch
   head_branch="$(git::get_remote_head_upstream_branch "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
-  if [[ -z "$head_branch" ]]; then
+  if [[ -z "$head_branch" ]]
+  then
     git::set_remote_head_upstream_branch "$remote" "$default_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}"
     head_branch="$(git::get_remote_head_upstream_branch "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
 
@@ -116,14 +120,16 @@ update::sloth_update_repository() {
   fi
 
   # Check if current branch has something to push
-  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}; then
+  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}
+  then
     git::check_unpushed_commits "$remote" "$head_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}" &&
       output::write "You have commits to be pushed, update can not be done until they have been pushed" &&
       return 1
   fi
 
   # Check if working directory is not clean
-  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}; then
+  if ! ${UPDATE_REPOSITORY_FORCE_UPDATE:-false}
+  then
     ! git::is_clean "$remote" "$head_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}" &&
       output::write "Working directory is not clean, update can not be done until you have commited and pushed your changes" &&
       return 1

@@ -165,10 +165,33 @@ git::local_latest_tag_version() {
 #"
 git::remote_latest_tag_version() {
   local -r remote_url="${1:-}"
-  local -r version_pattern="${2:-v*}"
+  local -r version_pattern="${2:-v*.*.*}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:3}" ls-remote --tags --refs "$remote_url" 'v*' 2>/dev/null | awk '{print $NF}' | sed 's#refs/tags/v##g' | sort -r | head -n1 || true
+  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2>/dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur | head -n1
+}
+
+
+#;
+# git::check_repository_is_latest()
+# Check if the repository is the latest version
+# @param string remote Remote upstream name (default: origin)
+# @param string branch Remote head to be checked (Should be the same in local) (default: master)
+# @param any args Additional arguments that will be passed to git command. You must define previous args if you want to give additional arguments to git command.
+# @return boolean
+#"
+git::check_repository_is_latest() {
+  local latest_remote_commit latest_local_commit 
+  local -r remote="${1:-origin}"
+  local -r branch="${2:-master}"
+  case $# in
+    0)           ;;
+    1)  shift    ;;
+    *)  shift 2  ;;
+  esac
+
+  latest_remote_commit="$(git::git "$@" show -s --pretty="format:%H" "refs/remotes/${remote}/${branch}")"
+  latest_local_commit="$(git::git "$@" show -s --pretty="format:%H" "refs/heads/${branch}")"
 }
 
 #;
@@ -461,3 +484,17 @@ git::init_repository_if_necessary() {
     return 1
   fi
 }
+
+
+git::is_latest_repository() {
+  local -r remote="${1:-origin}" # upstream or url
+  local -r head_branch="HEAD" # branch or HEAD, must be
+
+  # TODO
+  return
+}
+
+# Latest remote: git ls-remote origin HEAD | awk '{print $1}'
+#  headc="c688aabf4ed607f9084d9900ac0e7c27ab2f9f5d"
+
+# git merge-base --is-ancestor @{u} refs/heads/origin/HEAD
