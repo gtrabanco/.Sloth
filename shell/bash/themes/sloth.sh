@@ -17,16 +17,33 @@ prompt_sloth_autoupdate() {
   fi
 }
 
-prompt_sloth_git_info_dirty_helper() {
-  "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD --;
+prompt_sloth_git_info_has_unpushed_commits() {
+  local -r branch="${1:-}"
+  [[ -z "$branch" ]] && return 1
+  local -r upstream_branch="$("${GIT_EXECUTABLE}" config --get "branch.${branch}.merge"|| echo -n)"
+  if [[ -n "$upstream_branch" ]]; then
+    # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
+    [[ $("${GIT_EXECUTABLE}" rev-list --count "${upstream_branch}..HEAD") -gt 0 ]]
+    [[ $("${GIT_EXECUTABLE}" rev-list --count "@{u}..HEAD") -gt 0 ]]
+  fi
 }
 
-prompt_sloth_git_info_untracked_files_helper() {
+prompt_sloth_git_info_has_untracked_files() {
   [[ $("${GIT_EXECUTABLE}" ls-files --exclude-standard --others --directory | wc -l) -gt 0 ]]
 }
 
-prompt_sloth_git_info_unpushed_commits_helper() {
-  [[ $("$GIT_EXECUTABLE" log --branches --not --remotes --pretty="format:%H" | wc -l) -gt 0 ]]
+prompt_sloth_git_info_is_clean_repository() {
+  "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD --;
+}
+
+prompt_sloth_git_info_is_behind() {
+  local -r branch="${1:-}"
+  [[ -z "$branch" ]] && return 1
+  local -r upstream_branch="$("${GIT_EXECUTABLE}" config --get "branch.${branch}.merge"|| echo -n)"
+  if [[ -n "$upstream_branch" ]]; then
+    # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
+    [[ $("${GIT_EXECUTABLE}" rev-list --count "HEAD..${upstream_branch}") -gt 0 ]]
+  fi
 }
 
 prompt_sloth_git_info() {
@@ -37,19 +54,23 @@ prompt_sloth_git_info() {
   [[ -z "$branch" ]] && return
 
   # Unpushed commits show branch on yellow
-  if prompt_sloth_git_info_unpushed_commits_helper; then
+  if prompt_sloth_git_info_has_unpushed_commits "$branch"; then
     prompt_output="on (\e[${YELLOW_COLOR}m${branch}\e[m)"
   else
     prompt_output="on (\e[${GREEN_COLOR}m${branch}\e[m)"
   fi
 
+  if ! ${SLOTH_THEME_NOT_SHOW_BEHIND:-false} && prompt_sloth_git_info_is_behind "$branch"; then
+    prompt_output="${prompt_output} \e[${RED_COLOR}m(☜)\e[m"
+  fi
+
   # Untracked files in the repository shows yellow U
-  if prompt_sloth_git_info_untracked_files_helper && [[ -z "${SLOTH_THEME_NOT_SHOW_UNTRACKED:-}" ]]; then
+  if ! ${SLOTH_THEME_NOT_SHOW_UNTRACKED:-false} && prompt_sloth_git_info_has_untracked_files; then
     prompt_output="${prompt_output} (\e[${YELLOW_COLOR}mU\e[m)"
   fi
 
   # Dirty git dir shows green check or red cross
-  if prompt_sloth_git_info_dirty_helper; then
+  if prompt_sloth_git_info_is_clean_repository; then
     prompt_output="${prompt_output} \e[${GREEN_COLOR}m✓\e[m"
   else
     prompt_output="${prompt_output} \e[${RED_COLOR}m✗\e[m"
