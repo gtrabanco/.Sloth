@@ -25,8 +25,10 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-#shellcheck disable=SC1091
-. "${ZIM_HOME}/init.zsh"
+if ! ${SLOTH_DISABLE_ZIMFW:-false}; then
+  #shellcheck disable=SC1091
+  . "${ZIM_HOME}/init.zsh"
+fi
 
 # Async mode for autocompletion
 # shellcheck disable=SC2034
@@ -44,8 +46,10 @@ fpath=(
 
 # Brew ZSH Completions
 if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh-completions")
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh/site-functions")
+  fpath+=(
+    "${HOMEBREW_PREFIX}/share/zsh-completions"
+    "${HOMEBREW_PREFIX}/share/zsh/site-functions"
+  )
 fi
 
 
