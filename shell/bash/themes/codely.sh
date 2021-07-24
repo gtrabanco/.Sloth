@@ -14,7 +14,7 @@ prompt_dotly_autoupdate() {
             [ ! -f "$DOTFILES_PATH/.sloth_update_available_is_major" ]
         }
     }; then
-    print -n "📥  | "
+    echo -n "📥  | "
   fi
 }
 
