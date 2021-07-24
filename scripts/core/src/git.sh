@@ -49,7 +49,7 @@ git::git() {
 # check if a directory is a repository
 #"
 git::is_in_repo() {
-  git::git "$@" rev-parse -q --verify HEAD &> /dev/null
+  git::git "$@" rev-parse --is-inside-work-tree &>/dev/null
 }
 
 #;
@@ -57,5 +57,5 @@ git::is_in_repo() {
 # Get the current active branch
 #"
 git::current_branch() {
-  git::git "$@" branch --show-current 2> /dev/null || return
+  git::git "$@" branch --show-current --no-color 2> /dev/null || return
 }
