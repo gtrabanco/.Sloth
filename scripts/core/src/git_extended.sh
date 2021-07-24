@@ -42,39 +42,28 @@ git::check_remote_exists() {
 #;
 # git::check_unpushed_commits()
 # Check if there are commits without pushed to remote
-# @param string remote Optional remote, use "origin" as default
-# @param string branch Optional branch, use "master" as default
+# @param any args Arguments for git command
 # @return boolean
 #"
 git::check_unpushed_commits() {
-  local -r remote="${1:-origin}"
-  local -r branch="${2:-master}"
-  case $# in
-    1)  shift    ;;
-    0)           ;;
-    *)  shift 2  ;;
-  esac
   [[ -n "$(git::git "$@" log --branches --not --remotes --pretty="format:%H")" ]]
 }
 
 #;
 # git::is_clean()
 # Checks if the repository has local changes even if they were commited
-# @param string remote Optional remote, use "origin" as default
-# @param string branch Optional branch, use "master" as default
 # @param any args Additional git command args. Mandatory to pass previous two arguments (remote & branch) to give arguments to git command.
 # @return boolean
 #"
+# TODO: This function now has less params so it is necessary to check everywhere is used (deleted remote and branch params)
+# About dirty repository. Only is considered dirty if it has changes over tracked files
+# To check untracked files: git ls-files --exclude-standard --others --directory | wc -l (return how many untracked files being respectful with .gitignore)
 git::is_clean() {
-  local -r remote="${1:-origin}"
-  local -r branch="${2:-master}"
-  case $# in
-    1)  shift    ;;
-    0)           ;;
-    *)  shift 2  ;;
-  esac
-  
-  [[ $(git::git "$@" status --porcelain | wc -l) -eq 0 ]] && git::git "$@" diff --quiet --exit-code "${remote}/${branch}" &> /dev/null
+  # Changes that are indexed: git add
+  # "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --cached --ignore-submodules="all" HEAD -- || return 1
+
+  # Changed tracked files that are not indexed: previous to git add
+  "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD -- || return 1
 }
 
 #;
@@ -498,3 +487,4 @@ git::is_latest_repository() {
 #  headc="c688aabf4ed607f9084d9900ac0e7c27ab2f9f5d"
 
 # git merge-base --is-ancestor @{u} refs/heads/origin/HEAD
+# local -r remote_tracked="$("${GIT_EXECUTABLE}" -sb | head -n1 | awk '{print $2}' | awk -F '\.' '{print $NF}')"
