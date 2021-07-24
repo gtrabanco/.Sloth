@@ -68,14 +68,14 @@ sloth_theme() {
     STATUS_COLOR=$RED_COLOR
   fi
 
-  if [[ -z "$SLOTH_THEME_MINIMAL" ]]; then
-    PS1="˛\[\e[${STATUS_COLOR}m\]●\[\e[m\]ܫ \[\e[${STATUS_COLOR}m\]●\[\e[m\]¸ \[\e[33m\]${current_dir}\[\e[m\] \$(prompt_sloth_git_info)"
+  if ${SLOTH_THEME_MINIMAL:-false}; then
+    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\])"
   else
-    PS1="˛\[\e[${STATUS_COLOR}m\]●\[\e[m\]ܫ \[\e[${STATUS_COLOR}m\]●\[\e[m\]¸"
+    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\] \$(prompt_sloth_git_info)"
   fi
 
   if ${SLOTH_THEME_MULTILINE:-}; then
-    PS1="$PS1 ☞ "
+    PS1="$PS1 "
   else
     PS1="⎡$PS1\n⎣ ☞"
   fi
