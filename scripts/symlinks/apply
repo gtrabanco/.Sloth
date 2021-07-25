@@ -144,7 +144,7 @@ else
   done
 fi
 
-SCRIPT_NAME="sloth symlinks apply"
+SCRIPT_NAME="dot symlinks apply"
 
 # Print name and version
 if ${version:-false}; then
@@ -153,6 +153,11 @@ if ${version:-false}; then
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)"
   exit
+fi
+
+# Possible backups are not done in CI
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  script::depends_on python-yq jq
 fi
 
 # Vars to be used
