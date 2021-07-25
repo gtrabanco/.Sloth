@@ -146,6 +146,10 @@ else
   exit 1
 fi
 
+output::answer "Initilizing local repository for enable updates and autoupdates"
+update::sloth_repository_set_ready
+output::empty_line
+
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::answer "Updating all system packages"
   if platform::is_macos; then
