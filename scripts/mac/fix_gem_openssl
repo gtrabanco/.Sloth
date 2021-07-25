@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+
+##? Fix error with openssl while updating gems
+##?
+##?
+##? Usage:
+##?   fix_gem_openssl [-h | --help]
+##?   fix_gem_openssl [-v | --version]
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+docs::parse "$@"
+
+SCRIPT_NAME="dot mac fix_gem_openssl"
+SCRIPT_VERSION="1.0.0"
+
+# Print name and version
+if ${version:-}; then
+  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  exit
+fi
+
+if ! platform::is_macos; then
+  output::error "This script is only for macOS"
+  exit 1
+fi
+
+script::depends_on brew
+
+HOMBREW_PREFIX="${HOMBREW_PREFIX:-$(brew --prefix)}"
+HOMBREW_OPENSSL_DIRECTORY="$(find "$(brew --cellar openssl)" -mindepth 1 -maxdepth 1 -type d -exec echo {} \; | sort -ur | head -n1)"
+
+if [[ -d "$HOMBREW_OPENSSL_DIRECTORY" ]]; then
+  if command -p sudo -v -B; then
+    PATH="$(brew --prefix openssl)/bin:$PATH"
+    output::write "Trying to fix openssl gem by using"
+    output::answer "sudo -H gem update -n ${HOMBREW_PREFIX}/bin openssl -- --with-openssl-dir=$HOMBREW_OPENSSL_DIRECTORY"
+    output::empty_line
+    command -p sudo -H gem update -n "${HOMBREW_PREFIX}/bin" openssl -- --with-openssl-dir="$HOMBREW_OPENSSL_DIRECTORY" || true
+    output::empty_line
+    output::solution "Done! 👏"
+    output::write "If error persist, try executing the update manually"
+  else
+    output::error "This script requires elevation"
+    exit 1
+  fi
+else
+  output::error "OpenSSL Directory could not be found"
+  output::write "This directory must be something similar to this one: $(brew --cellar openssl)/1.1.1k"
+  output::write "After you find it, you should execute:"
+  output::answer "\`sudo -H gem update -n ${HOMBREW_PREFIX}/bin openssl -- --with-openssl-dir=$(brew --cellar openssl)/1.1.1k\`"
+  exit 1
+fi
