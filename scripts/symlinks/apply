@@ -87,6 +87,10 @@ select_yaml_files_in_path() {
 ##? SCRIPT_VERSION "2.1.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
+
+  if ${backup:-} || ${interactive_backup:-}; then
+    script::depends_on python-yq
+  fi
 else
   version=false
   help=false
@@ -117,10 +121,12 @@ else
         ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;
@@ -144,7 +150,7 @@ else
   done
 fi
 
-SCRIPT_NAME="sloth symlinks apply"
+SCRIPT_NAME="dot symlinks apply"
 
 # Print name and version
 if ${version:-false}; then
