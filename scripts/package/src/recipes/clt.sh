@@ -59,7 +59,7 @@ clt::install() {
 }
 
 clt::is_installed() {
-  platform::is_macos && command -vp xcode-select &>/dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+  platform::is_macos && command -vp xcode-select &> /dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
 }
 
 clt::uninstall() {
