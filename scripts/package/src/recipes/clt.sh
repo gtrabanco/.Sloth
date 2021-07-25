@@ -30,11 +30,12 @@ clt::install() {
   if [[ -n "$clt_label" ]]; then
     /usr/bin/sudo /usr/sbin/softwareupdate -i "$clt_label"
     /usr/bin/sudo /usr/bin/xcode-select --switch "/Library/Developer/CommandLineTools"
-    /bin/rm -f "$placeholder"
   fi
+  # Remove the placeholder always
+  /bin/rm -f "$placeholder"
 
   # Something was terriby wrong with the CLT installation, so we need to try with another method
-  if ! clt::is_installed; then
+  if ! clt::is_installed && sudo -v -B; then
     /usr/bin/xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
       until xcode-select --print-path &> /dev/null; do
@@ -42,6 +43,11 @@ clt::install() {
         sleep 10
       done
     fi
+
+    {
+      [[ -d "/Library/Developer/CommandLineTools" ]] &&
+      sudo xcode-select --switch /Library/Developer/CommandLineTools
+    } || output::answer "Command Line Tools could not be selected"
   fi
 
   if ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
