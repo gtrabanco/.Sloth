@@ -24,7 +24,6 @@ prompt_sloth_git_info_has_unpushed_commits() {
   if [[ -n "$upstream_branch" ]]; then
     # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
     [[ $("${GIT_EXECUTABLE}" rev-list --count "${upstream_branch}..HEAD") -gt 0 ]]
-    [[ $("${GIT_EXECUTABLE}" rev-list --count "@{u}..HEAD") -gt 0 ]]
   fi
 }
 
