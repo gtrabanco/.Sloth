@@ -208,22 +208,27 @@ package::manager_self_update() {
 # package::is_installed()
 # Check if a package is installed with a recipe or any of the available package managers. It does not check if a binary package_name is available
 # @param string package_name
+# @param string package_manager Optional param to check with specific package manager (if provided "auto", will avoid checking with registry)
 # @return boolean
 #"
 package::is_installed() {
   local package_manager
   local -r package_name="${1:-}"
+  package_manager="${2:-}"
   [[ -z "$package_name" ]] && return 1
 
   if
-    [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+    [[ $package_manager == "registry" || $package_manager == "recipe"* || -z "$package_manager" ]] &&
+      [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
     registry::is_installed "$package_name" && return
     return 1
+  elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
+    package::which_package_manager "$package_name" &> /dev/null && return 0
+  elif [[ -n "$package_manager" ]]; then
+    package::command_exists "$package_manager" "is_installed" && package::command "$package_manager" "is_installed" "$package_name" && return
   fi
-
-  package::which_package_manager "$package_name" &> /dev/null && return 0
 
   return 1
 }
@@ -245,6 +250,8 @@ package::which_package_manager() {
       package::command "$package_manager" is_installed "$package_name" && echo "$package_manager" && return
   done
 
+  # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
+  # the end because probably a package was installed with a package manager spite of being a reicpe
   if
     [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
