@@ -37,8 +37,10 @@ clt::install() {
   if ! clt::is_installed; then
     /usr/bin/xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-      output::write "Press any key when installation is completed..."
-      read -r -n 1
+      until xcode-select --print-path &> /dev/null; do
+        output::answer "Waiting for Command Line tools to be installed... Check again in 10 secs"
+        sleep 10
+      done
     fi
   fi
 
