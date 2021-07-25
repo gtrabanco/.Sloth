@@ -87,6 +87,10 @@ select_yaml_files_in_path() {
 ##? SCRIPT_VERSION "2.1.0"
 if ! ${DOTLY_INSTALLER:-false}; then
   docs::parse "$@"
+
+  if ${backup:-} || ${interactive_backup:-}; then
+    script::depends_on python-yq
+  fi
 else
   version=false
   help=false
@@ -117,10 +121,12 @@ else
         ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;
@@ -153,11 +159,6 @@ if ${version:-false}; then
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)"
   exit
-fi
-
-# Possible backups are not done in CI
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on python-yq jq
 fi
 
 # Vars to be used
