@@ -9,6 +9,16 @@ dot::load_library "install.sh"
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
+# Mandatory packages first
+script::depends_on docpars fzf
+
+# Packages that are necessary but not in CI env
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  script::depends_on python-yq jq cargo-update
+fi
+
+# OS specific packages
+output::answer "Installing specific OS packages if not installed"
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
   install_macos_custom
@@ -16,8 +26,6 @@ elif platform::is_linux; then
   output::answer "🐧 Setting up Linux Platform"
   install_linux_custom
 fi
-
-script::depends_on cargo cargo-update docpars zsh fzf python3 python-yq jq
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
@@ -68,7 +76,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platfor
       ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
       sudo -v
   then
-    echo "$zsh_shell_path" | sudo tee "/etc/shells" &> /dev/null
+    sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
   fi
 
   {
@@ -140,6 +148,15 @@ fi
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::answer "Updating all system packages"
+  if platform::is_macos; then
+    output::empty_line
+    output::write "IMPORTANT!!!"
+    output::empty_line
+    output::write "If you see any error updating openssl gem execute:"
+    output::answer "\`dot mac fix_gem_openssl\`"
+    output::answer "More info: https://www.gitmemory.com/issue/ruby/openssl/385/656744433"
+    output::empty_line
+  fi
   "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
 fi
 
