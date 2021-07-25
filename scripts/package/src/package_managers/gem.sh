@@ -37,7 +37,9 @@ gem::self_update() {
     brew unlink openssl &> /dev/null
     brew link --force openssl &> /dev/null
 
-    if ! echo "$PATH" | tr ':' '\n' | grep -q "^${HOMBREW_PREFIX}/opt/openssl@1.1$"; then
+    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
+
+    if ! echo "$PATH" | tr ':' '\n' | grep -q "^${HOMEBREW_PREFIX}/opt/openssl@1.1$"; then
       export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
     fi
   fi
