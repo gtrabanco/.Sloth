@@ -54,7 +54,7 @@ macports::install() {
 
   if [[ -f "$macports_downloaded_path" ]] && sudo -v; then
     # Install MacPorts
-    sudo installer -pkg "$macports_downloaded_path" -target /
+    sudo installer -allowUntrusted -pkg "$macports_downloaded_path" -target LocalSystem
     # Install MacPorts' dependencies
     sudo /opt/local/bin/port -v selfupdate
 
