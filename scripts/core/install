@@ -140,6 +140,15 @@ fi
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::answer "Updating all system packages"
+  if platform::is_macos; then
+    output::empty_line
+    output::write "IMPORTANT!!!"
+    output::empty_line
+    output::write "If you see any error updating openssl gem execute:"
+    output::answer "\`dot mac fix_gem_openssl\`"
+    output::answer "More info: https://www.gitmemory.com/issue/ruby/openssl/385/656744433"
+    output::empty_line
+  fi
   "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
 fi
 
