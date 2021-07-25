@@ -28,7 +28,6 @@ install_macos_custom() {
 
   mkdir -p "$HOME/bin"
 
-  output::answer "Installing needed gnu packages"
   if platform::command_exists brew; then
     brew cleanup -s | log::file "Brew executing cleanup"
     brew cleanup --prune-prefix | log::file "Brew removing dead symlinks"
@@ -46,11 +45,12 @@ install_macos_custom() {
     fi
   fi
 
-  custom::install bash zsh coreutils findutils gnu-sed python3-pip
+  output::answer "Installing needed gnu packages"
+  custom::install coreutils findutils gnu-sed
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install gnutls gnu-tar gnu-which gawk grep make hyperfine docpars zsh fzf python-yq jq
+    custom::install gnutls gnu-tar gnu-which gawk grep make bash zsh bash-completion@2 zsh-completions python3-pip
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
@@ -102,17 +102,21 @@ install_linux_custom() {
     output::write "  2. Make an issue telling your os and which package manager are you using."
     output::answer "${SLOTH_GITHUB_REPOSITORY_NEW_ISSUE_URL}"
     output::empty_line
-    output::anser "Continue with cargo"
-    custom::install cargo cargo-update docpars hyperfine
+
+    if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+      output::anser "Continue with cargo"
+      custom::install cargo cargo-update docpars hyperfine
+    fi
+
     return
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install bash zsh hyperfine docpars python3-pip build-essential coreutils findutils
+  custom::install build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install fzf python-yq jq
+    custom::install bash zsh python3-pip python-yq jq
 
     # Required packages output an error
     if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
