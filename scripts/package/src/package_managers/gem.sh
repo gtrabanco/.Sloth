@@ -29,20 +29,6 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  # Solving a possibly bug updating system gems
-  if
-    platform::is_macos &&
-      platform::command_exists brew
-  then
-    brew unlink openssl &> /dev/null
-    brew link --force openssl &> /dev/null
-
-    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
-
-    if ! echo "$PATH" | tr ':' '\n' | grep -q "^${HOMEBREW_PREFIX}/opt/openssl@1.1$"; then
-      export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
-    fi
-  fi
   gem::is_available && gem update --system
 }
 
