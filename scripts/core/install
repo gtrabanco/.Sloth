@@ -76,7 +76,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platfor
       ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
       sudo -v
   then
-    echo "$zsh_shell_path" | sudo tee "/etc/shells" &> /dev/null
+    sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
   fi
 
   {
