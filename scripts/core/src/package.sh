@@ -217,8 +217,11 @@ package::is_installed() {
   package_manager="${2:-}"
   [[ -z "$package_name" ]] && return 1
 
+  # Allow to use recipe(s) instead of registry
+  [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
+
   if
-    [[ $package_manager == "registry" || $package_manager == "recipe"* || -z "$package_manager" ]] &&
+    [[ $package_manager == "registry" ]] &&
       [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
@@ -327,17 +330,20 @@ package::install() {
   shift
   package_manager="${1:-}"
 
-  # Allow to use recipe(s) instead of registry
-  [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
+  if [[ -n "$package_manager" ]]; then
+    shift
+    # Allow to use recipe(s) instead of registry
+    [[ $package_manager == "recipe"[s] ]] && package_manager="registry"
+  fi
 
   if
     [[ 
       -n "$package_manager" &&
-      $package_manager != "auto" ]]
+      $package_manager != "auto" &&
+      $package_manager != "registry" ]]
   then
 
     if [[ -n "$(package::manager_exists "$package_manager")" ]]; then
-      shift
       package::_install "$package_manager" "$package" "$@"
     else
       output::error "Package manager not found"
@@ -345,11 +351,9 @@ package::install() {
     fi
   elif
     [[ 
-      $package_manager != "auto" &&
+      $package_manager == "registry" &&
       -n "$(registry::recipe_exists "$package")" ]]
   then
-
-    [[ -n "$package_manager" ]] && shift
 
     registry::install "$package" "$@" && registry::is_installed "$package" "$@"
   else
@@ -363,7 +367,7 @@ package::install() {
 
     [[ -n "$package_manager" ]] && shift
 
-    # Try to install from package managers precedence
+    # Try to install respecting package managers precedence
     for package_manager in "${uniq_values[@]}"; do
       if
         [[ -n "$(package::manager_exists "$package_manager")" ]] &&
