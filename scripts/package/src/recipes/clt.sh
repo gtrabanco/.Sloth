@@ -17,28 +17,28 @@ clt::install() {
   fi
 
   local -r placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  /usr/bin/touch "$placeholder" # Force softwareupdate to list CLT
+  command -p touch "$placeholder" # Force softwareupdate to list CLT
 
-  local -r clt_label="$(/usr/sbin/softwareupdate -l | grep -B 1 -E 'Command Line Tools' | awk -F '*' '/^ *\\*/ {print $2}' | sed -e 's/^ *Label: //' -e 's/^ *//' | sort -V -r |
+  local -r clt_label="$(command -p softwareupdate -l | grep -B 1 -E 'Command Line Tools' | awk -F '*' '/^ *\\*/ {print $2}' | sed -e 's/^ *Label: //' -e 's/^ *//' | sort -V -r |
     head -n1)"
 
-  if ! /usr/bin/sudo -v -B; then
+  if ! command -p sudo -v -B; then
     output::error "Can not be installed without sudo authentication first"
     return 1
   fi
 
   if [[ -n "$clt_label" ]]; then
-    /usr/bin/sudo /usr/sbin/softwareupdate -i "$clt_label"
-    /usr/bin/sudo /usr/bin/xcode-select --switch "/Library/Developer/CommandLineTools"
+    command -p sudo "$(command -vp softwareupdate)" -i "$clt_label"
+    command -p sudo "$(command -vp xcode-select)" --switch "/Library/Developer/CommandLineTools"
   fi
   # Remove the placeholder always
   /bin/rm -f "$placeholder"
 
   # Something was terriby wrong with the CLT installation, so we need to try with another method
-  if ! clt::is_installed && sudo -v -B; then
-    /usr/bin/xcode-select --install
+  if ! clt::is_installed && command -p sudo -v -B; then
+    command -p xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-      until xcode-select --print-path &> /dev/null; do
+      until command -p xcode-select --print-path &> /dev/null; do
         output::answer "Waiting for Command Line tools to be installed... Check again in 10 secs"
         sleep 10
       done
@@ -46,11 +46,11 @@ clt::install() {
 
     {
       [[ -d "/Library/Developer/CommandLineTools" ]] &&
-      sudo xcode-select --switch /Library/Developer/CommandLineTools
+        command -p sudo "$(command -vp xcode-select)" --switch /Library/Developer/CommandLineTools
     } || output::answer "Command Line Tools could not be selected"
   fi
 
-  if ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
+  if ! output="$(command -p xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
     output::error "Command Line Tools could not be installed because you do not have accepted the license"
     return 1
   fi
@@ -59,7 +59,7 @@ clt::install() {
 }
 
 clt::is_installed() {
-  platform::is_macos && platform::command_exists /usr/bin/xcode-select && xpath=$(/usr/bin/xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+  platform::is_macos && command -vp xcode-select &>/dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
 }
 
 clt::uninstall() {
@@ -68,13 +68,13 @@ clt::uninstall() {
   fi
 
   # Remove Command Line Tools
-  local -r clt_path="$(/usr/bin/xcode-select --print-path)"
+  local -r clt_path="$(command -p xcode-select --print-path)"
 
-  if ! sudo -v -B; then
+  if ! command -p sudo -v -B; then
     output::error "Can not uninstall without sudo"
   fi
 
-  sudo rm -rf "${clt_path}"
+  command -p sudo rm -rf "${clt_path}"
 
   ! commmand-line-tools::is_installed && output::solution "Command Line Tools uninstalled"
 }
