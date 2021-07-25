@@ -205,46 +205,16 @@ package::manager_self_update() {
 }
 
 #;
-# package::is_installed()
-# Check if a package is installed with a recipe or any of the available package managers. It does not check if a binary package_name is available
-# @param string package_name
-# @param string package_manager Optional param to check with specific package manager (if provided "auto", will avoid checking with registry)
-# @return boolean
-#"
-package::is_installed() {
-  local package_manager
-  local -r package_name="${1:-}"
-  package_manager="${2:-}"
-  [[ -z "$package_name" ]] && return 1
-
-  # Allow to use recipe(s) instead of registry
-  [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
-
-  if
-    [[ $package_manager == "registry" ]] &&
-      [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
-      registry::command_exists "$package_name" "is_installed"
-  then
-    registry::is_installed "$package_name" && return
-    return 1
-  elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
-    package::which_package_manager "$package_name" &> /dev/null && return 0
-  elif [[ -n "$package_manager" ]]; then
-    package::command_exists "$package_manager" "is_installed" && package::command "$package_manager" "is_installed" "$package_name" && return
-  fi
-
-  return 1
-}
-
-#;
 # package::which_package_manager()
 # Output which package manager was used to install a package
 # @param string package
+# @param boolean avoid_registry_check If true avoid check if package is installed with the registry
 # @return boolean If package is not installed
 #"
 package::which_package_manager() {
   local package_manager
   local -r package_name="${1:-}"
+  local -r avoid_registry_check=${2:-false}
   [[ -z "$package_name" ]] && return 1
 
   # Check every package manager first because maybe registry has used a package manager
@@ -256,11 +226,47 @@ package::which_package_manager() {
   # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
   # the end because probably a package was installed with a package manager spite of being a reicpe
   if
-    [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+    ! $avoid_registry_check &&
+      [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
     registry::is_installed "$package_name" && echo "registry" && return
     return 1
+  fi
+
+  return 1
+}
+
+#;
+# package::is_installed()
+# Check if a package is installed with a recipe or any of the available package managers. It does not check if a binary package_name is available
+# @param string package_name
+# @param string package_manager Can be "any" to use any package manager or registry (same as empty). "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
+# @return boolean
+#"
+package::is_installed() {
+  local package_manager
+  local -r package_name="${1:-}"
+  package_manager="${2:-}"
+  [[ -z "$package_name" ]] && return 1
+
+  # Allow to use recipe(s) instead of registry
+  [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
+
+  # Any package manager is the same as empty package_manager
+  [[ $package_manager == "any" ]] && package_manager=""
+
+  if
+    [[ -z "$package_manager" || $package_manager == "registry" ]] &&
+      [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
+      registry::command_exists "$package_name" "is_installed"
+  then
+    registry::is_installed "$package_name" && return
+    return 1
+  elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
+    package::which_package_manager "$package_name" true &> /dev/null && return 0
+  elif [[ -n "$package_manager" ]]; then
+    package::command_exists "$package_manager" "is_installed" && package::command "$package_manager" "is_installed" "$package_name" && return
   fi
 
   return 1
@@ -290,14 +296,11 @@ package::_install() {
   then
 
     if
-      ! package::command "$package_manager" "is_installed" "$package"
       package::command "$package_manager" "package_exists" "$package" &&
         package::command "$package_manager" "install" "$package" "$@"
     then
       package::command "$package_manager" "is_installed" "$package" && return
     fi
-
-    package::command "$package_manager" "is_installed" "$package" && return
 
   elif
     package::command_exists "$package_manager" "is_available" &&
@@ -307,11 +310,12 @@ package::_install() {
   then
 
     package::command "$package_manager" "install" "$package" "$@" &&
-      package::command_exists "$package_manager" "is_installed" &&
+      package::command "$package_manager" "is_installed" &&
       return
 
   fi
 
+  # Not exists or not installed
   return 1
 }
 
@@ -319,7 +323,7 @@ package::_install() {
 # package::install()
 # Try to install with any available package manager, but if you provided a package manager (second param) it will only try to use that package manager. This avoids to install from registry recipe (use package::install_recipe_first).
 # @param string package Package to install
-# @param string package_manager Force to use only package manager if define this param
+# @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
 # @param any args Arguments for package manager wrapper
 # @return boolen
 #"
@@ -333,6 +337,7 @@ package::install() {
     shift
     # Allow to use recipe(s) instead of registry
     [[ $package_manager == "recipe"[s] ]] && package_manager="registry"
+    [[ $package_manager == "any" ]] && package_manager=""
   fi
 
   if
@@ -343,7 +348,8 @@ package::install() {
   then
 
     if [[ -n "$(package::manager_exists "$package_manager")" ]]; then
-      package::_install "$package_manager" "$package" "$@"
+      package::_install "$package_manager" "$package" "$@" &&
+        return 0
     else
       output::error "Package manager not found"
       return 1
@@ -355,7 +361,7 @@ package::install() {
       [[ -n "$(registry::recipe_exists "$package")" ]]
   then
 
-    registry::install "$package" "$@" && registry::is_installed "$package" "$@"
+    registry::install "$package" "$@" && registry::is_installed "$package" "$@" && return 0
   else
     if platform::command_exists readarray; then
       readarray -t all_available_pkgmgrs < <(package::get_available_package_managers)
@@ -365,28 +371,27 @@ package::install() {
     fi
     eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
-    [[ -n "$package_manager" ]] && shift
-
     # Try to install respecting package managers precedence
     for package_manager in "${uniq_values[@]}"; do
       if
         [[ -n "$(package::manager_exists "$package_manager")" ]] &&
-          package::load_manager "$package_manager" &&
           package::_install "$package_manager" "$package" "$@"
       then
-        return
+        return 0
       fi
     done
 
     return 1
   fi
+
+  return 1
 }
 
 #;
 # package::uninstall()
 # Uninstall the given package, if second parameter is given it will try do it with package manager
 # @param string package_name
-# @param string package_manager Optional, if not provided will try to look up which package manager should be used. If you set to auto it will try to uninstall with any available package manager ignoring registry (recipes).
+# @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
 # @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
 # @return boolean True if uninstalled and false if still installed
 #"
@@ -395,11 +400,12 @@ package::uninstall() {
   [[ $# -lt 1 ]] && return 1
   local -r package_name="$1"
   shift
-  package_manager="${2:-}"
+  package_manager="${1:-}"
   if [[ -n "$package_manager" ]]; then
     shift
     # Allow to use recipe(s) instead of registry
     [[ $package_manager == "recipe"[s] ]] && package_manager="registry"
+    [[ $package_manager == "any" ]] && package_manager=""
   fi
 
   if [[ -z "$package_manager" || $package_manager == "registry" ]]; then
@@ -411,8 +417,17 @@ package::uninstall() {
       registry::uninstall "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
     fi
   else
-    package_manager="${package_manager:-$(package::which_package_manager "$package_name" || echo -n)}"
-    [[ -z "$package_manager" ]] && return 1 # Could not determine which package manager to be used
+    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || echo -n)"
+    if
+      [[ 
+        -z "$package_manager" ||
+        -z "$(package::manager_exists "$package_manager")" ]]
+    then
+
+      echo "Package manager $package_manager"
+      # Could not determine which package manager to be used or package manager not exists
+      return 1
+    fi
 
     if package::command_exists "$package_manager" "uninstall"; then
       package::command "$package_manager" "uninstall" "$package_name" "$@" && ! package::is_installed "$package_name" && return 0

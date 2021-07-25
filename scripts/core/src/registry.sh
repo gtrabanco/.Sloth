@@ -99,11 +99,10 @@ registry::command() {
 #"
 registry::install() {
   local -r recipe="${1:-}"
-  local -r command="install"
   [[ -z "$recipe" ]] && return 1
   shift
 
-  registry::command "$recipe" "${command}" "$@"
+  registry::command "$recipe" "install" "$@"
 }
 
 #;
@@ -115,11 +114,10 @@ registry::install() {
 #"
 registry::uninstall() {
   local -r recipe="${1:-}"
-  local -r command="uninstall"
   [[ -z "$recipe" ]] && return 1
   shift
 
-  registry::command "$recipe" "${command}" "$@"
+  registry::command "$recipe" "uninstall" "$@"
 }
 
 #;
