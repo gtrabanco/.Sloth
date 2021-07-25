@@ -18,7 +18,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
 fi
 
 # OS specific packages
-output::anser "Installing specific OS packages if not installed"
+output::answer "Installing specific OS packages if not installed"
 if platform::is_macos; then
   output::answer "🍎 Setting up macOS platform"
   install_macos_custom
