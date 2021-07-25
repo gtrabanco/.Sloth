@@ -160,68 +160,44 @@ git::remote_latest_tag_version() {
   git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2>/dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur | head -n1
 }
 
-
 #;
-# git::check_repository_is_latest()
-# Check if the repository is the latest version
-# @param string remote Remote upstream name (default: origin)
-# @param string branch Remote head to be checked (Should be the same in local) (default: master)
-# @param any args Additional arguments that will be passed to git command. You must define previous args if you want to give additional arguments to git command.
-# @return boolean
+# git::check_branch_is_behind()
+# Check if the branch is behind the remote branch. Needs an upstream branch.
+# @param string local_branch current branch by default
 #"
-git::check_repository_is_latest() {
-  local latest_remote_commit latest_local_commit 
-  local -r remote="${1:-origin}"
-  local -r branch="${2:-master}"
-  case $# in
-    0)           ;;
-    1)  shift    ;;
-    *)  shift 2  ;;
-  esac
-
-  latest_remote_commit="$(git::git "$@" show -s --pretty="format:%H" "refs/remotes/${remote}/${branch}")"
-  latest_local_commit="$(git::git "$@" show -s --pretty="format:%H" "refs/heads/${branch}")"
-}
-
-#;
-# git::count_different_commits_with_remote_branch()
-# Count number of commits in difference with remote. It will count local against remote and vice-versa, which means that if you are one commit ahead it will show you 1 as if you were 1 commit behind.
-# @param string local_branch HEAD by default
-# @param string remote_branch HEAD by default
-# @param string remote
-# @param any args Additional args for git
-# @return int
-#"
-git::count_different_commits_with_remote_branch() {
-  local local_branch="${1:-HEAD}" remote_branch remote_name
-
+git::check_branch_is_behind() {
+  local -r branch="${1:-$(git::current_branch "$@")}"
+  [[ -z "$branch" ]] && return 1
   [[ -n "${1:-}" ]] && shift
 
-  if [[ $# -gt 1 ]]; then
-    remote_branch="$1"
-    remote_name="$2"
-    shift 2
-  elif [[ $# -eq 1 ]]; then
-    remote_branch="$1"
-    remote_name="origin"
-    shift
+  local -r upstream_branch="$(git::git "$@" config --get "branch.${branch}.merge" || echo -n)"
+  if [[ -n "$upstream_branch" ]]; then
+    # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
+    [[ $(git::git "$@" rev-list --count "${branch}..${upstream_branch}") -gt 0 ]]
   else
-    remote_branch="HEAD"
-    remote_name="origin"
+    # Does not have a tracked branch
+    return 1
   fi
-
-  ! git::remote_branch_exists "$@" "${remote_name}" "${local_branch}" && echo -n 0 && return
-  git::git "$@" rev-list "${local_branch}...${remote_name}/${remote_branch}" --count 2>/dev/null
 }
 
 #;
-# git::get_current_branch_status()
-# Get the current branch status (ahead, up, behind)
+# git::check_branch_is_ahead()
+# Check if the branch is ahead of the remote branch (has commits to be pushed). Needs an upstream branch.
+# @param string local_branch current branch by default
 #"
-git::check_current_branch_is_behind() {
-  # git status --ahead-behind | head -n2 | tail -n1 | awk '{NF--; print $4"\n"$NF}'
-  git::git "$@" fetch --quiet --all --tags
-  [[ $(git::git "$@" status --ahead-behind 2>/dev/null | head -n2 | tail -n1 | awk '{print $4}') == "behind" ]]
+git::check_branch_is_ahead() {
+  local -r branch="${1:-$(git::current_branch "$@")}"
+  [[ -z "$branch" ]] && return 1
+  [[ -n "${1:-}" ]] && shift
+
+  local -r upstream_branch="$(git::git "$@" config --get "branch.${branch}.merge" || echo -n)"
+  if [[ -n "$upstream_branch" ]]; then
+    # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
+    [[ $(git::git "$@" rev-list --count "${upstream_branch}..${branch}") -gt 0 ]]
+  else
+    # Does not have a tracked branch
+    return 1
+  fi
 }
 
 #;
@@ -265,7 +241,7 @@ git::set_remote_head_upstream_branch() {
 # git::check_file_exists_in_previous_commit()
 #"
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git::git "${@:1:}" rev-parse @~:"${1:-}" > /dev/null 2>&1
+  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
 #;
@@ -274,7 +250,7 @@ git::check_file_exists_in_previous_commit() {
 # @param string file
 #"
 git::get_file_last_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp -1 "${1:-}" 2> /dev/null | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git "${@:2}" rev-list --all --date-order --timestamp -1 "${1:-}" 2> /dev/null | awk '{print $1}'
 }
 
 #;
@@ -282,7 +258,7 @@ git::get_file_last_commit_timestamp() {
 # @param string commit
 #"
 git::get_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git rev-list --all --date-order --timestamp 2> /dev/null | grep "${1:-}" | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git::git "${@:2}" rev-list --all --date-order --timestamp 2> /dev/null | grep "${1:-}" | awk '{print $1}'
 }
 
 #;
@@ -297,22 +273,15 @@ git::check_file_is_modified_after_commit() {
   file_path="${1:-}"
   commit_to_check="${2:-}"
   { [[ -z "$file_path" ]] || [[ -z "${commit_to_check:-}" ]] || [[ ! -e "$file_path" ]]; } && return 1
+  shift 2
 
-  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" 2> /dev/null)"
+  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" "$@" 2> /dev/null)"
 
   [[ -z "$file_commit_date" ]] && return 0 # File path did not exists previously then
   # it is more recent than any commit 😅
 
-  commit_to_check_date="$(git::get_commit_timestamp "$commit_to_check")"
+  commit_to_check_date="$(git::get_commit_timestamp "$commit_to_check" "$@")"
   [[ "$file_commit_date" -gt "$commit_to_check_date" ]]
-}
-
-#;
-# git::check_working_dir_is_clean()
-# @return boolean
-#"
-git::check_working_dir_is_clean() {
-  [[ $(git::git "$@" status -sb 2> /dev/null | wc -l) -eq 1 ]]
 }
 
 #;
@@ -320,6 +289,7 @@ git::check_working_dir_is_clean() {
 # Clone and track a remote branch. Makes a forced checkout to that branch.
 # @param string remote If no second parameter is give, this will be the branch
 # @param string branch
+# @param any args Additional arguments that will be passed to git command
 #"
 git::clone_track_branch() {
   local remote branch
