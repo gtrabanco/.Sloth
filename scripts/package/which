@@ -19,7 +19,7 @@ which_package_output() {
     output::error "Package named \`${package_name}\` was not installed with any package manager"
     return 1
   else
-    output::solution "Package named \`${package_name}\` was installed with \`$package_manager\`"
+    output::answer "Package named \`${package_name}\` was installed with \`$package_manager\`"
   fi
 }
 

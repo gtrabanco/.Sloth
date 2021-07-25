@@ -15,10 +15,6 @@ cargo::install() {
     rustup install stable
     rustup default stable
   fi
-
-  if platform::command_exists cargo; then
-    script::depends_on cargo-update
-  fi
 }
 
 cargo::is_installed() {

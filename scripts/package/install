@@ -8,15 +8,16 @@
 ##? Usage:
 ##?    add -v | --version
 ##?    add -h | --help
-##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] <packages_names>...
+##?    add [-f | --force] [-s | --skip-recipe] [--pkgmgr <package_manager>] <packages_names>...
 ##?
 ##? Options:
 ##?    -h --help         Show script help
 ##?    -v --version      Show script version
+##?    -f --force        Pass to install wrapper (function ::install) --force option
 ##?    -s --skip-recipe  Skip the receipe and force to use a package manager, this omit any recipe
 ##?    --pkgmgr          Force to use a package manager, for example: cargo
 ##?
-##? SCRIPT_VERSION 3.1.0
+##? SCRIPT_VERSION 3.2.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
   _all_args=("$@")
@@ -45,6 +46,10 @@ else
       --pkgmgr)
         package_manager="$2"
         shift 2
+        ;;
+      --force | -f)
+        force=true
+        shift
         ;;
       --version | -v)
         version=true
@@ -115,17 +120,24 @@ if [[ -f "$HOME/.cargo/env" ]]; then
 fi
 
 # Check if package is installed
-package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+! ${force:-false} && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+
+# if force give to install argument --force
+if ${force:-false}; then
+  install_args=("--force")
+else
+  install_args=()
+fi
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
-  if registry::install "$package_name"; then
+  if registry::install "$package_name" "${install_args[@]}"; then
     output::write "✅ \`$package_name\` installed"
     exit 0
   fi
 else
-  package::install "$package_name" "${FORCED_PKGMGR:-}" 2>&1 || true
+  package::install "$package_name" "${FORCED_PKGMGR:-auto}" "${install_args[@]}" 2>&1 || true
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
