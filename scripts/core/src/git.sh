@@ -9,10 +9,10 @@
 
 if
   [[ -z "${GIT_EXECUTABLE:-}" ]] ||
-  [[
-    -n "${GIT_EXECUTABLE:-}"  &&
-    ! -x "$GIT_EXECUTABLE"
-  ]] && command -v git &> /dev/null
+    [[ 
+      -n "${GIT_EXECUTABLE:-}" &&
+      ! -x "$GIT_EXECUTABLE" ]] &&
+    command -v git &> /dev/null
 then
   GIT_EXECUTABLE="$(command -v git)"
 
@@ -21,11 +21,11 @@ elif command -v git &> /dev/null; then
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] ||
-  [[
-    -n "${GIT_EXECUTABLE:-}"  &&
-    ! -x "$GIT_EXECUTABLE"
-  ]]
+    [[ 
+      -n "${GIT_EXECUTABLE:-}" &&
+      ! -x "$GIT_EXECUTABLE" ]]
 then
+
   echoerr "No git binary found, please install it or review your env \`PATH\` variable or check if defined that \`GIT_EXECUTABLE\` has a right value" | log::file "Error trying to locate git command"
 fi
 export GIT_EXECUTABLE
@@ -49,7 +49,7 @@ git::git() {
 # check if a directory is a repository
 #"
 git::is_in_repo() {
-  git::git "$@" rev-parse --is-inside-work-tree &>/dev/null
+  git::git "$@" rev-parse --is-inside-work-tree &> /dev/null
 }
 
 #;
