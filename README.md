@@ -45,18 +45,9 @@ Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [Cod
 * When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`). So you won't loose any old data if you migrate to SLOTH.
 * Easy way to create new scripts from Terminal `sloth script create --help`
 * Easy way to install scripts from Terminal `sloth script install_remote --help`
-* Use libraries without download
-```bash
-url="https://raw.githubusercontent.com/gtrabanco/sloth/master/scripts/core/src/output.sh"
-. <(dot script load_remote "$url") &&
-output::write "Using latest output.sh library of .Sloth"
-```
-* Execute scripts without download (as installer do)
-```bash
-url="https://raw.githubusercontent.com/gtrabanco/dotfiles/master/restoration_scripts/98-keybase-import-private-key.sh"
-bash <(dot script load_remote "$url")
 ```
 * Scripts marketplace (Coming soon...)
+* Auto update (Coming soon...)
 * We promise to reply all issues and support messages and review PRs.
 
 ## INSTALLATION
