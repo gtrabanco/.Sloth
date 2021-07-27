@@ -174,9 +174,9 @@ package::command() {
   if package::command_exists "$package_manager" "${command}"; then
     package::load_manager "$package_manager"
     if [[ "$command" == "install" ]]; then
-      "${package_manager}::${command}" "${args[@]:-}" 2>&1 | log::file "Installing ${args[*]} using $package_manager" || return
+      "${package_manager}::${command}" "${args[@]:-}" |& log::file "Installing ${args[*]} using $package_manager" || return
     elif [[ "$command" == "uninstall" ]]; then
-      "${package_manager}::${command}" "${args[@]:-}" 2>&1 | log::file "Uninstalling ${args[*]} using $package_manager" || return
+      "${package_manager}::${command}" "${args[@]:-}" |& log::file "Uninstalling ${args[*]} using $package_manager" || return
     else
       "${package_manager}::${command}" "${args[@]:-}"
     fi

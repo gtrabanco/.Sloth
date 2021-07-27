@@ -79,9 +79,9 @@ registry::command() {
       registry::load_recipe "$recipe"
   then
     if [[ "$command" == "install" ]]; then
-      "$recipe_command" "$@" 2>&1 | log::file "Installing package \`$recipe\` using registry"
+      "$recipe_command" "$@" |& log::file "Installing package \`$recipe\` using registry"
     elif [[ "$command" == "uninstall" ]]; then
-      "$recipe_command" "$@" 2>&1 | log::file "Uninstalling package \`$recipe\` using registry"
+      "$recipe_command" "$@" |& log::file "Uninstalling package \`$recipe\` using registry"
     else
       "$recipe_command" "$@"
     fi

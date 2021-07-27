@@ -34,5 +34,5 @@ composer::update() {
   output::write "└ $url"
   output::empty_line
 
-  composer global require -W "$name" 2>&1 | log::file "Updating ${composer_title} app: $name"
+  composer global require -W "$name" |& log::file "Updating ${composer_title} app: $name"
 }

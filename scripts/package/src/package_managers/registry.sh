@@ -46,7 +46,7 @@ registry::upgrade() {
 
   if registry::command_exists "$recipe" "is_outdated"; then
     if registry::is_outdated "$recipe"; then
-      registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
+      registry::command "$recipe" "upgrade" |& log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
 
     else
       output::solution "${icon} Already has lastest version of ${recipe_title}"
@@ -56,7 +56,7 @@ registry::upgrade() {
   elif registry::command_exists "$recipe" "upgrade"; then
     output::empty_line
     output::answer "Can not check if \`${recipe_title}\` is outdated, trying to update it."
-    registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
+    registry::command "$recipe" "upgrade" |& log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
     output::empty_line
   fi
 }

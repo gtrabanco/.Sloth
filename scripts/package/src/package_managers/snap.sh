@@ -12,7 +12,7 @@ snap::package_exists() {
 }
 
 snap::is_installed() {
-  [[ -n "${1:-}" ]] && snap::is_available && ! snap list "$1" 2>&1 | grep -q ^'error'
+  [[ -n "${1:-}" ]] && snap::is_available && ! snap list "$1" |& grep -q ^'error'
 }
 
 snap::install() {

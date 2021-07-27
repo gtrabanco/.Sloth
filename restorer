@@ -126,19 +126,19 @@ package_install() {
 
   if command_exists dnf; then
     _a "Installing '${*}' using dnf"
-    sudo dnf -y install "${*}" > /dev/null 2>&1 | _log "Installing '${*}' using dnf"
+    sudo dnf -y install "${*}" > /dev/null |& _log "Installing '${*}' using dnf"
   elif command_exists yum; then
     _a "Installing '${*}' using yum"
-    yes | sudo yum install "${*}" > /dev/null 2>&1 | _log "Installing '${*}' using yum"
+    yes | sudo yum install "${*}" > /dev/null |& _log "Installing '${*}' using yum"
   elif command_exists brew; then
     _a "Installing '${*}' using brew"
-    yes | brew install "${*}" 2>&1 | _log "Installign '${*}' using brew"
+    yes | brew install "${*}" |& _log "Installign '${*}' using brew"
   elif command_exists pacman; then
     _a "Installing '${*}' using pacman"
-    sudo pacman -S --noconfirm "${*}" > /dev/null 2>&1 | _log "Installign '${*}' using pacman"
+    sudo pacman -S --noconfirm "${*}" > /dev/null |& _log "Installign '${*}' using pacman"
   elif command_exists apt-get; then
     _a "Installing '${*}' using apt"
-    sudo apt-get -y install "${*}" > /dev/null 2>&1 | _log "Installign '${*}' using apt"
+    sudo apt-get -y install "${*}" > /dev/null |& _log "Installign '${*}' using apt"
   else
     _e "Could not install '${*}', no package provider found"
     return 1
@@ -293,14 +293,14 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
     _w "Installing your dotfiles from $opt"
     _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
     is_cloned=false
-    git clone "${GIT_URL}" "${DOTFILES_PATH}" 2>&1 | _log "Cloning from $GIT_URL" && is_cloned=true
+    git clone "${GIT_URL}" "${DOTFILES_PATH}" |& _log "Cloning from $GIT_URL" && is_cloned=true
 
     # This because maybe you do not have yet your ssh-keys because you did not download
     # your dotfiles. And SSH URL for repository would be the default method using a
     # repository that you can write.
     if ! $is_cloned && [[ ! -d "$DOTFILES_PATH" ]] && [[ "$opt" == "GitHub" ]]; then
       _a "Attemping: git clone ${GIT_URL_MIRROR} ${DOTFILES_PATH}"
-      git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" 2>&1 | _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
+      git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" |& _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
 
       if $is_cloned; then
         _s "Dotfiles restored."
@@ -331,7 +331,7 @@ cd "${DOTFILES_PATH}"
 # Only sloth/dotly submodule must be updated recursively because we do not know if
 # user has added any other submodules that are privated and maybe the user
 # needs to configure something to access those repositories
-git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading sloth/dotly and submodules" || {
+git submodule update --init --recursive "$dotly_inner_path" |& _log "Downloading sloth/dotly and submodules" || {
   _e "Downloading dotly failed. See for more details:"
   _e "  tail -f $HOME/dotly.log"
   _w
@@ -357,7 +357,7 @@ if [[ "${USER_IMPORT_PACKAGES:-Y}" =~ ^[Yy] ]]; then
   _w "Importing your packages"
   _w "This can take a very long time, be patient...🙏"
   {
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package import > /dev/null 2>&1 | _log "Importing user packages" &&
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package import > /dev/null |& _log "Importing user packages" &&
       _a "Packages imported 👏" &&
       _w
   } || {
@@ -378,7 +378,7 @@ if [[ "$OSTYPE" =~ ^[darwin] ]]; then
   _q "⚙️ Do you want to import stored macOS configuration? [y/N]" "USER_OSX_SETTINGS"
   {
     [[ "${USER_OSX_SETTINGS:-N}" =~ ^[Yy] ]] &&
-      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" mac defaults import > /dev/null 2>&1 | _log "Importing macOS user defaults" &&
+      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" mac defaults import > /dev/null |& _log "Importing macOS user defaults" &&
       _w "⚙️ Mac defaults imported 🤙" &&
       _w
   } || {

@@ -84,7 +84,7 @@ cargo::update_apps() {
     output::write " └ $app_old_version -> $app_new_version"
     output::empty_line
 
-    cargo install-update "$outdated_app" 2>&1 | log::file "Updating ${cargo_title} app: $outdated_app"
+    cargo install-update "$outdated_app" |& log::file "Updating ${cargo_title} app: $outdated_app"
   done
 
   if ! $cargo_has_updated_apps; then

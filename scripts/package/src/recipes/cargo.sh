@@ -5,7 +5,7 @@ cargo::install() {
     package::install build-essential
   fi
 
-  curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path 2>&1 | log::file "Installing rust from sources"
+  curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path |& log::file "Installing rust from sources"
 
   #shellcheck disable=SC1091
   [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"

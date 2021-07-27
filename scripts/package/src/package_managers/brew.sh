@@ -40,7 +40,7 @@ brew::update_all() {
 }
 
 brew::self_update() {
-  brew::is_available && brew update 2>&1 | log::file "Updating ${brew_title}"
+  brew::is_available && brew update |& log::file "Updating ${brew_title}"
 }
 
 brew::update_apps() {
@@ -63,7 +63,7 @@ brew::update_apps() {
       output::write "└ $app_url"
       output::empty_line
 
-      brew upgrade "$outdated_app" 2>&1 | log::file "Updating ${brew_title} app: $outdated_app"
+      brew upgrade "$outdated_app" |& log::file "Updating ${brew_title} app: $outdated_app"
     done
   else
     output::answer "Already up-to-date"

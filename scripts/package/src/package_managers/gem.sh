@@ -46,7 +46,7 @@ gem::update_apps() {
       output::write "└ $current_version -> $new_version"
       output::empty_line
 
-      gem update "$package" 2>&1 | log::file "Updating ${gem_title} app: $package"
+      gem update "$package" |& log::file "Updating ${gem_title} app: $package"
     done
   else
     output::answer "Already up-to-date"
