@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Rigth prompt for bash definition
 __right_prompt() {
+  export LAST_CODE=$?
   RIGHT_PROMPT=""
   [[ -n $RPS1 ]] && RIGHT_PROMPT=$RPS1 || RIGHT_PROMPT=$RPROMPT
   if [[ -n $RIGHT_PROMPT ]]; then
@@ -8,8 +9,8 @@ __right_prompt() {
     printf "%${n}s$RIGHT_PROMPT\\r"
   fi
 
-  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "${THEME_COMMAND:-}" &> /dev/null; then
-    "${THEME_COMMAND:-}"
+  if [[ -n "${THEME_COMMAND:-}" ]]; then
+    "$THEME_COMMAND" 2> /dev/null || true
   fi
 }
 

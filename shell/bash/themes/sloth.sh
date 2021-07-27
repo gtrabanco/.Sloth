@@ -5,7 +5,10 @@ GREEN_COLOR="32"
 RED_COLOR="31"
 YELLOW_COLOR="33"
 
-GIT_EXECUTABLE="${GIT_EXECUTABLE:-$(command -vp git || true)}"
+prompt_git_command() {
+  GIT_EXECUTABLE="${GIT_EXECUTABLE:-$(command -vp git || true)}"
+  "$GIT_EXECUTABLE" "$@"
+}
 
 # SLOTH_THEME_MINIMAL
 # SLOTH_THEME_MULTILINE
@@ -20,28 +23,28 @@ prompt_sloth_autoupdate() {
 prompt_sloth_git_info_has_unpushed_commits() {
   local -r branch="${1:-}"
   [[ -z "$branch" ]] && return 1
-  local -r upstream_branch="$("${GIT_EXECUTABLE}" config --get "branch.${branch}.merge" || echo -n)"
+  local -r upstream_branch="$(prompt_git_command config --get "branch.${branch}.merge" || echo -n)"
   if [[ -n "$upstream_branch" ]]; then
     # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
-    [[ $("${GIT_EXECUTABLE}" rev-list --count "${upstream_branch}..HEAD") -gt 0 ]]
+    [[ $(prompt_git_command rev-list --count "${upstream_branch}..HEAD") -gt 0 ]]
   fi
 }
 
 prompt_sloth_git_info_has_untracked_files() {
-  [[ $("${GIT_EXECUTABLE}" ls-files --exclude-standard --others --directory | wc -l) -gt 0 ]]
+  [[ $(prompt_git_command ls-files --exclude-standard --others --directory | wc -l) -gt 0 ]]
 }
 
 prompt_sloth_git_info_is_clean_repository() {
-  "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD --
+  prompt_git_command diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD --
 }
 
 prompt_sloth_git_info_is_behind() {
   local -r branch="${1:-}"
   [[ -z "$branch" ]] && return 1
-  local -r upstream_branch="$("${GIT_EXECUTABLE}" config --get "branch.${branch}.merge" || echo -n)"
+  local -r upstream_branch="$(prompt_git_command config --get "branch.${branch}.merge" || echo -n)"
   if [[ -n "$upstream_branch" ]]; then
     # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
-    [[ $("${GIT_EXECUTABLE}" rev-list --count "HEAD..${upstream_branch}") -gt 0 ]]
+    [[ $(prompt_git_command rev-list --count "HEAD..${upstream_branch}") -gt 0 ]]
   fi
 }
 
@@ -75,14 +78,11 @@ prompt_sloth_git_info() {
     prompt_output="${prompt_output} \e[${RED_COLOR}m✗\e[m"
   fi
 
-
   echo -ne "$prompt_output"
 }
 
 sloth_theme() {
-  local LAST_CODE current_dir STATUS_COLOR
-  LAST_CODE=$?
-  echo "$LAST_CODE"
+  local current_dir STATUS_COLOR
   current_dir=$(dot core short_pwd)
   STATUS_COLOR=$GREEN_COLOR
 
