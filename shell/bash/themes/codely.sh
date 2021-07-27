@@ -19,8 +19,8 @@ prompt_dotly_autoupdate() {
 }
 
 codely_theme() {
+  local current_dir STATUS_COLOR="$GREEN_COLOR" LAST_CODE="$?"
   current_dir=$(dot core short_pwd)
-  STATUS_COLOR=$GREEN_COLOR
 
   if [[ $LAST_CODE -ne 0 ]]; then
     STATUS_COLOR=$RED_COLOR
