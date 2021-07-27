@@ -90,7 +90,7 @@ sloth_theme() {
   if ${SLOTH_THEME_MINIMAL:-false}; then
     PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\])"
   else
-    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\] \$(prompt_sloth_git_info)"
+    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\] \[\$(prompt_sloth_git_info)\]"
   fi
 
   if ${SLOTH_THEME_MULTILINE:-}; then
