@@ -1,0 +1,87 @@
+#!/usr/bin/env zsh
+
+CODELY_THEME_MINIMAL=${CODELY_THEME_MINIMAL:-false}
+CODELY_THEME_MODE=${CODELY_THEME_MODE:-"dark"}
+CODELY_THEME_PROMPT_IN_NEW_LINE=${CODELY_THEME_PROMPT_IN_NEW_LINE:-false}
+CODELY_THEME_PWD_MODE=${CODELY_THEME_PWD_MODE:-"short"} # full, short, home_relative
+
+CODELY_THEME_STATUS_ICON_KO=${CODELY_THEME_STATUS_ICON_KO:-"▪"}
+
+ [[ $(echotc Co) -gt 100 ]] && support_color_tones=true || support_color_tones=false
+
+status_icon_ok="▸"
+status_icon_ko="$CODELY_THEME_STATUS_ICON_KO"
+git_no_changes_status="✓"
+git_dirty_status="✗"
+
+if [ "$CODELY_THEME_MODE" = "dark" ]; then
+  git_branch_color="green"
+  git_dirty_status_color="yellow"
+  git_no_changes_status_color="white"
+  git_on_branch_color="white"
+  pwd_color="yellow"
+  status_icon_color="white"
+  [[ $support_color_tones = true ]] && ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=magenta'
+else
+  git_branch_color="black"
+  git_dirty_status_color="magenta"
+  git_no_changes_status_color="green"
+  git_on_branch_color="green"
+  pwd_color="black"
+  status_icon_color="black"
+  [[ $support_color_tones = true ]] && ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=magenta'
+fi
+
+prompt_codely_pwd() {
+  case "$CODELY_THEME_PWD_MODE" in
+    short) local -r prompt_dir=$("${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core short_pwd) ;;
+    full) local -r prompt_dir="$PWD" ;;
+    home_relative) local -r prompt_dir=$(print -rD "$PWD") ;;
+  esac
+
+  print -n "%F{$pwd_color}${prompt_dir}"
+}
+
+prompt_codely_git() {
+  [[ -n ${git_info} ]] && print -n "%F{$git_on_branch_color} on${(e)git_info[prompt]}"
+}
+
+prompt_codely_precmd() {
+  (( ${+functions[git-info]} )) && git-info
+}
+
+prompt_dotly_autoupdate() {
+  if [ -f "$DOTFILES_PATH/.sloth_update_available" ]; then
+    print -n "📥 | "
+  fi
+}
+
+prompt_codely_setup() {
+  local prompt_codely_status
+  
+  prompt_codely_status="%(?:%F{green}{%F{$status_icon_color}$status_icon_ok%F{green}}:%F{red}{%F{$status_icon_color}$status_icon_ko%F{red}})"
+
+  autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_codely_precmd
+
+  prompt_opts=(cr percent sp subst)
+
+  zstyle ':zim:git-info:branch' format "%F{$git_branch_color}%b"
+  zstyle ':zim:git-info:commit' format "%c"
+  zstyle ':zim:git-info:clean' format "%F{$git_no_changes_status_color}$git_no_changes_status"
+  zstyle ':zim:git-info:dirty' format "%F{$git_dirty_status_color}$git_dirty_status"
+  zstyle ':zim:git-info:keys' format "prompt" " %F{cyan}%b%c %C%D"
+
+  if [ "$CODELY_THEME_MINIMAL" = true ]; then
+    PS1="\$(prompt_dotly_autoupdate)${prompt_codely_status} \$(prompt_codely_pwd) "
+  else
+    PS1="\$(prompt_dotly_autoupdate)${prompt_codely_status} \$(prompt_codely_pwd)\$(prompt_codely_git)%f "
+  fi
+
+  if [ "$CODELY_THEME_PROMPT_IN_NEW_LINE" = true ]; then
+    PS1="┌$PS1"$'\n└➤ '
+  fi
+
+  RPS1=''
+}
+
+prompt_codely_setup "${@}"
