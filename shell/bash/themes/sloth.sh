@@ -101,14 +101,14 @@ sloth_theme() {
     else
       PS1="\n${PS1}\n   －   ⎣ ☞ "
     fi
-    
+
   else
     if ! ${SLOTH_THEME_MINIMAL:-false} && ! ${SLOTH_USE_RIGHT_PROMPT:-false}; then
       RPS1="$(prompt_sloth_git_info | awk '{print $NF" "$3" "$2}')"
     elif ! ${SLOTH_THEME_MINIMAL:-false}; then
       PS1="${PS1} \[\$(prompt_sloth_git_info)\]"
     fi
-    
+
     PS1+=" "
   fi
   export PS1 RPS1
