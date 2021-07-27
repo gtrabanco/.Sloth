@@ -65,7 +65,7 @@ prompt_sloth_git_info() {
 
   # Untracked files in the repository shows yellow U
   if ! ${SLOTH_THEME_NOT_SHOW_UNTRACKED:-false} && prompt_sloth_git_info_has_untracked_files; then
-    prompt_output="${prompt_output} (\e[${YELLOW_COLOR}mU\e[m)"
+    export RIGHT_PROMPT="\e[${YELLOW_COLOR}mUntracked files\e[m"
   fi
 
   # Dirty git dir shows green check or red cross
@@ -75,28 +75,35 @@ prompt_sloth_git_info() {
     prompt_output="${prompt_output} \e[${RED_COLOR}m✗\e[m"
   fi
 
+
   echo -ne "$prompt_output"
 }
 
 sloth_theme() {
-  LAST_CODE="$?"
+  local LAST_CODE current_dir STATUS_COLOR
+  LAST_CODE=$?
+  echo "$LAST_CODE"
   current_dir=$(dot core short_pwd)
   STATUS_COLOR=$GREEN_COLOR
 
-  if [ $LAST_CODE -ne 0 ]; then
-    STATUS_COLOR=$RED_COLOR
+  if [[ $LAST_CODE -ne 0 ]]; then
+    STATUS_COLOR="$RED_COLOR"
   fi
 
   if ${SLOTH_THEME_MINIMAL:-false}; then
-    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\])"
+    PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\]"
   else
     PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\] \[\$(prompt_sloth_git_info)\]"
   fi
 
   if ${SLOTH_THEME_MULTILINE:-}; then
-    PS1="$PS1 "
+    if [[ $LAST_CODE -eq 0 ]]; then
+      PS1="\n${PS1}\n   ︶   ⎣ ☞ "
+    else
+      PS1="\n${PS1}\n   －   ⎣ ☞ "
+    fi
   else
-    PS1="⎡$PS1\n⎣ ☞"
+    PS1="${PS1} "
   fi
   export PS1
 }
