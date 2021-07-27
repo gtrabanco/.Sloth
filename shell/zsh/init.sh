@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 #shellcheck disable=SC2148
 reverse-search() {
   local selected num
