@@ -5,6 +5,7 @@ set -euo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
+dot::load_library "sloth_update.sh"
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -147,7 +148,7 @@ else
 fi
 
 output::answer "Initilizing local repository for enable updates and autoupdates"
-update::sloth_repository_set_ready
+sloth_update::sloth_repository_set_ready
 output::empty_line
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
