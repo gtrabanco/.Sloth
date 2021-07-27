@@ -125,7 +125,7 @@ if ! ${skip_recipe:-false} &&
     exit 0
   fi
 else
-  package::install "$package_name" "${FORCED_PKGMGR:-auto}" |&| true
+  package::install "$package_name" "${FORCED_PKGMGR:-auto}" || true
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"

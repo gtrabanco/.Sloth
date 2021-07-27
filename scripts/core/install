@@ -80,7 +80,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platfor
   fi
 
   {
-    sudo chsh -s "$(command -v zsh)" |&| output::write "Shell could not be changed to zsh"
+    sudo chsh -s "$(command -v zsh)" |& output::write "Shell could not be changed to zsh"
   } | log::file "Setting zsh as default shell"
 elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::error "ZSH is not installed or is your current shell"
