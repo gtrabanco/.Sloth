@@ -126,25 +126,25 @@ if ! command_exists git; then
 
   if command_exists apt-get; then
     _a "Installing using apt"
-    sudo apt-get -y install git |& _log "Installing git"
+    sudo apt-get -y install git 2>&1 | _log "Installing git"
   elif command_exists dnf; then
     _a "Installing using dnf"
-    sudo dnf -y install git |& _log "Installing git"
+    sudo dnf -y install git 2>&1 | _log "Installing git"
   elif command_exists yum; then
     _a "Installing using yum"
-    yes | sudo yum install git |& _log "Installing git"
+    yes | sudo yum install git 2>&1 | _log "Installing git"
   elif command_exists brew; then
     _a "Installing using brew"
-    yes | brew install git |& _log "Installing git"
+    yes | brew install git 2>&1 | _log "Installing git"
   elif command_exists pacman; then
     _a "Installing using pacman"
-    sudo pacman -S --noconfirm git |& _log "Installing git"
+    sudo pacman -S --noconfirm git 2>&1 | _log "Installing git"
   else
     case "$OSTYPE" in
       darwin*)
         _a "Checking if Command Line Tools are installed 🕵️‍♂️"
 
-        xcode-select --install |& grep installed > /dev/null
+        xcode-select --install 2>&1 | grep installed > /dev/null
         if [[ $? ]]; then
           _a "Installing Command Line Tools 📺"
           xcode-select --install
@@ -164,19 +164,19 @@ if ! command_exists curl; then
 
   if command_exists apt; then
     _a "Installing using apt"
-    sudo apt -y install curl |& _log "Installing curl"
+    sudo apt -y install curl 2>&1 | _log "Installing curl"
   elif command_exists dnf; then
     _a "Installing using dnf"
-    sudo dnf -y install curl |& _log "Installing curl"
+    sudo dnf -y install curl 2>&1 | _log "Installing curl"
   elif command_exists yum; then
     _a "Installing using yum"
-    yes | sudo yum install curl |& _log "Installing curl"
+    yes | sudo yum install curl 2>&1 | _log "Installing curl"
   elif command_exists brew; then
     _a "Installing using brew"
-    yes | brew install curl |& _log "Installing curl"
+    yes | brew install curl 2>&1 | _log "Installing curl"
   elif command_exists pacman; then
     _a "Installing using pacman"
-    sudo pacman -S --noconfirm curl |& _log "Installing curl"
+    sudo pacman -S --noconfirm curl 2>&1 | _log "Installing curl"
   else
     _e "Could not install curl, no package provider found"
     exit 1
@@ -184,13 +184,13 @@ if ! command_exists curl; then
 fi
 
 _a "Initializing your dotfiles git repository"
-git init |& _log "Initializing repository"
+git init 2>&1 | _log "Initializing repository"
 
 _a "Cloning sloth/dotly"
-git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" |& _log "Adding sloth submodule"
+git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
 
 _a "Installing sloth/dotly dependencies"
-git submodule update --init --recursive |& _log "Installing dependencies"
+git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
 cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
