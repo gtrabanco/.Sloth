@@ -11,7 +11,6 @@
 #"
 git::get_submodule_property() {
   local gitmodules_path submodule_directory property default_submodule_path
-  
 
   if [ $# -gt 2 ]; then
     gitmodules_path="$1"
@@ -114,7 +113,7 @@ git::remote_branch_exists() {
 
   ! git::check_remote_exists "$remote" "$@" && return 1
 
-  [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2>/dev/null)" ]]
+  [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2> /dev/null)" ]]
 }
 
 #;
@@ -141,7 +140,7 @@ git::local_latest_tag_version() {
   local -r remote_url="${1:-}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:2}" describe --tags "$(git::git "${@:2}" rev-list --tags --max-count=1)" 2>/dev/null | sed 's/^v//'
+  git::git "${@:2}" describe --tags "$(git::git "${@:2}" rev-list --tags --max-count=1)" 2> /dev/null | sed 's/^v//'
 }
 
 #;
@@ -157,7 +156,7 @@ git::remote_latest_tag_version() {
   local -r version_pattern="${2:-v*.*.*}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2>/dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur | head -n1
+  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur | head -n1
 }
 
 #;
@@ -212,7 +211,7 @@ git::get_remote_head_upstream_branch() {
   [[ -n "${1:-}" ]] && shift
 
   ! git::check_remote_exists "$remote" "$@" && return
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2>/dev/null || return
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2> /dev/null || return
 }
 
 #;
@@ -323,7 +322,7 @@ git::clone_branches() {
   local remote_branch branch
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  
+
   ! git::git "$@" remote get-url "$remote" &> /dev/null && return 1
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
@@ -336,7 +335,7 @@ git::clone_branches() {
 # git::current_branch_is_tracked()
 #"
 git::current_branch_is_tracked() {
-  git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
+  git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2> /dev/null
 }
 
 #;
@@ -442,15 +441,6 @@ git::init_repository_if_necessary() {
   else
     return 1
   fi
-}
-
-
-git::is_latest_repository() {
-  local -r remote="${1:-origin}" # upstream or url
-  local -r head_branch="HEAD" # branch or HEAD, must be
-
-  # TODO
-  return
 }
 
 # Latest remote: git ls-remote origin HEAD | awk '{print $1}'
