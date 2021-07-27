@@ -8,7 +8,7 @@ __right_prompt() {
     printf "%${n}s$RIGHT_PROMPT\\r"
   fi
 
-  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "${THEME_COMMAND:-}" &>/dev/null; then
+  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "${THEME_COMMAND:-}" &> /dev/null; then
     "${THEME_COMMAND:-}"
   fi
 }
