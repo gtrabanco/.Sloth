@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
-PROMPT_COMMAND="sloth_theme"
 
+# Theme configuration
+SLOTH_THEME_MINIMAL=${SLOTH_THEME_MINIMAL:-false}
+SLOTH_THEME_MULTILINE=${SLOTH_THEME_MULTILINE:-false}
+SLOTH_THEME_SHOW_UNTRACKED=${SLOTH_THEME_SHOW_BEHIND:-true}
+SLOTH_THEME_SHOW_BEHIND=${SLOTH_THEME_SHOW_BEHIND:-true}
+SLOTH_USE_RIGHT_PROMPT=${SLOTH_USE_RIGHT_PROMPT:-true} # Only used when no minimal theme is set
+
+
+# Internal variables
 GREEN_COLOR="32"
 RED_COLOR="31"
 YELLOW_COLOR="33"
+
+PROMPT_COMMAND="sloth_theme"
+
+# Theme implementation
+void() {
+  return
+}
 
 prompt_git_command() {
   GIT_EXECUTABLE="${GIT_EXECUTABLE:-$(command -vp git || true)}"
   "$GIT_EXECUTABLE" "$@"
 }
-
-# SLOTH_THEME_MINIMAL
-# SLOTH_THEME_MULTILINE
-# SLOTH_THEME_NOT_SHOW_UNTRACKED
 
 prompt_sloth_autoupdate() {
   if [[ -f "$DOTFILES_PATH/.sloth_update_available" ]]; then
@@ -49,7 +60,7 @@ prompt_sloth_git_info_is_behind() {
 }
 
 prompt_sloth_git_info() {
-  local prompt_output=""
+  local clean_prompt untracked_prompt behind_prompt branch_prompt
   [[ ! -x "$GIT_EXECUTABLE" ]] && return
   ! "$GIT_EXECUTABLE" rev-parse --is-inside-work-tree &> /dev/null && return
   local -r branch="$("$GIT_EXECUTABLE" branch --show-current --no-color 2> /dev/null || true)"
@@ -57,28 +68,33 @@ prompt_sloth_git_info() {
 
   # Unpushed commits show branch on yellow
   if prompt_sloth_git_info_has_unpushed_commits "$branch"; then
-    prompt_output="on (\e[${YELLOW_COLOR}m${branch}\e[m)"
+    branch_prompt="\e[${YELLOW_COLOR}m${branch}\e[m"
   else
-    prompt_output="on (\e[${GREEN_COLOR}m${branch}\e[m)"
+    branch_prompt="\e[${GREEN_COLOR}m${branch}\e[m"
   fi
 
-  if ! ${SLOTH_THEME_NOT_SHOW_BEHIND:-false} && prompt_sloth_git_info_is_behind "$branch"; then
-    prompt_output="${prompt_output} \e[${RED_COLOR}m(☜)\e[m"
+  if ! ${SLOTH_THEME_SHOW_BEHIND:-true} && prompt_sloth_git_info_is_behind "$branch"; then
+    behind_prompt="\e[${RED_COLOR}m⬇︎\e[m"
   fi
 
   # Untracked files in the repository shows yellow U
-  if ! ${SLOTH_THEME_NOT_SHOW_UNTRACKED:-false} && prompt_sloth_git_info_has_untracked_files; then
-    prompt_output="${prompt_output} (\e[${YELLOW_COLOR}mU\e[m)"
+  if ! ${SLOTH_THEME_SHOW_UNTRACKED:-true} && prompt_sloth_git_info_has_untracked_files; then
+    untracked_prompt="\e[${YELLOW_COLOR}mU\e[m"
   fi
 
   # Dirty git dir shows green check or red cross
   if prompt_sloth_git_info_is_clean_repository; then
-    prompt_output="${prompt_output} \e[${GREEN_COLOR}m✓\e[m"
+    clean_prompt="\e[${GREEN_COLOR}m(✓)\e[m"
   else
-    prompt_output="${prompt_output} \e[${RED_COLOR}m✗\e[m"
+    clean_prompt="\e[${RED_COLOR}m✗\e[m"
   fi
 
-  echo -ne "$prompt_output"
+  # Depending on configuration set the git prompt
+  if ! ${SLOTH_THEME_MULTILINE:-false} && ! ${SLOTH_THEME_MINIMAL:-false} && ${SLOTH_USE_RIGHT_PROMPT:-true}; then
+    echo -ne "${clean_prompt:-} (${branch_prompt:-}${untracked_prompt:+:$untracked_prompt}${behind_prompt:+[$behind_prompt]})"
+  else
+    echo -ne "on (${branch_prompt:-}${untracked_prompt:+:$untracked_prompt}${behind_prompt:+[$behind_prompt]})${clean_prompt:+ $clean_prompt}"
+  fi
 }
 
 sloth_theme() {
@@ -91,7 +107,7 @@ sloth_theme() {
 
   PS1="(\[\e[${STATUS_COLOR}m\]⦿\[\e[m\] ω \[\e[${STATUS_COLOR}m\]⦿\[\e[m\]) \[\e[33m\]${current_dir}\[\e[m\]"
 
-  if ${SLOTH_THEME_MULTILINE:-}; then
+  if ${SLOTH_THEME_MULTILINE:-false}; then
     if ! ${SLOTH_THEME_MINIMAL:-false}; then
       PS1="${PS1} \[\$(prompt_sloth_git_info)\]"
     fi
@@ -104,7 +120,7 @@ sloth_theme() {
 
   else
     if ! ${SLOTH_THEME_MINIMAL:-false} && ! ${SLOTH_USE_RIGHT_PROMPT:-false}; then
-      RPS1="$(prompt_sloth_git_info | awk '{print $NF" "$3" "$2}')"
+      RPS1="$(prompt_sloth_git_info)"
     elif ! ${SLOTH_THEME_MINIMAL:-false}; then
       PS1="${PS1} \[\$(prompt_sloth_git_info)\]"
     fi
