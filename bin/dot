@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
-#shellcheck disable=2016
+#shellcheck disable=SC2128,SC2016
 
 set -o pipefail
+
+# In Linux we can do this with readlink -f but will fail in macOS and BSD OS
+if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
+  dot_path="$BASH_SOURCE"
+  until [[ ! -L $dot_path ]]; do
+    dot_path="$(readlink "$dot_path")"
+  done
+  SLOTH_PATH="$(dirname "$(dirname "$dot_path")")"
+  DOTLY_PATH="$SLOTH_PATH"
+
+  if [[ ! -d "$SLOTH_PATH" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
+    echo "Error: Could not find the SLOTH source code."
+    exit 1
+  fi
+  export SLOTH_PATH DOTLY_PATH
+fi
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
@@ -42,8 +58,8 @@ fi
 
 # This script version
 if [[ "$1" == "-v" || "$1" == "--version" ]]; then
-  SCRIPT_VERSION="$(dot::parse_script_version "$0")"
-  SCRIPT_NAME="$(basename "$0")"
+  SCRIPT_VERSION="$(dot::parse_script_version "$BASH_SOURCE")"
+  SCRIPT_NAME="$(basename "$BASH_SOURCE")"
   if [[ -n "${SCRIPT_VERSION}" ]]; then
     output::write "${SCRIPT_NAME}"
     output::write "\t\`v${SCRIPT_VERSION}\`"
