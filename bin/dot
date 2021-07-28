@@ -24,8 +24,8 @@ SLOTH_SCRIPT_BASE_NAME="sloth"
 ##?    dot
 ##?
 ##? Arguments:
-##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${DOTLY_PATH:-\${SLOTH_PATH:-${DOTLY_PATH:-}}}/scripts"
-##?    script   Is the script in "\${DOTFILE${SLOTH_PATH:-S_PATH}/scr}ipts/<context>" or "\${DOTLY_PATH:-\${SLOTH_PATH:-${DOTLY_PATH:-}}}/scripts/<conte${SLOTH_PATH:-xt>"
+##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts"
+##?    script   Is the script in "\${DOTFILES_PATH}/scripts/<context>" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>"
 ##?
 #}#? Options:
 ##?    -h --help     Gives help to the user
