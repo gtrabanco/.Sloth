@@ -74,12 +74,16 @@ platform::is_linux() {
   [[ $SLOTH_OS == *"Linux"* ]]
 }
 
+platform::is_windows() {
+  [[ $SLOTH_OS == "Windows"* || $SLOTH_OS == "MINGW64"* || $SLOTH_OS == "CYGWIN_NT"* || $SLOTH_OS == "MS-DOS" || $SLOTH_OS == "MSYS"* || $SLOTH_OS == "Wine"* || $SLOTH_OS == "UWIN"* ]]
+}
+
 platform::is_wsl() {
   grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &> /dev/null || grep -q -F 'Microsoft' /proc/sys/kernel/osrelease
 }
 
 platform::is_bsd() {
-  [[ $SLOTH_OS == *"BSD"* ]]
+  platform::is_macos || [[ $SLOTH_OS == *"BSD"* || $SLOTH_OS == "DragonFly" || $SLOTH_OS == "Minix" ]]
 }
 
 platform::os() {
