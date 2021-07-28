@@ -16,7 +16,11 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
     echo "Error: Could not find the SLOTH source code."
     exit 1
   fi
-  export SLOTH_PATH DOTLY_PATH
+
+  if [[ -z "${DOTFILES_PATH:-}" && -d "${HOME}/.dotfiles/scripts" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+  fi
+  export SLOTH_PATH DOTLY_PATH DOTFILES_PATH
 fi
 
 #shellcheck disable=SC1091
