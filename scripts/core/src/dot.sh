@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2128
 
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 

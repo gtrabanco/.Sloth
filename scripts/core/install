@@ -109,6 +109,10 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   } || output::error '❌ Error reloading completions'
 fi
 
+output::answer "Linking dot command for all users in \`/usr/local/bin\`"
+ln -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
+[[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+
 output::answer "Executing custom restoration scripts"
 install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
 if [ -d "$install_scripts_path" ]; then
