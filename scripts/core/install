@@ -9,14 +9,6 @@ dot::load_library "install.sh"
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# Mandatory packages first
-script::depends_on docpars fzf
-
-# Packages that are necessary but not in CI env
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on python-yq jq cargo-update
-fi
-
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
 if platform::is_macos; then
@@ -25,6 +17,14 @@ if platform::is_macos; then
 elif platform::is_linux; then
   output::answer "🐧 Setting up Linux Platform"
   install_linux_custom
+fi
+
+# Mandatory packages
+script::depends_on docpars
+
+# Packages that are necessary but not in CI env
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  script::depends_on fzf python-yq jq cargo-update
 fi
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
@@ -63,7 +63,12 @@ else
   $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
   ! $bk && symlinks_args=(--ignore-backup)
 fi
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"
+if $?; then
+  output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+else
+  output::solution "Symlinks applied"
+fi
 touch "$HOME/.z"
 unset symlinks_args bk
 
