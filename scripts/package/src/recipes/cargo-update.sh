@@ -4,7 +4,11 @@ cargo-update::install() {
   script::depends_on cargo
 
   if platform::command_exists cargo; then
-    cargo install cargo-update
+    if [[ -n "${1:-}" && "${1}" == "--force" ]]; then
+      cargo install --force cargo-update
+    else
+      cargo install cargo-update
+    fi
   else
     return 1
   fi

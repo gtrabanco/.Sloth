@@ -2,7 +2,7 @@
 
 cargo::install() {
   if ! platform::is_macos; then
-    package::install build-essential
+    package::install build-essential auto
   fi
 
   curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path 2>&1 | log::file "Installing rust from sources"

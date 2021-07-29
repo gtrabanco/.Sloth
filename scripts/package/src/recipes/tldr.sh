@@ -5,7 +5,7 @@ tldr::is_installed() {
 }
 
 tldr::install() {
-  ! tldr::is_installed && package::install tldr
+  package::install tldr auto "${1:-}"
 }
 
 tldr::is_outdated() {

@@ -1,25 +1,35 @@
 #!/usr/bin/env bash
 
 deno::install() {
-  if platform::command_exists cargo; then
-    cargo install deno
-  else
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add --skip-recipe deno
+  package::install deno auto "${1:-}"
+  package::is_installed deno auto &&
+    output::solution "Deno installed" &&
+    return 0
+
+  if [[ "${1:-}" = "--force" ]]; then
+    output::answer "\`--force\` option is ignored with deno when installing from source"
   fi
 
-  if ! platform::command_exists deno &&
-    ! platform::command_exists curl; then
+  if
+    ! deno::is_installed &&
+      {
+        ! platform::command_exists unzip ||
+          ! platform::command_exists curl
+      }
+  then
     script::depends_on curl unzip
-  fi
 
-  if platform::command_exists curl; then
-    curl -fsSL https://deno.land/x/install/install.sh | sh
+    if platform::command_exists curl; then
+      curl -fsSL https://deno.land/x/install/install.sh | sh
+    fi
   fi
 
   if platform::command_exists deno; then
+    output::solution "Deno installed"
     return
   fi
 
+  output::error "Deno could not be installed"
   return 1
 }
 
