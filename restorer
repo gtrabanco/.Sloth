@@ -147,6 +147,8 @@ package_install() {
   return 0
 }
 
+# TODO Ask all questions to the user at the beginning to make this script more disregarded
+# TODO Ask also core install questions
 _w "  ┌────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth${normal} restorer!  │ ~"
 _w "  └────────────────────────────────────┘"
