@@ -3,8 +3,27 @@
 python-yq::install() {
   script::depends_on python3-pip
 
+  if [[ -n "${1:-}" && $1 == "--force" ]] && python-yq::is_installed; then
+    if platform::command_exists brew; then
+      brew reinstall python-yq
+
+    elif
+      platform::command_exists python3 &&
+        python3 -c "import pip; print(pip.__version__)" &> /dev/null
+    then
+      python3 -m pip install --ignore-installed --user --no-cache-dir yq
+    else
+      output::error "Unable to locate any valid package manager to force install python-yq"
+      return 1
+    fi
+
+    python-yq::is_installed && return 0
+
+  fi
+
   if
-    platform::command_exists brew &&
+    ! python-yq::is_installed &&
+      platform::command_exists brew &&
       brew install python-yq &&
       python-yq::is_installed
   then
@@ -12,8 +31,9 @@ python-yq::install() {
   fi
 
   if
-    platform::command_exists pip3 &&
-      pip3 install yq &&
+    ! python-yq::is_installed &&
+      platform::command_exists pip3 &&
+      python3 -m pip install --user --no-cache-dir yq &&
       python-yq::is_installed
   then
     output::solution "yq installed!"

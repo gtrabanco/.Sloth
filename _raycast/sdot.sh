@@ -2,11 +2,11 @@
 
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Call dot shell scripts
+# @raycast.title Same functionality as sdot command. dot without enviroment variables.
 # @raycast.mode fullOutput
 
 # Optional parameters:
-# @raycast.icon 🦥
+# @raycast.icon ⚫️
 # @raycast.argument1 { "type": "text", "placeholder": "Context", "optional": false }
 # @raycast.argument2 { "type": "text", "placeholder": "Script", "optional": false }
 # @raycast.argument3 { "type": "text", "placeholder": "Arguments for .Sloth script", "optional": true }
@@ -17,10 +17,6 @@
 # @raycast.description Executes lazy .Sloth shell scripts
 # @raycast.author Gabriel Trabanco
 # @raycast.authorURL https://github.com/gtrabanco
-
-# For some scripts we need the user enviroment
-#shellcheck disable=SC1091
-[[ -f "${HOME}/.bashrc" ]] && . "${HOME}/.bashrc"
 
 context="${1:-}"
 script="${2:-}"

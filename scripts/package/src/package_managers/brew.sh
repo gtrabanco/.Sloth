@@ -14,7 +14,11 @@ brew::install() {
     *) package="${1:-}" ;;
   esac
 
-  brew install "$package"
+  if [[ $* == *--force* ]]; then
+    brew install --force "$package"
+  else
+    brew install "$package"
+  fi
 }
 
 brew::uninstall() {

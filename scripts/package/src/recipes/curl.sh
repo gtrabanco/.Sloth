@@ -5,13 +5,9 @@ curl::install() {
     script::depends_on build-essential
   fi
 
-  if command -v package::install &> /dev/null; then
-    package::install "curl"
-  elif [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" ]]; then
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add curl
-  fi
+  package::install "curl" "auto" "${1:-}"
 
-  cur::is_installed
+  curl::is_installed
 }
 
 curl::is_installed() {
