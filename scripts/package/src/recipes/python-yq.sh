@@ -9,7 +9,7 @@ python-yq::install() {
 
     elif
       platform::command_exists python3 &&
-      python3 -c "import pip; print(pip.__version__)" &> /dev/null
+        python3 -c "import pip; print(pip.__version__)" &> /dev/null
     then
       python3 -m pip install --ignore-installed --user --no-cache-dir yq
     else

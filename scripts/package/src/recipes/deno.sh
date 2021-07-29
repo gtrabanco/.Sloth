@@ -12,10 +12,10 @@ deno::install() {
 
   if
     ! deno::is_installed &&
-    {
-      ! platform::command_exists unzip ||
-      ! platform::command_exists curl
-    }
+      {
+        ! platform::command_exists unzip ||
+          ! platform::command_exists curl
+      }
   then
     script::depends_on curl unzip
 
