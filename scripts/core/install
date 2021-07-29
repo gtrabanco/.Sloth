@@ -10,7 +10,7 @@ export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 # Mandatory packages first
-script::depends_on docpars fzf
+script::depends_on clt curl git docpars fzf
 
 # Packages that are necessary but not in CI env
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
