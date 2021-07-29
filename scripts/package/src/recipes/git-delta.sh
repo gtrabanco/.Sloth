@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 git-delta::install() {
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add git-delta --skip-recipe
+  package::install git-delta auto
 }
 
 git-delta::is_installed() {
