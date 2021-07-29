@@ -7,6 +7,7 @@ set -euo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
 dot::load_library "git_extended.sh" "core"
+dot::load_library "sloth_update.sh" "core"
 
 ##? Update dotly/sloth to the latest stable release
 ##?
