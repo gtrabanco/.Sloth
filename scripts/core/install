@@ -9,14 +9,6 @@ dot::load_library "install.sh"
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# Mandatory packages first
-script::depends_on clt curl git docpars fzf
-
-# Packages that are necessary but not in CI env
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on python-yq jq cargo-update
-fi
-
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
 if platform::is_macos; then
@@ -25,6 +17,14 @@ if platform::is_macos; then
 elif platform::is_linux; then
   output::answer "🐧 Setting up Linux Platform"
   install_linux_custom
+fi
+
+# Mandatory packages
+script::depends_on docpars
+
+# Packages that are necessary but not in CI env
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  script::depends_on fzf python-yq jq cargo-update
 fi
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
