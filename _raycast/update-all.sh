@@ -3,7 +3,7 @@
 # Required parameters:
 # @raycast.schemaVersion 1
 # @raycast.title Update All System Packages
-# @raycast.mode fullOutput
+# @raycast.mode inline
 
 # Optional parameters:
 # @raycast.icon ♻️
@@ -15,6 +15,10 @@
 # @raycast.description Update all applications of all package managers that are supported by .Sloth
 # @raycast.author Gabriel Trabanco
 # @raycast.authorURL https://github.com/gtrabanco
+
+# We need user variables to update correct user packages
+#shellcheck disable=SC1091
+[[ -f "${HOME}/.bashrc" ]] && . "${HOME}/.bashrc"
 
 if command -v dot &> /dev/null; then
   if [[ -n "${1:-}" && $1 != "all" ]]; then

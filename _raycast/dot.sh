@@ -11,12 +11,16 @@
 # @raycast.argument2 { "type": "text", "placeholder": "Script", "optional": false }
 # @raycast.argument3 { "type": "text", "placeholder": "Arguments for .Sloth script", "optional": true }
 # @raycast.packageName Productivity
-# @raycast.needsConfirmation true
+# @raycast.needsConfirmation false
 
 # Documentation:
 # @raycast.description Executes lazy .Sloth shell scripts
 # @raycast.author Gabriel Trabanco
 # @raycast.authorURL https://github.com/gtrabanco
+
+# For some scripts we need the user enviroment
+#shellcheck disable=SC1091
+[[ -f "${HOME}/.bashrc" ]] && . "${HOME}/.bashrc"
 
 context="${1:-}"
 script="${2:-}"
