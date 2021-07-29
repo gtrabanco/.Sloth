@@ -29,6 +29,8 @@ elif platform::is_linux; then
   install_linux_custom
 fi
 
+# TODO Initilize .Sloth as repository and download submodules when installing as not submodule
+# TODO Add prompt for DOTFILES_PATH when not using installer
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:

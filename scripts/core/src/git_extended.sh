@@ -54,9 +54,6 @@ git::check_unpushed_commits() {
 # @param any args Additional git command args. Mandatory to pass previous two arguments (remote & branch) to give arguments to git command.
 # @return boolean
 #"
-# TODO: This function now has less params so it is necessary to check everywhere is used (deleted remote and branch params)
-# About dirty repository. Only is considered dirty if it has changes over tracked files
-# To check untracked files: git ls-files --exclude-standard --others --directory | wc -l (return how many untracked files being respectful with .gitignore)
 git::is_clean() {
   # Changes that are indexed: git add
   # "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --cached --ignore-submodules="all" HEAD -- || return 1
