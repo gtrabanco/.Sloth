@@ -13,7 +13,7 @@ dot::load_library "sloth_update.sh" "core"
 
 check_local_tag_exists() {
   local -r tag="${1:-}"
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr | grep -q "^v${tag//v/}$"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr | grep -q "^v${tag//v/}$"
 }
 
 ##?   Select a specific sloth/dotly version from local dotly module. If you select
@@ -47,12 +47,12 @@ fi
 
 if ${view_remote:-false}; then
   SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
   exit 0
 fi
 
 declare -a local_tags
-readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr)
+readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr)
 local_tags+=("stable" "latest")
 selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
 
@@ -60,7 +60,7 @@ case "$selected_tag" in
   "stable")
     latest_stable="$(sloth_update::get_latest_stable_version)"
     if [[ -n "$latest_stable" ]]; then
-      # "${SLOTH_UPDATE_GIT_ARGS[@]}"
+      # "${SLOTH_UPDATE_GIT_ARGS[@]:-}"
       git::sloth_repository_exec git checkout -q "$latest_stable"
       output::solution "Switched to latest .Sloth stable version $latest_stable"
       templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "stable"
@@ -70,12 +70,12 @@ case "$selected_tag" in
     ;;
   "latest")
     templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "latest"
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
     ;;
   *)
     if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then
       templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "$selected_tag"
-      git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "$selected_tag"
+      git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "$selected_tag"
       output::solution "Switched to Sloth version $selected_tag"
 
       output::answer ".Sloth is update locked. Which mean that can not be updated."
