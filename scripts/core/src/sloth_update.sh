@@ -119,12 +119,12 @@ sloth_update::should_be_updated() {
   if platform::semver get major "$SLOTH_UPDATE_VERSION" &> /dev/null; then
     # Different than current version & is not available in local & remote latest version is greater or equal that SLOTH_UPDATE_VERSION (pinned version)
     if
-      [[
+      [[ 
         $current_version != "$SLOTH_UPDATE_VERSION" &&
         $(platform::semver compare "$latest_available_local_version" "$SLOTH_UPDATE_VERSION") -lt 0 &&
-        $(platform::semver compare "$latest_version" "$SLOTH_UPDATE_VERSION") -gt -1
-      ]]
+        $(platform::semver compare "$latest_version" "$SLOTH_UPDATE_VERSION") -gt -1 ]]
     then
+
       return 0
     elif [[ $(platform::semver compare "$latest_version" "$SLOTH_UPDATE_VERSION") -eq -1 ]]; then
       output::error "Pinned version \`SLOTH_UPDATE_VERSION=$SLOTH_UPDATE_VERSION\` is not a valid version"

@@ -4,7 +4,6 @@ set -euo pipefail
 
 # TODO Check if DOTFILES_PATH and DOTLY_PATH is set, if not recall by using relative path to `dot` and providing arguments `core install` with current arguments ($@)
 
-
 # TODO Add prompt for DOTFILES_PATH when not set
 
 # TODO Ask every questions of the installer here to make this script more confortable to execute
@@ -44,7 +43,6 @@ output::answer "Initilizing local repository for enable updates and autoupdates"
 sloth_update::sloth_repository_set_ready
 # Update submodules recursively
 output::empty_line
-
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
