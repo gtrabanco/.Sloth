@@ -84,17 +84,65 @@ command_exists() {
   type "$1" > /dev/null 2>&1
 }
 
-# TODO Ask all questions to the user at the beginning to make this script more disregarded
-# TODO Ask also core install questions
+is_macos() {
+  [[ "$(uname -s)" == Darwin ]]
+}
+
+is_clt_installed() {
+  command -vp xcode-select &> /dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+}
+
+install_clt() {
+  is_clt_installed && return
+  local -r placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+  command -p touch "$placeholder" # Force softwareupdate to list CLT
+
+  local -r clt_label="$(command -p softwareupdate -l | grep -B 1 -E 'Command Line Tools' | awk -F '*' '/^ *\\*/ {print $2}' | sed -e 's/^ *Label: //' -e 's/^ *//' | sort -V -r |
+    head -n1)"
+
+  if ! command -p sudo -v -B; then
+    _e "Can not be installed without sudo authentication first"
+    return 1
+  fi
+
+  if [[ -n "$clt_label" ]]; then
+    command -p sudo "$(command -vp softwareupdate)" -i "$clt_label"
+    command -p sudo "$(command -vp xcode-select)" --switch "/Library/Developer/CommandLineTools"
+  fi
+  # Remove the placeholder always
+  /bin/rm -f "$placeholder"
+
+  # Something was terriby wrong with the CLT installation, so we need to try with another method
+  if ! is_clt_installed && command -p sudo -v -B; then
+    command -p xcode-select --install
+    if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+      until command -p xcode-select --print-path &> /dev/null; do
+        _a "Waiting for Command Line tools to be installed... Check again in 10 secs"
+        sleep 10
+      done
+    fi
+
+    {
+      [[ -d "/Library/Developer/CommandLineTools" ]] &&
+        command -p sudo "$(command -vp xcode-select)" --switch /Library/Developer/CommandLineTools
+    } || _e "Command Line Tools could not be selected"
+  fi
+
+  if ! output="$(command -p xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
+    _e "Command Line Tools could not be installed because you do not have accepted the license"
+    return 1
+  fi
+}
 
 _w "  ┌──────────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
 _w "  └──────────────────────────────────────────┘"
 _w
 
+#### Begin user prompts ####
 if
   [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    [[ "$OSTYPE" == darwin* ]] &&
+    is_macos &&
     [[ -d "$ICLOUD_PATH" ]]
 then
   _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
@@ -116,6 +164,97 @@ if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
   DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
 fi
 export DOTFILES_PATH="$DOTFILES_PATH"
+
+if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
+  _w "We will need to use user elevation with sudo"
+  if ! sudo -v -B; then
+    _e "Elevation error: wrong or not provided password"
+    _a "Yow will be asked later for the password again"
+  fi
+fi
+
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    is_macos &&
+    [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+then
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  if
+    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)? [Y/n]" "PROMPT_REPLY" &&
+    [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
+    sudo -v -B
+  then
+    {
+
+      sudo -v -B && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+
+    } || _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  fi
+
+# We need to cache sudo to avoid asking for password later and every time
+elif
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    is_macos &&
+    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]] &&
+    ! sudo -v -B
+then
+  _e "It can not be done without elevation, aborting this options (should be done later manually)"
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+fi
+export SETUP_ZSH_AND_BASH_IN_SHELLS
+
+# Backups
+if [[ -z "${SYMLINKS_ARGS[*]:-}" ]]; then
+  SYMLINKS_ARGS=(--interactive-backup)
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+    SYMLINKS_ARGS=(--ignore-backup)
+  elif ${always_backup:-}; then
+    SYMLINKS_ARGS=(--backup)
+  else
+    bk=false
+    output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
+    $bk && output::yesno "Do you want to be asked for every file" || SYMLINKS_ARGS=(--backup)
+    ! $bk && SYMLINKS_ARGS=(--ignore-backup)
+  fi
+fi
+export SYMLINKS_ARGS
+
+# ZSH as default Shell
+zsh_shell_path="$(command -v zsh || true)"
+if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
+  SETUP_ZSH_AS_DEFAULT_SHELL=false
+  if
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+      [[ "$SHELL" == *"zsh"* ]] &&
+      command_exists chsh &&
+      [[ -x "$zsh_shell_path" ]] &&
+      [[ -f "/etc/shells" ]] &&
+      ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+  then
+    _q "Do you want to setup the zsh \`$zsh_shell_path\` as default shell? [Y/n]" "PROMPT_REPLY" &&
+      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
+      SETUP_ZSH_AS_DEFAULT_SHELL=true
+    _a "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    if ! sudo -v -B; then
+      _e "Without sudo authentication this can not be done. You should do this later manually"
+      SETUP_ZSH_AS_DEFAULT_SHELL=false
+    fi
+  fi
+else
+  if
+    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
+      ! command_exists chsh ||
+      [[ ! -x "$zsh_shell_path" ]] ||
+      [[ ! -f "/etc/shells" ]] ||
+      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
+      ! sudo -v -B
+  then
+    _a "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because it can not be done or is already the default shell or fail with the password."
+    SETUP_ZSH_AS_DEFAULT_SHELL=false
+  fi
+fi
+export SETUP_ZSH_AS_DEFAULT_SHELL
+#### End user prompts ####
 
 dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
@@ -143,22 +282,19 @@ if ! command_exists git; then
     _a "Installing using pacman"
     sudo pacman -S --noconfirm git 2>&1 | _log "Installing git"
   else
-    case "$OSTYPE" in
-      darwin*)
-        _a "Checking if Command Line Tools are installed 🕵️‍♂️"
+    if is_macos; then
+      _a "Checking if Command Line Tools are installed 🕵️‍♂️"
 
-        xcode-select --install 2>&1 | grep installed > /dev/null
-        if [[ $? ]]; then
-          _a "Installing Command Line Tools 📺"
-          xcode-select --install
-          _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
-        fi
-        ;;
-      *)
-        _e "Could not install git, no package provider found"
-        exit 1
-        ;;
-    esac
+      xcode-select --install 2>&1 | grep installed > /dev/null
+      if [[ $? ]]; then
+        _a "Installing Command Line Tools 📺"
+        xcode-select --install
+        _q "Press a key after command line tools has finished to continue...👇" "CLT_INSTALLED"
+      fi
+    else
+      _e "Could not install git, no package provider found"
+      exit 1
+    fi
   fi
 fi
 
