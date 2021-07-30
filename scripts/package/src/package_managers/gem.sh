@@ -3,6 +3,13 @@
 #shellcheck disable=SC2034
 gem_title='♦️  gem'
 
+if command -v gem &> /dev/null; then
+  [[ -z "${GEM_HOME:-}" ]] && export GEM_HOME="${HOME}/.gem"
+
+  # Path GEM HOME does not exist in PATH
+  PATH="$(command -v gem env gempath)${PATH:+:$PATH}"
+fi
+
 gem::is_available() {
   platform::command_exists gem
 }

@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 
 files::check_if_path_is_older() {
-  local path_to_check number_of period
+  local path_to_check number_of period date_file_path date_to_compare
   path_to_check="$1"
   number_of="${2:-0}"
   period="${3:-days}"
-  [[ -e "$path_to_check" ]] && [[ $(date -r "$path_to_check" +%s) -lt $(date -d "now - $number_of $period" +%s) ]]
+  date_file_path=$(command -p date -r "$path_to_check" +%s)
+
+  if platform::is_bsd; then
+    #shellcheck disable=SC2086
+    date_to_compare=$(command -p date -j -v "-${number_of}${period:0:1}" +%s)
+  else
+    date_to_compare=$(command -p date --date="now - $number_of $period" +%s)
+  fi
+
+  [[ -e "$path_to_check" ]] && [[ $date_file_path -lt $date_to_compare ]]
 }
 
 #;
