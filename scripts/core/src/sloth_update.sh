@@ -29,7 +29,7 @@ fi
 
 # Urls, branches and remotes
 if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" ]]; then
-  SLOTH_SUBMODULES_DIRECTORY="$(realpath -qms --relative-to="$DOTFILES_PATH" "${SLOTH_PATH:-${DOTLY_PATH:-}}")"
+  SLOTH_SUBMODULES_DIRECTORY="$(command -p realpath -qms --relative-to="$DOTFILES_PATH" "${SLOTH_PATH:-${DOTLY_PATH:-}}")"
   SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
 fi
 
