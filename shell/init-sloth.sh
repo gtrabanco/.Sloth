@@ -125,6 +125,8 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
     BREW_BIN="/usr/local/bin/brew"
   elif command -v brew &> /dev/null; then
     BREW_BIN="$(command -v brew)"
+  elif command -vp brew &> /dev/null; then
+    BREW_BIN="$(command -vp brew)"
   fi
 fi
 
@@ -192,6 +194,13 @@ fi
 [[ -d "${HOME}/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
+if command -vp gem &> /dev/null || command -v gem &> /dev/null; then
+  gem_bin="$(command -v gem)"
+  gem_bin="${gem_bin:-$(command -vp gem)}"
+  gem_paths="$("$gem_bin" env gempath 2> /dev/null)"
+  #shellcheck disable=SC2207
+  [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' '\n'))
+fi
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "${HOME}/.deno/bin" ]] && path+=("$HOME/.deno/bin")
 if [[ -x "/usr/bin/python3" && -d "$(/usr/bin/python3 -c 'import site; print(site.USER_BASE)' | xargs)/bin" ]]; then
@@ -200,10 +209,8 @@ fi
 
 # System paths
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "System PATHs"
-path+=("/usr/bin")
-path+=("/bin")
-path+=("/usr/sbin")
-path+=("/sbin")
+#shellcheck disable=SC2207
+path+=($(command -p getconf PATH | command -p tr ':' '\n'))
 ###### END OF PATHS ######
 
 ###### Load dotly core for your current BASH ######
@@ -257,6 +264,6 @@ fi
 ###### End of User init scripts ######
 
 # Unset loader variables
-unset init_script init_scripts_path BREW_BIN user_paths
+unset init_script init_scripts_path BREW_BIN user_paths gem_bin gem_paths
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true
