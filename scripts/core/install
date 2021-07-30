@@ -15,7 +15,6 @@ dot::load_library "install.sh"
 dot::load_library "git_extended.sh"
 dot::load_library "sloth_update.sh"
 
-
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
@@ -162,7 +161,6 @@ else
 fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
-
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
