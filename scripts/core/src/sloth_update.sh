@@ -185,7 +185,7 @@ sloth_update::should_be_updated() {
 sloth_update::exists_migration_script() {
   local -r updated_version="$(sloth_update::get_current_version)"
 
-  [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/$updated_version" ]]
+  [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/${updated_version}" || -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${updated_version}.yaml" || -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${updated_version}.yml" ]]
 }
 
 #;
