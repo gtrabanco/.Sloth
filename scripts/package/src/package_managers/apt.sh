@@ -74,7 +74,7 @@ apt::update_apps() {
 
 apt::self_update() {
   platform::command_exists sudo && platform::command_exists hwclock && sudo hwclock --hctosys
-  apt::is_available && platform::command_exists sudo && sudo apt-get update
+  apt::is_available && platform::command_exists sudo && sudo apt-get update | log::file "Updating ${apt_title}"
 }
 
 apt::update_all() {
