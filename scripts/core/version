@@ -11,6 +11,11 @@ dot::load_library "templating.sh" "core"
 dot::load_library "git_extended.sh" "core"
 dot::load_library "sloth_update.sh" "core"
 
+check_local_tag_exists() {
+  local -r tag="${1:-}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr | grep -q "^v${tag//v/}$"
+}
+
 ##?   Select a specific sloth/dotly version from local dotly module. If you select
 ##? any of: latest, stable, minor, it also modifies you 'exports.sh' file
 ##?
@@ -68,8 +73,7 @@ case "$selected_tag" in
     git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
     ;;
   *)
-    # TODO Check if selected tag exists...
-    if [[ -n "$selected_tag" ]]; then
+    if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then
       templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "$selected_tag"
       git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "$selected_tag"
       output::solution "Switched to Sloth version $selected_tag"
@@ -77,6 +81,9 @@ case "$selected_tag" in
       output::answer ".Sloth is update locked. Which mean that can not be updated."
       output::answer "To unlock updates type: \`dot self update --enable\` command"
       touch "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
+    elif [[ -n "$selected_tag" ]] && ! check_local_tag_exists "$selected_tag"; then
+      output::error "Selected version does not exists locally"
+      exit 1
     fi
     ;;
 esac
