@@ -26,7 +26,7 @@ SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 #
 # .Sloth update strategy Configuration
 #
-export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, minor, latest, or any specified version
+export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, minor, latest, or any specified version if you want to pin to that version
 export SLOTH_ENV="${SLOTH_ENV:-production}"                   # production or development. If you define development
 # all updates must be manually or when you have a clean working directory and
 # pushed your commits.
@@ -106,6 +106,48 @@ sloth_update::local_sloth_repository_can_be_updated() {
 }
 
 #;
+# sloth_update::should_be_updated()
+# Check if we should update sloth based on the selected and current version
+# @return boolean
+#"
+sloth_update::should_be_updated() {
+  local -r latest_version=$(sloth_update::get_latest_stable_version)
+  local -r current_version=$(sloth_update::get_current_version)
+  local -r latest_available_local_version=$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr | head -n1)
+
+  # Check if currently we want to pin to a fixed version but is more recent that current version
+  if platform::semver get major "$SLOTH_UPDATE_VERSION" &> /dev/null; then
+    # Different than current version & is not available in local & remote latest version is greater or equal that SLOTH_UPDATE_VERSION (pinned version)
+    if
+      [[
+        $current_version != "$SLOTH_UPDATE_VERSION" &&
+        $(platform::semver compare "$latest_available_local_version" "$SLOTH_UPDATE_VERSION") -lt 0 &&
+        $(platform::semver compare "$latest_version" "$SLOTH_UPDATE_VERSION") -gt -1
+      ]]
+    then
+      return 0
+    elif [[ $(platform::semver compare "$latest_version" "$SLOTH_UPDATE_VERSION") -eq -1 ]]; then
+      output::error "Pinned version \`SLOTH_UPDATE_VERSION=$SLOTH_UPDATE_VERSION\` is not a valid version"
+      return 1
+    else
+      return 1
+    fi
+  fi
+
+  # Stable channel must check with remote latest version
+  if [[ $SLOTH_UPDATE_VERSION == "stable" && $(platform::semver compare "$latest_version" "$current_version") -eq 1 ]]; then
+    return 0
+  fi
+
+  # Latest channel
+  if [[ $SLOTH_UPDATE_VERSION == "latest" ]] && git::check_branch_is_behind "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
+    return 0
+  fi
+
+  return 1
+}
+
+#;
 # sloth_update::sloth_update_repositry()
 # Gracefully update sloth repository to the latest version. Use defined vars in top as default values if no one is provided. It will use \${SLOTH_UPDATE_GIT_ARGS[@]} as default arguments for git. This update only the SLOTH_DEFAULT_BRANCH and tags.
 # @param string remote
@@ -148,16 +190,23 @@ sloth_update::sloth_update_repository() {
 
 #;
 # sloth_update::sloth()
-# Full update sloth function that can be used to update in sync or async mode
+# Full update sloth function that can be used to update in sync or async mode. Already up to date return non exit code
+# @return 0 if all ok, error code otherwise 10, in no force means has pending commits or dirty directory, 20 remote does not exists or can't be set, no default branch, 40 git pull fails
 #"
 sloth_update::sloth() {
-  # Check if current version is a fixed version
+  local exit_code=0
+  # Check if is in development mode but is dirty or has unpushed commits
+  if [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] && ! sloth_update::local_sloth_repository_can_be_updated; then
+    return 1
+  fi
 
-  # Check if can be updated (is dev then should be clean and no unpushed commits "can be updated", not dev checkout force and clean to master)
+  if ! sloth_update::should_be_updated; then
+    # Already up to date
+    return
+  fi
 
-  # Check if is behind remote
+  # Force update
+  sloth_update::sloth_update_repository "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-master}" true || exit_code=$?
 
-  # Update
-
-  return
+  return $exit_code
 }
