@@ -65,16 +65,16 @@ sloth_update::sloth_repository_set_ready() {
   fi
 
   # Set head branch
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto &> /dev/null 1>&2
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto &> /dev/null 1>&2 || true
 
   # Automatic convert windows git crlf to lf
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" config --bool core.autcrl false 1>&2
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" config --bool core.autcrl false 1>&2 || true
 
   # Track default branch
   git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]:-}" &> /dev/null || true
 
   # Unshallow by the way
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" fetch --unshallow &> /dev/null
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" fetch --unshallow &> /dev/null || true
 }
 
 #;
