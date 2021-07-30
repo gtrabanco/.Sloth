@@ -2,18 +2,117 @@
 
 set -euo pipefail
 
-# TODO Check if DOTFILES_PATH and DOTLY_PATH is set, if not recall by using relative path to `dot` and providing arguments `core install` with current arguments ($@)
-
-# TODO Add prompt for DOTFILES_PATH when not set
-
-# TODO Ask every questions of the installer here to make this script more confortable to execute
-# TODO make all previous questions disgreabled by supporting the answers in env variables
-
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
 dot::load_library "git_extended.sh"
 dot::load_library "sloth_update.sh"
+
+##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
+##?
+##? Usage:
+##?    install [[-n | --never-backup] | [-b |--always-backup]]
+##?
+##? Options:
+##?    -h --help                Prints this help
+##?    -n --never-backup        Never do a backup of user symlinks without prompt
+##?    -b --always-backup       Always do a backup of user symlinks without prompt
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
+##?
+##?
+##? SCRIPT_VERSION "3.0.0"
+# TODO Update to be compatible without docpars
+# TODO If all TODOs are done set version number as 3.0.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+  docs::parse "$@"
+else
+  version=false
+  help=false
+  backup=false
+  interactive_backup=false
+  ignore_backup=false
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      --backup)
+        { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
+        backup=true
+        ;;
+      --interactive-backup)
+        { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
+        interactive_backup=true
+        shift
+        ;;
+      --ignore-backup)
+        { $backup || $interactive_backup; } && output::error "Error you can not use \`--ignore-backup\` with \`--backup\` or \`--interactive-backup\`" && exit 4
+        ignore_backup=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
+fi
+
+SCRIPT_NAME="dot core install"
+
+# Print name and version
+if ${version:-false}; then
+  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  exit
+elif ${help:-false}; then
+  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
+  exit
+fi
+
+#### Prompt user all the staff we want to know ####
+#### All questions at the very beginning
+# Backups
+if [[ -z "${SYMLINKS_ARGS[*]:-}" ]]; then
+  SYMLINKS_ARGS=(--interactive-backup)
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+    SYMLINKS_ARGS=(--ignore-backup)
+  elif ${always_backup:-}; then
+    SYMLINKS_ARGS=(--backup)
+  else
+    bk=false
+    output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
+    $bk && output::yesno "Do you want to be asked for every file" || SYMLINKS_ARGS=(--backup)
+    ! $bk && SYMLINKS_ARGS=(--ignore-backup)
+  fi
+fi
+
+# ZSH as default Shell
+if [[ -z "$SETUP_ZSH_AS_DEFAULT_SHELL" ]]; then
+  zsh_shell_path="$(command -v zsh || true)"
+  SETUP_ZSH_AS_DEFAULT_SHELL=false
+  if
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    ! str::contains zsh "$SHELL" &&
+    platform::command_exists chsh &&
+    [[ -x "$zsh_shell_path" ]] &&
+    [[ -f "/etc/shells" ]] &&
+    ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+  then
+    output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
+    output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    if ! sudo -v -B; then
+      output::error "Without sudo authentication this can not be done. You should do this later manually"
+      SETUP_ZSH_AS_DEFAULT_SHELL=false
+    fi
+  fi
+fi
+#### End of prompt user all the staff we want to know ####
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -44,70 +143,33 @@ fi
 # Update submodules recursively
 # output::empty_line
 
-##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
-##?
-##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup]]
-##?
-##? Options:
-##?    -h --help                Prints this help
-##?    -n --never-backup        Never do a backup of user symlinks without prompt
-##?    -b --always-backup       Always do a backup of user symlinks without prompt
-##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
-##?
-##?    install
-##?
-##? SCRIPT_VERSION "2.0.0"
-# TODO Update to be compatible without docpars
-# TODO If all TODOs are done set version number as 3.0.0
-if ! ${DOTLY_INSTALLER:-false}; then
-  docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
-fi
-
 output::answer "Creating dotfiles structure"
 "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
 
 # Apply user symlinks
 output::answer "Setting up symlinks"
-symlinks_args=(--interactive-backup)
-if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
-  symlinks_args=(--ignore-backup)
-elif ${always_backup:-}; then
-  symlinks_args=(--backup)
-else
-  bk=false
-  output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
-  $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
-  ! $bk && symlinks_args=(--ignore-backup)
-fi
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"
+SYMLINKS_ARGS=(--interactive-backup)
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"
 if $?; then
   output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
 else
   output::solution "Symlinks applied"
 fi
 touch "$HOME/.z"
-unset symlinks_args bk
+unset SYMLINKS_ARGS bk
 
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
 output::answer "Trying to setup zsh as the default shell"
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
-  if
-    [[ -f "/etc/shells" ]] &&
-      ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
-      sudo -v
-  then
-    sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
-  fi
+if $SETUP_ZSH_AS_DEFAULT_SHELL && sudo -v -B; then
+  sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
 
   {
     sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
   } | log::file "Setting zsh as default shell"
+
 elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  output::error "ZSH is not installed or is your current shell"
+  output::answer "ZSH is not installed, is your current shell or you decide not to do this step."
 else
   output::answer "This is step is aborted on CI"
 fi
@@ -118,7 +180,7 @@ output::answer "Installing zim"
 if platform::command_exists zsh; then
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
-  output::error "ZIM Framework could not be installed"
+  output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"
   output::write "You will need to run manually the ZIM Framework install command"
   output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
