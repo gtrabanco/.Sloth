@@ -7,8 +7,14 @@ set +e # Avoid crash if any function return false
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
-dot::load_library "templating.sh"
-dot::load_library "self-update.sh"
+dot::load_library "templating.sh" "core"
+dot::load_library "git_extended.sh" "core"
+dot::load_library "sloth_update.sh" "core"
+
+check_local_tag_exists() {
+  local -r tag="${1:-}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr | grep -q "^v${tag//v/}$"
+}
 
 ##?   Select a specific sloth/dotly version from local dotly module. If you select
 ##? any of: latest, stable, minor, it also modifies you 'exports.sh' file
@@ -26,6 +32,8 @@ dot::load_library "self-update.sh"
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+##? SCRIPT_VERSION 1.1.0
 docs::parse "$@"
 
 SCRIPT_NAME="sloth core version"
@@ -38,49 +46,44 @@ if ${version:-}; then
 fi
 
 if ${view_remote:-false}; then
-  git::get_all_remote_tags_version_only
+  SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
   exit 0
 fi
 
 declare -a local_tags
-readarray -t local_tags < <(git::get_all_local_tags)
-local_tags+=("minor" "stable" "latest")
+readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr)
+local_tags+=("stable" "latest")
 selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
 
 case "$selected_tag" in
-  "minor")
-    # Current HEAD tag or stable
-    current_tag_version="$(update::get_latest_minor_local_head)"
-    if [[ -n "$current_tag_version" ]]; then
-      git::sloth_repository_exec git checkout -q "$current_tag_version"
-      output::solution "Switched to latest Sloth stable version $current_tag_version"
-      modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "minor"
-    else
-      output::error "No releases locally yet"
-    fi
-    ;;
   "stable")
-    latest_stable="$(git::get_current_latest_tag)"
+    latest_stable="$(sloth_update::get_latest_stable_version)"
     if [[ -n "$latest_stable" ]]; then
+      # "${SLOTH_UPDATE_GIT_ARGS[@]}"
       git::sloth_repository_exec git checkout -q "$latest_stable"
-      output::solution "Switched to latest Sloth stable version $latest_stable"
-      modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "stable"
+      output::solution "Switched to latest .Sloth stable version $latest_stable"
+      templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "stable"
     else
       output::error "No releases locally yet"
     fi
     ;;
   "latest")
-    git::sloth_repository_exec git checkout -q "master"
+    templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "latest"
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
     ;;
   *)
-    if [[ -n "$selected_tag" ]]; then
-      git::sloth_repository_exec git checkout -q "$selected_tag"
+    if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then
+      templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "$selected_tag"
+      git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout -q "$selected_tag"
       output::solution "Switched to Sloth version $selected_tag"
+
+      output::answer ".Sloth is update locked. Which mean that can not be updated."
+      output::answer "To unlock updates type: \`dot self update --enable\` command"
+      touch "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
+    elif [[ -n "$selected_tag" ]] && ! check_local_tag_exists "$selected_tag"; then
+      output::error "Selected version does not exists locally"
+      exit 1
     fi
     ;;
 esac
-
-if [[ -n "$selected_tag" ]]; then
-  output::answer "Sloth is update locked. To unlock updates use: dot self update --enable"
-  touch "$DOTFILES_PATH/.sloth_force_current_version"
-fi

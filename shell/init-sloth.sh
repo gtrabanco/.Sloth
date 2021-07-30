@@ -191,7 +191,7 @@ fi
 ###### PATHS ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Conditional PATHs"; } || true
 # Conditional paths
-[[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
+[[ -d "${HOME}/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 if command -vp gem &> /dev/null || command -v gem &> /dev/null; then
@@ -202,7 +202,10 @@ if command -vp gem &> /dev/null || command -v gem &> /dev/null; then
   [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' '\n'))
 fi
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
-[[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
+[[ -d "${HOME}/.deno/bin" ]] && path+=("$HOME/.deno/bin")
+if [[ -x "/usr/bin/python3" && -d "$(/usr/bin/python3 -c 'import site; print(site.USER_BASE)' | xargs)/bin" ]]; then
+  path+=("$(/usr/bin/python3 -c 'import site; print(site.USER_BASE)' | xargs)/bin")
+fi
 
 # System paths
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "System PATHs"
@@ -262,5 +265,10 @@ fi
 
 # Unset loader variables
 unset init_script init_scripts_path BREW_BIN user_paths gem_bin gem_paths
+
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  [[ -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}" ]] &&
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dot migration --updated
+fi
 
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true
