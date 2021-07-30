@@ -154,6 +154,8 @@ else
       "${script_full_path}" "$@"
     fi
   else
+    # TODO Review this if we have automated the new way of load scripts
+    # --version & --help
     "${SLOTH_LAZY_SCRIPT}" "${script_full_path}" "$@"
   fi
 fi
