@@ -78,8 +78,8 @@ fi
 # Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
 if
   [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-  platform::is_macos &&
-  [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+    platform::is_macos &&
+    [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
@@ -96,9 +96,9 @@ then
 # We need to cache sudo to avoid asking for password later and every time
 elif
   [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-  platform::is_macos &&
-  [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]] &&
-  ! sudo -v -B
+    platform::is_macos &&
+    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]] &&
+    ! sudo -v -B
 then
   output::error "It can not be done without elevation, aborting this options (should be done later manually)"
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
@@ -126,11 +126,11 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
   if
     [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    ! str::contains zsh "$SHELL" &&
-    platform::command_exists chsh &&
-    [[ -x "$zsh_shell_path" ]] &&
-    [[ -f "/etc/shells" ]] &&
-    ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+      ! str::contains zsh "$SHELL" &&
+      platform::command_exists chsh &&
+      [[ -x "$zsh_shell_path" ]] &&
+      [[ -f "/etc/shells" ]] &&
+      ! grep -q "^${zsh_shell_path}$" "/etc/shells"
   then
     output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
     output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
@@ -142,11 +142,11 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
 else
   if
     [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
-    ! platform::command_exists chsh ||
-    [[ ! -x "$zsh_shell_path" ]] ||
-    [[ ! -f "/etc/shells" ]] ||
-    grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-    ! sudo -v -B
+      ! platform::command_exists chsh ||
+      [[ ! -x "$zsh_shell_path" ]] ||
+      [[ ! -f "/etc/shells" ]] ||
+      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
+      ! sudo -v -B
   then
     output::answer "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because it can not be done or is already the default shell or fail with the password."
     SETUP_ZSH_AS_DEFAULT_SHELL=false
