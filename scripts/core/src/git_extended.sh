@@ -22,10 +22,10 @@ git::get_submodule_property() {
   submodule_directory="${submodule_directory:-modules/${1:-}}"
   property="${2:-}"
 
-  [[ -f "$gitmodules_path" ]] && echo "gitmodules" &&
-    [[ -n "$submodule_directory" ]] && echo "submodule" &&
-    [[ -n "$property" ]] && echo "property" &&
-    echo git config -f "$gitmodules_path" submodule."$submodule_directory"."$property" || return
+  [[ -f "$gitmodules_path" ]] &&
+    [[ -n "$submodule_directory" ]] &&
+    [[ -n "$property" ]] &&
+    git config -f "$gitmodules_path" submodule."$submodule_directory"."$property" || return
 }
 
 #;
