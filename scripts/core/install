@@ -84,7 +84,7 @@ then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
     output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)" &&
-    sudo -v -B
+      sudo -v -B
   then
     {
 
@@ -178,11 +178,13 @@ fi
 
 output::answer "Initilizing .Sloth as repository"
 sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository"
+git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" submodule update --init --recursive | log::file "Update .Sloth submodules"
 output::empty_line
 
 if ! git::is_repository -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
   output::answer "Initilizing .Sloth as repository"
   sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" submodule update --init --recursive | log::file "Update .Sloth submodules"
   output::empty_line
 fi
 
