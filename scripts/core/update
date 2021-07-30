@@ -20,31 +20,41 @@ dot::load_library "sloth_update.sh" "core"
 ##?
 docs::parse "$@"
 
-# if git::is_in_repo; then
-#   echo "in"
-#   git::current_commit_hash
-# fi
-# git::get_commit_tag
-# #git::sloth_repository_exec git::get_commit_tag
-# update::get_latest_minor_local_head
-# exit
+if ${disable:-enable}; then
+  touch "$DOTFILES_PATH/.sloth_force_current_version"
+  exit 0
+elif ${enable:-false}; then
+  rm -f "$DOTFILES_PATH/.sloth_force_current_version"
+  exit 0
+fi
 
-# if ${disable:-enable}; then
-#   touch "$DOTFILES_PATH/.sloth_force_current_version"
-#   exit 0
-# elif ${enable:-false}; then
-#   rm -f "$DOTFILES_PATH/.sloth_force_current_version"
-#   exit 0
-# fi
+if [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]]; then
+  output::error "Updates are disabled: use \`dot core update --enable\` to enable them"
+fi
 
 # update::update_local_sloth_module
+status=0
+sloth_update::gracefully | log::file "Updating .Sloth" || status=$?
+if [[ $status -ne 0 ]]; then
+  case $status in
+    10)
+      output::error "No update, dirty or pending commits"
+      ;;
+    20)
+      output::error "No update, upstream does not exists and/or could not be set"
+      ;;
+    30)
+      output::error "No update, remote head branch could not be set"
+      ;;
+    40)
+      output::error "No updated something was wrong"
+      ;;
+  esac
+fi
 
-# if [[ -f "$DOTFILES_PATH/.sloth_updated" ]]; then
-#   output::answer '✅ dotly/sloth updated to the latest version'
-# else
-#   output::answer '👌 You already have latest dotly/sloth version'
-# fi
 
-## New part
-
-git::get_remote_head_upstream_branch "origin" -C "${SLOTH_PATH:-$DOTLY_PATH}"
+if [[ -f "$DOTFILES_PATH/.sloth_updated" ]]; then
+  output::answer '✅ .Sloth updated to the latest version'
+else
+  output::answer '👌 You already have latest .Sloth version'
+fi

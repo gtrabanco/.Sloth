@@ -89,6 +89,11 @@ sloth_update::get_latest_stable_version() {
 #"
 sloth_update::local_sloth_repository_can_be_updated() {
   local IS_WORKING_DIRECTORY_CLEAN=false HAS_UNPUSHED_COMMITS=false
+
+  if [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]]; then
+    return 1
+  fi
+
   git::is_clean "${SLOTH_UPDATE_GIT_ARGS[@]}" && IS_WORKING_DIRECTORY_CLEAN=true
 
   # If remote exists locally
@@ -174,7 +179,7 @@ sloth_update::sloth_update_repository() {
   sloth_update::sloth_repository_set_ready
 
   # Remote exists?
-  ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" && output::error "Remote \`${remote}\` does not exists" && return 20
+  ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 && output::error "Remote \`${remote}\` does not exists" && return 20
 
   # Get remote HEAD branch
   head_branch="$(git::get_remote_head_upstream_branch "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
@@ -189,16 +194,22 @@ sloth_update::sloth_update_repository() {
 }
 
 #;
-# sloth_update::sloth()
-# Full update sloth function that can be used to update in sync or async mode. Already up to date return non exit code
+# sloth_update::gracefully()
+# Full update sloth function that can be used to update in sync or async mode. Already up to date return non exit code but not create .sloth_updated file.
 # @return 0 if all ok, error code otherwise 10, in no force means has pending commits or dirty directory, 20 remote does not exists or can't be set, no default branch, 40 git pull fails
 #"
-sloth_update::sloth() {
+sloth_update::gracefully() {
   local exit_code=0
   # Check if is in development mode but is dirty or has unpushed commits
-  if [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] && ! sloth_update::local_sloth_repository_can_be_updated; then
+  if
+    [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]] ||
+    [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] && ! sloth_update::local_sloth_repository_can_be_updated
+  then
     return 1
   fi
+
+  # Make some checks and put the repository ready to make an update
+  sloth_update::sloth_repository_set_ready
 
   if ! sloth_update::should_be_updated; then
     # Already up to date
@@ -207,6 +218,8 @@ sloth_update::sloth() {
 
   # Force update
   sloth_update::sloth_update_repository "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-master}" true || exit_code=$?
+
+  [[ $exit_code -eq 0 ]] && touch "$DOTFILES_PATH/.sloth_updated"
 
   return $exit_code
 }
