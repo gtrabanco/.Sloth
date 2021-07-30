@@ -195,7 +195,7 @@ fi
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
 if command -vp gem &> /dev/null; then
-  gem_paths="$("$(command -vp gem)" env gempath 2>/dev/null)"
+  gem_paths="$("$(command -vp gem)" env gempath 2> /dev/null)"
   #shellcheck disable=SC2207
   [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' '\n'))
 fi

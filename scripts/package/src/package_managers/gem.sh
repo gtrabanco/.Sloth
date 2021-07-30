@@ -3,7 +3,7 @@
 #shellcheck disable=SC2034
 gem_title='♦️  gem'
 
-if command -v gem &>/dev/null; then
+if command -v gem &> /dev/null; then
   [[ -z "${GEM_HOME:-}" ]] && export GEM_HOME="${HOME}/.gem"
 
   # Path GEM HOME does not exist in PATH

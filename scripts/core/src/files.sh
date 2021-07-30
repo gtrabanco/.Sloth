@@ -8,7 +8,7 @@ files::check_if_path_is_older() {
   date_file_path=$(command -p date -r "$path_to_check" +%s)
 
   if platform::is_bsd; then
-      #shellcheck disable=SC2086
+    #shellcheck disable=SC2086
     date_to_compare=$(command -p date -j -v "-${number_of}${period:0:1}" +%s)
   else
     date_to_compare=$(command -p date --date="now - $number_of $period" +%s)
