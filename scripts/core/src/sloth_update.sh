@@ -68,7 +68,7 @@ sloth_update::sloth_repository_set_ready() {
   fi
 
   # Set head branch
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "$remote" --auto &> /dev/null 1>&2
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto &> /dev/null 1>&2
 
   # Automatic convert windows git crlf to lf
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2
