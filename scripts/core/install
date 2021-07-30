@@ -38,11 +38,11 @@ fi
 
 # TODO Initilize .Sloth as repository and download submodules when installing as not submodule
 # Check first with git::is_repository
-output::answer "Initilizing local repository for enable updates and autoupdates"
+# output::answer "Initilizing local repository for enable updates and autoupdates"
 # Initilize if needed (this is ok)
-sloth_update::sloth_repository_set_ready
+# sloth_update::sloth_repository_set_ready
 # Update submodules recursively
-output::empty_line
+# output::empty_line
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
