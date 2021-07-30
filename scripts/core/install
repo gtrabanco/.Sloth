@@ -21,8 +21,6 @@ dot::load_library "sloth_update.sh"
 ##?
 ##?
 ##? SCRIPT_VERSION "3.0.0"
-# TODO Update to be compatible without docpars
-# TODO If all TODOs are done set version number as 3.0.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
@@ -77,6 +75,36 @@ fi
 
 #### Prompt user all the staff we want to know ####
 #### All questions at the very beginning
+# Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+  platform::is_macos &&
+  [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+then
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  if
+    output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)"
+    sudo -v -B
+  then
+    {
+
+      sudo -v -B && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+
+    } || output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  fi
+
+# We need to cache sudo to avoid asking for password later and every time
+elif
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+  platform::is_macos &&
+  [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]] &&
+  ! sudo -v -B
+then
+  output::error "It can not be done without elevation, aborting this options (should be done later manually)"
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+fi
+export SETUP_ZSH_AND_BASH_IN_SHELLS
+
 # Backups
 if [[ -z "${SYMLINKS_ARGS[*]:-}" ]]; then
   SYMLINKS_ARGS=(--interactive-backup)
@@ -93,8 +121,8 @@ if [[ -z "${SYMLINKS_ARGS[*]:-}" ]]; then
 fi
 
 # ZSH as default Shell
-if [[ -z "$SETUP_ZSH_AS_DEFAULT_SHELL" ]]; then
-  zsh_shell_path="$(command -v zsh || true)"
+zsh_shell_path="$(command -v zsh || true)"
+if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
   if
     [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
@@ -111,7 +139,20 @@ if [[ -z "$SETUP_ZSH_AS_DEFAULT_SHELL" ]]; then
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
   fi
+else
+  if
+    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
+    ! platform::command_exists chsh ||
+    [[ ! -x "$zsh_shell_path" ]] ||
+    [[ ! -f "/etc/shells" ]] ||
+    grep -q "^${zsh_shell_path}$" "/etc/shells" ||
+    ! sudo -v -B
+  then
+    output::answer "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because it can not be done or is already the default shell or fail with the password."
+    SETUP_ZSH_AS_DEFAULT_SHELL=false
+  fi
 fi
+export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
@@ -135,13 +176,15 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   script::depends_on fzf python-yq jq cargo-update
 fi
 
-# TODO Initilize .Sloth as repository and download submodules when installing as not submodule
-# Check first with git::is_repository
-# output::answer "Initilizing local repository for enable updates and autoupdates"
-# Initilize if needed (this is ok)
-# sloth_update::sloth_repository_set_ready
-# Update submodules recursively
-# output::empty_line
+output::answer "Initilizing .Sloth as repository"
+sloth_update::sloth_repository_set_ready
+output::empty_line
+
+if ! git::is_repository -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  output::answer "Initilizing .Sloth as repository"
+  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository"
+  output::empty_line
+fi
 
 output::answer "Creating dotfiles structure"
 "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
