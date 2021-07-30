@@ -56,7 +56,7 @@ pip::update_apps() {
 }
 
 pip::self_update() {
-  pip::pip install --upgrade --user pip 2>&1 | log::file "Self updating pip"
+  pip::pip install --upgrade --user pip 2>&1 | log::file "Updating ${pip_title}"
 }
 
 pip::update_all() {
