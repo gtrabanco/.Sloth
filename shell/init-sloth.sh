@@ -266,8 +266,9 @@ fi
 # Unset loader variables
 unset init_script init_scripts_path BREW_BIN user_paths gem_bin gem_paths
 
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true
-
-[[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   [[ -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}" ]] &&
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dot migration --updated
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dot migration --updated
+fi
+
+{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End of the .Sloth initiliser"; } || true
