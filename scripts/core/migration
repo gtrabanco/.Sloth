@@ -43,7 +43,7 @@ output::header "SLOTH migration wizard"
 
 if
   [[ -z "${to_version:-}" ]] &&
-  ${updated:-false}
+    ${updated:-false}
 then
   to_version="$(sloth_update::get_current_version)"
 
