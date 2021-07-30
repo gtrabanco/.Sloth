@@ -16,10 +16,6 @@ YELLOW_COLOR="33"
 PROMPT_COMMAND="sloth_theme"
 
 # Theme implementation
-void() {
-  return
-}
-
 prompt_git_command() {
   GIT_EXECUTABLE="${GIT_EXECUTABLE:-$(command -vp git || true)}"
   "$GIT_EXECUTABLE" "$@"
