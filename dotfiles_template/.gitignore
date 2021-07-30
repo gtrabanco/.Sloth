@@ -1,7 +1,5 @@
 # START OF SLOTH GITIGNORE
 .sloth_force_current_version
-.sloth_lock_update
 .sloth_update_available
-.sloth_update_available_is_major
 .sloth_updated
 # END OF SLOTH GITIGNORE
