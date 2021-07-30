@@ -206,7 +206,7 @@ sloth_update::sloth_update_repository() {
   fi
 
   # Set ready if necessary
-  sloth_update::sloth_repository_set_ready
+  sloth_update::sloth_repository_set_ready || true
 
   # Remote exists?
   ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]:-}" 1>&2 && output::error "Remote \`${remote}\` does not exists" && return 20
@@ -245,7 +245,7 @@ sloth_update::gracefully() {
   fi
 
   # Make some checks and put the repository ready to make an update
-  sloth_update::sloth_repository_set_ready
+  sloth_update::sloth_repository_set_ready || true
 
   if ! sloth_update::should_be_updated; then
     # Already up to date

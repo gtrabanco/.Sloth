@@ -37,7 +37,7 @@ export GIT_EXECUTABLE
 git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
-  if [[ -n "${ALWAYS_USE_GIT_ARGS[*]}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
+  if [[ -n "${ALWAYS_USE_GIT_ARGS[*]:-}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
     "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
   else
     "$GIT_EXECUTABLE" "$@"
