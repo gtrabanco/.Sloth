@@ -9,15 +9,21 @@ set -euo pipefail
 dot::load_library "git_extended.sh" "core"
 dot::load_library "sloth_update.sh" "core"
 
+void() {
+  return
+}
+
 ##? Update dotly/sloth to the latest stable release
 ##?
 ##? Usage:
-##?    update [--disable | --enable]
+##?    update [--disable | --enable | --async]
 ##?
 ##? Options:
 ##?    --disable  Deactivate the dotly update command
 ##?    --enable   Activate the dotly update command
+##?    --async    Asynchronous update
 ##?
+##? SCRIPT_VERSION=3.0.0
 docs::parse "$@"
 
 if ${disable:-enable}; then
@@ -26,34 +32,48 @@ if ${disable:-enable}; then
 elif ${enable:-false}; then
   rm -f "$DOTFILES_PATH/.sloth_force_current_version"
   exit 0
+elif ${async:-false}; then
+  if [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]]; then
+    output::error ".Sloth async updates are not possible in Development mode"
+  else
+    async sloth_update::async sloth_update::async_success void
+  fi
+  exit
 fi
 
 if [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]]; then
   output::error "Updates are disabled: use \`dot core update --enable\` to enable them"
 fi
 
-# update::update_local_sloth_module
 status=0
-sloth_update::gracefully | log::file "Updating .Sloth" || status=$?
+sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
 if [[ $status -ne 0 ]]; then
   case $status in
     10)
       output::error "No update, dirty or pending commits"
+      exit $status
       ;;
     20)
       output::error "No update, upstream does not exists and/or could not be set"
+      exit $status
       ;;
     30)
       output::error "No update, remote head branch could not be set"
+      exit $status
       ;;
     40)
       output::error "No updated something was wrong"
+      exit $status
       ;;
   esac
 fi
 
-
 if [[ -f "$DOTFILES_PATH/.sloth_updated" ]]; then
+  if sloth_update::exists_migration_script; then
+    output::answer "There is a migration script for this version"
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core migration --updated
+  fi
+
   output::answer '✅ .Sloth updated to the latest version'
 else
   output::answer '👌 You already have latest .Sloth version'
