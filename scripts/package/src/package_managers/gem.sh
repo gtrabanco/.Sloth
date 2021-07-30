@@ -36,7 +36,7 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  gem::is_available && gem update --system
+  gem::is_available && gem update --system | log::file "Updating ${gem_title}"
 }
 
 gem::update_apps() {
