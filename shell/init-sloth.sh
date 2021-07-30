@@ -125,6 +125,8 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
     BREW_BIN="/usr/local/bin/brew"
   elif command -v brew &> /dev/null; then
     BREW_BIN="$(command -v brew)"
+  elif command -vp brew &> /dev/null; then
+    BREW_BIN="$(command -vp brew)"
   fi
 fi
 
@@ -192,15 +194,18 @@ fi
 [[ -d "$HOME/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
 [[ -d "${GEM_HOME:-}" ]] && path+=("$GEM_HOME/bin")
+if command -vp gem &> /dev/null; then
+  gem_paths="$("$(command -vp gem)" env gempath 2>/dev/null)"
+  #shellcheck disable=SC2207
+  [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' '\n'))
+fi
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "$HOME/.deno/bin" ]] && path+=("$HOME/.deno/bin")
 
 # System paths
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "System PATHs"
-path+=("/usr/bin")
-path+=("/bin")
-path+=("/usr/sbin")
-path+=("/sbin")
+#shellcheck disable=SC2207
+path+=($(command -p getconf PATH | command -p tr ':' '\n'))
 ###### END OF PATHS ######
 
 ###### Load dotly core for your current BASH ######
