@@ -60,7 +60,7 @@ export SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 # @return void
 #"
 sloth_update::sloth_repository_set_ready() {
-  if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
+  if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" || ${#SLOTH_UPDATE_GIT_ARGS[@]} -eq 0 ]]; then
     SLOTH_UPDATE_GIT_ARGS=(
       -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
     )
