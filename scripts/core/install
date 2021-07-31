@@ -37,7 +37,7 @@ has_sudo() {
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-restoration]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
@@ -45,7 +45,7 @@ has_sudo() {
 ##?    -b --always-backup       Always do a backup of user symlinks without prompt
 ##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
 ##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
-##?
+##?    --ignore-restoration     Ignore user restoration scripts
 ##?
 ##? SCRIPT_VERSION "3.0.0"
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
@@ -56,6 +56,8 @@ else
   backup=false
   interactive_backup=false
   ignore_backup=false
+  ignore_symlinks=false
+  ignore_restoration=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --version | -v)
@@ -80,6 +82,14 @@ else
       --ignore-backup)
         { $backup || $interactive_backup; } && output::error "Error you can not use \`--ignore-backup\` with \`--backup\` or \`--interactive-backup\`" && exit 4
         ignore_backup=true
+        shift
+        ;;
+      --ignore-symlinks)
+        ignore_symlinks=true
+        shift
+        ;;
+      --ignore-restoration)
+        ignore_restoration=true
         shift
         ;;
       *)
@@ -310,19 +320,21 @@ ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
 [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
 output::empty_line
 
-output::answer "Executing custom restoration scripts"
-install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
-if [ -d "$install_scripts_path" ]; then
-  find "$install_scripts_path" -mindepth 1 -maxdepth 1 -type l,f -name '*.sh' |
-    sort |
-    while read -r install_script; do
-      #shellcheck disable=SC1090
-      {
-        [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
-      } || {
-        output::error "Install script error in \`$(basename "$install_script")\`"
-      }
-    done
+if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
+  output::answer "Executing custom restoration scripts"
+  install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
+  if [ -d "$install_scripts_path" ]; then
+    find "$install_scripts_path" -mindepth 1 -maxdepth 1 -type l,f -name '*.sh' |
+      sort |
+      while read -r install_script; do
+        #shellcheck disable=SC1090
+        {
+          [[ -x "$install_script" ]] && . "$install_script" | log::file "Executing afterinstall: $(basename "$install_script")"
+        } || {
+          output::error "Install script error in \`$(basename "$install_script")\`"
+        }
+      done
+  fi
 fi
 
 output::empty_line
