@@ -256,6 +256,7 @@ sloth_update::gracefully() {
     [[ -f "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}" ]] ||
       [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] && ! sloth_update::local_sloth_repository_can_be_updated
   then
+    echo "Can't be updated"
     return 1
   fi
 

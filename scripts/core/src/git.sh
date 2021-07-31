@@ -47,9 +47,21 @@ git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
   if [[ -n "${ALWAYS_USE_GIT_ARGS[*]:-}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 && $# -gt 0 ]]; then
-    "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
+    if [[ -n "${DEBUG:-}" ]]; then
+      echo " $ $GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@" | log::file "git execution of command"
+      "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}"
+      log::append "End execution of git command"
+    else
+      "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
+    fi
   elif [[ $# -gt 0 ]]; then
-    "$GIT_EXECUTABLE" "$@"
+    if [[ -n "${DEBUG:-}" ]]; then
+      echo " $ $GIT_EXECUTABLE" "$@" | log::file "git execution of command"
+      "$GIT_EXECUTABLE" "$@" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}"
+      log::append "End execution of git command"
+    else
+      "$GIT_EXECUTABLE" "$@"
+    fi
   fi
 }
 
