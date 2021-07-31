@@ -12,14 +12,17 @@ start_sudo() {
   sudo -n -v &> /dev/null && return 0
   sudo -v -B
   if sudo -n -v &> /dev/null && [[ -z "${SUDO_PID:-}" ]]; then
-    ( while true; do sudo -v; sleep 30; done; ) &
+    (while true; do
+      sudo -v
+      sleep 30
+    done) &
     SUDO_PID="$!"
     trap stop_sudo SIGINT SIGTERM
   fi
 }
 
 stop_sudo() {
-  kill "$SUDO_PID" &>/dev/null
+  kill "$SUDO_PID" &> /dev/null
   trap - SIGINT SIGTERM
   sudo -k
 }
@@ -102,7 +105,7 @@ then
     output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)"
   then
     start_sudo
-    
+
     sudo -n -v && SETUP_ZSH_AND_BASH_IN_SHELLS=true
 
     ! sudo -n -v &> /dev/null && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
@@ -154,16 +157,29 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
   fi
+elif
+  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    ! str::contains zsh "$SHELL" &&
+    platform::command_exists chsh &&
+    [[ -x "$zsh_shell_path" ]] &&
+    [[ -f "/etc/shells" ]] &&
+    ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+then
+  start_sudo
+  ! sudo -n -v &> /dev/null &&
+    output::error "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
+    SETUP_ZSH_AS_DEFAULT_SHELL=false
 else
   if
-    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
+    [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
+      [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
       ! platform::command_exists chsh ||
       [[ ! -x "$zsh_shell_path" ]] ||
       [[ ! -f "/etc/shells" ]] ||
       grep -q "^${zsh_shell_path}$" "/etc/shells" ||
       ! sudo -n -v &> /dev/null
   then
-    output::answer "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because it can not be done or is already the default shell or fail with the password."
     SETUP_ZSH_AS_DEFAULT_SHELL=false
   fi
 fi
