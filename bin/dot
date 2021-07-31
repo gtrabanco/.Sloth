@@ -80,9 +80,15 @@ if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
   exit
 fi
 
+# Self-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
+  exit
+fi
+
 # Autoupdate (Async update)
-if [[ "$1" == "autoupdate" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core async-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
   exit
 fi
 
