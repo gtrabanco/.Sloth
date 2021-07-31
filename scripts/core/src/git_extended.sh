@@ -188,7 +188,6 @@ git::check_branch_is_ahead() {
 
   local -r upstream_branch="$(git::git "$@" config --get "branch.${branch}.merge" || echo -n)"
 
-  echo "Upstream branch is: '$upstream_branch'"
   if [[ -n "$upstream_branch" ]]; then
     # @{u} or @{upstream} can be used but to keep compatibility with older git versions I use this way
     [[ $(git::git "$@" rev-list --count "${upstream_branch}...${branch}") -gt 0 ]]
