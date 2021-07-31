@@ -80,7 +80,7 @@ prompt_sloth_git_info() {
 
   # Dirty git dir shows green check or red cross
   if prompt_sloth_git_info_is_clean_repository; then
-    clean_prompt="\e[${GREEN_COLOR}m(✓)\e[m"
+    clean_prompt="\e[${GREEN_COLOR}m✓\e[m"
   else
     clean_prompt="\e[${RED_COLOR}m✗\e[m"
   fi
