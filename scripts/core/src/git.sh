@@ -18,13 +18,13 @@ then
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-  command -v git &> /dev/null
+    command -v git &> /dev/null
 then
   GIT_EXECUTABLE="$(command -v git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-  command -vp git &> /dev/null
+    command -vp git &> /dev/null
 then
   GIT_EXECUTABLE="$(command -vp git)"
 
