@@ -54,34 +54,25 @@ export SLOTH_DEFAULT_GIT_HTTP_URL SLOTH_DEFAULT_GIT_SSH_URL SLOTH_DEFAULT_REMOTE
 # Default repository initilisation and first fetch if is not ready to have updates
 # @return void
 #"
-# TODO Cleanup in production
 sloth_update::sloth_repository_set_ready() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
 
-  log::note "Setting .Sloth as repository with args: \`${SLOTH_UPDATE_GIT_ARGS[*]:-no arguments provided}\`"
-
-  log::note "Checking if current .Sloth directory is a repository and have a remote called \`${SLOTH_DEFAULT_REMOTE:-origin}\`"
   if ! git::is_in_repo "${SLOTH_UPDATE_GIT_ARGS[@]}" || ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    log::note "Initilizing .Sloth as repository"
     git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
 
   # Set head branch
-  log::note "Setting head branch as \`${SLOTH_DEFAULT_REMOTE:-origin}\`" 1>&2
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto 1>&2 || true
 
   # Automatic convert windows git crlf to lf
-  log::note "Automatic CRLF to LF"
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2 || true
 
   # Track default branch
-  log::note "Tracking default branch \`${SLOTH_DEFAULT_BRANCH:-master}\`"
   git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
 
   # Unshallow by the way
-  log::note "Unshallow repository (by the way)"
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow 1>&2 || true
 }
 
