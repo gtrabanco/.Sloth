@@ -132,6 +132,7 @@ export SETUP_ZSH_AND_BASH_IN_SHELLS
 
 # Backups
 if
+  { ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
   [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
     ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
 then
