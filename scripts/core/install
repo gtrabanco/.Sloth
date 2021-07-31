@@ -133,7 +133,7 @@ export SETUP_ZSH_AND_BASH_IN_SHELLS
 
 # Backups
 if
-  { ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
+  { ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
     [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
     ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
 then
@@ -241,7 +241,7 @@ else
 fi
 
 # Apply user symlinks
-if ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; then
+if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
   output::answer "Setting up symlinks"
   SYMLINKS_ARGS=(--interactive-backup)
   if [[ -n "${DOTFILES_PATH:-}" ]]; then
@@ -306,7 +306,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
 fi
 
 output::answer "Linking dot command for all users in \`/usr/local/bin\`"
-ln -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
+ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
 [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
 output::empty_line
 
