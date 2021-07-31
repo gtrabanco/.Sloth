@@ -40,13 +40,14 @@ fi
 
 # Here begin your script
 
-case $1 in
+case "${1:-}" in
   "subcommand")
     echo "This case is optional and only useful if you want to implement subcommands"
     echo "The example repeteable variable value is \"${example_variable[*]:-No value provided}\""
     echo "The optional variable value is \"${example_optional_variable:-No value provided}\""
     ;;
   *)
+    output::error "Exit with error: no content yet"
     exit 1
     ;;
 esac

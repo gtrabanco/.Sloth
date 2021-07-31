@@ -127,35 +127,38 @@ else
     exit 1
   fi
 
+  # Full path to the calling script
   script_full_path="${script_path}/scripts/${context}/${script}"
+
+  # Automatic --help and --version
+  if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+    docs::parse_script "${script_full_path}" "--help"
+  elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
+    if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
+      "${SLOTH_LAZY_SCRIPT}" --version
+    else
+      SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
+      SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
+      if [[ -n "${SCRIPT_VERSION}" ]]; then
+        output::write "${SCRIPT_NAME}"
+        output::write "\t\`v${SCRIPT_VERSION}\`"
+      else
+        output::write "${SCRIPT_NAME}"
+        output::error "\t no version provided"
+      fi
+    fi
+  fi
+
+  # If old version call the script, else source it
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
       grep -q "^docs::parse" "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
   then
-    if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
-      docs::parse_script "${script_full_path}" "--help"
-    elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-      if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
-        "${SLOTH_LAZY_SCRIPT}" --version
-      else
-        SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
-        SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
-        if [[ -n "${SCRIPT_VERSION}" ]]; then
-          output::write "${SCRIPT_NAME}"
-          output::write "\t\`v${SCRIPT_VERSION}\`"
-        else
-          output::write "${SCRIPT_NAME}"
-          output::error "\t no version provided"
-        fi
-      fi
-    else
-      "${script_full_path}" "$@"
-    fi
+    "${script_full_path}" "$@"
   else
-    # TODO Review this if we have automated the new way of load scripts
-    # --version & --help
-    "${SLOTH_LAZY_SCRIPT}" "${script_full_path}" "$@"
+    #shellcheck disable=SC1090
+    . "${script_full_path}"
   fi
 fi
