@@ -170,12 +170,13 @@ sloth_update::should_be_updated() {
 
   # Stable channel must check with remote latest version
   if [[ $SLOTH_UPDATE_VERSION == "stable" && $(platform::semver compare "$latest_version" "$current_version") -eq 1 ]]; then
-    "$DOTFILES_PATH/.sloth_update_available"
+    touch "$DOTFILES_PATH/.sloth_update_available"
     return 0
   fi
 
   # Latest channel
   if [[ $SLOTH_UPDATE_VERSION == "latest"  &&  -n "$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch -ap --dry-run)" ]]; then
+    touch "$DOTFILES_PATH/.sloth_update_available"
     return 0
   fi
 
