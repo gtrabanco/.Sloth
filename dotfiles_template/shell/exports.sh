@@ -9,12 +9,12 @@
 # ------------------------------------------------------------------------------
 # Sloth config
 # ------------------------------------------------------------------------------
-export SLOTH_INIT_SCRIPTS=true       # Init scripts enabled (only defined false
+export SLOTH_INIT_SCRIPTS=true # Init scripts enabled (only defined false
 export SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS=7
 export SLOTH_AUTO_UPDATE_MODE="auto" # silent, auto (default), info, prompt
 export SLOTH_UPDATE_VERSION="stable" # latest, stable (default), or any specified
 # version if you want to pin to that version
-export SLOTH_ENV="production"                   # production or development. If
+export SLOTH_ENV="production" # production or development. If
 # you define development all updates must be manually or when you have a clean
 # working directory and pushed all your commits.
 # This is done to avoid conflicts and lost changes.

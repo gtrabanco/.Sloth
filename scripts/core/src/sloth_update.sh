@@ -170,7 +170,7 @@ sloth_update::should_be_updated() {
   fi
 
   # Latest channel
-  if [[ $SLOTH_UPDATE_VERSION == "latest"  &&  -n "$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch -ap --dry-run 2>&1)" ]]; then
+  if [[ $SLOTH_UPDATE_VERSION == "latest" && -n "$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch -ap --dry-run 2>&1)" ]]; then
     touch "$DOTFILES_PATH/.sloth_update_available"
     return 0
   fi
