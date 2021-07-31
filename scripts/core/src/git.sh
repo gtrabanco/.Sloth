@@ -16,8 +16,17 @@ if
 then
   GIT_EXECUTABLE="$(command -v git)"
 
-elif command -v git &> /dev/null; then
+elif
+  [[ -z "${GIT_EXECUTABLE:-}" ]] &&
+  command -v git &> /dev/null
+then
   GIT_EXECUTABLE="$(command -v git)"
+
+elif
+  [[ -z "${GIT_EXECUTABLE:-}" ]] &&
+  command -vp git &> /dev/null
+then
+  GIT_EXECUTABLE="$(command -vp git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] ||
@@ -34,6 +43,7 @@ export GIT_EXECUTABLE
 # git::git()
 # Abstraction function to use with GIT
 #"
+# TODO remove echoes
 git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
