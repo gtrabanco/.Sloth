@@ -65,6 +65,10 @@ if [[ $status -ne 0 ]]; then
       output::error "No updated something was wrong"
       exit $status
       ;;
+    1)
+      output::error "Something went wrong"
+      exit $status
+      ;;
   esac
 fi
 
