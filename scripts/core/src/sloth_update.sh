@@ -7,7 +7,7 @@
 #
 export SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS=${SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS:-7}
 export SLOTH_AUTO_UPDATE_MODE=${SLOTH_AUTO_UPDATE_MODE:-auto}
-export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, latest, or any specified version if you want to pin to that version
+export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-stable}" # stable, latest, or any specified version if you want to pin to that version
 export SLOTH_ENV="${SLOTH_ENV:-production}"                   # production or development. If you define development
 # all updates must be manually or when you have a clean working directory and
 # pushed your commits.
