@@ -32,7 +32,7 @@ fi
 
 # Here begin your script
 
-case $1 in
+case "${1:-}" in
   "subcommand")
     output::write "This case is optional and only useful if you want to implement subcommands"
     output::write "The example repeteable variable value is \`${example_variable[*]:-No value provided}\`"
