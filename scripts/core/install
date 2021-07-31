@@ -36,13 +36,14 @@ has_sudo() {
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup]]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
 ##?    -n --never-backup        Never do a backup of user symlinks without prompt
 ##?    -b --always-backup       Always do a backup of user symlinks without prompt
 ##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
+##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
 ##?
 ##?
 ##? SCRIPT_VERSION "3.0.0"
@@ -130,7 +131,10 @@ fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
 
 # Backups
-if [[ -z "${SYMLINKS_ARGS[*]:-}" ]]; then
+if
+  [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
+    ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
+then
   SYMLINKS_ARGS=(--interactive-backup)
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
     SYMLINKS_ARGS=(--ignore-backup)
@@ -231,15 +235,17 @@ output::answer "Creating dotfiles structure"
 output::empty_line
 
 # Apply user symlinks
-output::answer "Setting up symlinks"
-SYMLINKS_ARGS=(--interactive-backup)
-if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
-  output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
-else
-  output::solution "Symlinks applied"
+if ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; then
+  output::answer "Setting up symlinks"
+  SYMLINKS_ARGS=(--interactive-backup)
+  if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
+    output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+  else
+    output::solution "Symlinks applied"
+  fi
+  output::empty_line
 fi
 touch "$HOME/.z"
-output::empty_line
 unset SYMLINKS_ARGS bk
 
 # ZSH as default shell if we are using zsh
