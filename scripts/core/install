@@ -226,7 +226,7 @@ if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
   output::empty_line
 fi
 
-output::anser "Updating .Sloth submodules"
+output::answer "Updating .Sloth submodules"
 git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
 output::empty_line
 
