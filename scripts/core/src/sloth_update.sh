@@ -22,7 +22,7 @@ SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_
 
 # Git arguments
 if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
-  readonly SLOTH_UPDATE_GIT_ARGS=(
+  export readonly SLOTH_UPDATE_GIT_ARGS=(
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
 fi
@@ -51,7 +51,7 @@ fi
 # SLOTH_GITMODULES_BRANCH is the HEAD branch of remote repository were Pull Request are merged
 [[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
 
-SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
+export SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 ############## End of needed variables ##############
 
 #;
@@ -60,6 +60,12 @@ SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 # @return void
 #"
 sloth_update::sloth_repository_set_ready() {
+  if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
+    SLOTH_UPDATE_GIT_ARGS=(
+      -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    )
+  fi
+
   if ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
     git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
