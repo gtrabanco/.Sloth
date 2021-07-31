@@ -134,40 +134,35 @@ install_clt() {
   fi
 }
 
+start_sudo() {
+  sudo -n -v &> /dev/null && return 0
+  sudo -v -B
+  if sudo -n -v &> /dev/null && [[ -z "${SUDO_PID:-}" ]]; then
+    (while true; do
+      sudo -v
+      sleep 30
+    done) &
+    SUDO_PID="$!"
+    trap stop_sudo SIGINT SIGTERM
+  fi
+}
+
+stop_sudo() {
+  kill "$SUDO_PID" &> /dev/null
+  trap - SIGINT SIGTERM
+  sudo -k
+}
+
 _w "  ┌──────────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
 _w "  └──────────────────────────────────────────┘"
 _w
 
 #### Begin user prompts ####
-if
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    is_macos &&
-    [[ -d "$ICLOUD_PATH" ]]
-then
-  _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
-  if _is_y "${ICLOUD_REPLY:-Y}"; then
-    IS_ICLOUD_DOTFILES=true
-    _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
-    DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
-    DOTFILES_LINK_PATH="$HOME/$(basename "$ICLOUD_DOTFILES")"
-  fi
-fi
-
-if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
-  _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
-  if [[ "$DOTFILES_PATH" == "CI" ]]; then
-    DOTFILES_PATH="$HOME/.dotfiles"
-  else
-    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
-  fi
-  DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
-fi
-export DOTFILES_PATH="$DOTFILES_PATH"
-
 if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
-  _w "We will need to use user elevation with sudo"
-  if ! sudo -v -B; then
+  _w "We will need to use user elevation with sudo to install Command Line Tools"
+  start_sudo
+  if ! sudo -n -v; then
     _e "Elevation error: wrong or not provided password"
     _a "Yow will be asked later for the password again"
   fi
@@ -181,24 +176,22 @@ then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
     _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)? [Y/n]" "PROMPT_REPLY" &&
-      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
-      sudo -v -B
+      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]]
   then
-    {
+    start_sudo
 
-      sudo -v -B && SETUP_ZSH_AND_BASH_IN_SHELLS=true
-
-    } || _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+    sudo -n -v &> /dev/null && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+    ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
 # We need to cache sudo to avoid asking for password later and every time
 elif
   [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
     is_macos &&
-    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]] &&
-    ! sudo -v -B
+    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
-  _e "It can not be done without elevation, aborting this options (should be done later manually)"
+  start_sudo
+  ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)"
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
@@ -235,25 +228,62 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
       [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
       SETUP_ZSH_AS_DEFAULT_SHELL=true
     _a "This will need a sudo authentication to add it to \`/etc/shells\` file"
-    if ! sudo -v -B; then
+    start_sudo
+    if ! sudo -n -v; then
       _e "Without sudo authentication this can not be done. You should do this later manually"
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
   fi
-else
-  if
-    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
-      ! command_exists chsh ||
-      [[ ! -x "$zsh_shell_path" ]] ||
-      [[ ! -f "/etc/shells" ]] ||
-      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-      ! sudo -v -B
-  then
-    _a "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because it can not be done or is already the default shell or fail with the password."
+elif
+  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    [[ "$SHELL" == *"zsh"* ]] &&
+    command_exists chsh &&
+    [[ -x "$zsh_shell_path" ]] &&
+    [[ -f "/etc/shells" ]] &&
+    ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+then
+  start_sudo
+  ! sudo -n -v &> /dev/null &&
+    _e "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
-  fi
+elif
+  [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
+    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
+    ! command_exists chsh ||
+    [[ ! -x "$zsh_shell_path" ]] ||
+    [[ ! -f "/etc/shells" ]] ||
+    grep -q "^${zsh_shell_path}$" "/etc/shells" ||
+    ! sudo -n -v &> /dev/null
+then
+  SETUP_ZSH_AS_DEFAULT_SHELL=false
 fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
+
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    is_macos &&
+    [[ -d "$ICLOUD_PATH" ]]
+then
+  _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
+  if _is_y "${ICLOUD_REPLY:-Y}"; then
+    IS_ICLOUD_DOTFILES=true
+    _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
+    DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
+    DOTFILES_LINK_PATH="$HOME/$(basename "$ICLOUD_DOTFILES")"
+  fi
+fi
+
+if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
+  _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
+  if [[ "$DOTFILES_PATH" == "CI" ]]; then
+    DOTFILES_PATH="$HOME/.dotfiles"
+  else
+    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+  fi
+  DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
+fi
+export DOTFILES_PATH="$DOTFILES_PATH"
 #### End user prompts ####
 
 dotly_inner_path="modules/sloth"
