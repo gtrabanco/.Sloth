@@ -45,8 +45,14 @@ if [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]]; then
   output::error "Updates are disabled: use \`dot core update --enable\` to enable them"
 fi
 
+[[ -n "${DEBUG:-}" ]] && echo "---- Env vars ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+[[ -n "${DEBUG:-}" ]] && env | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+
+[[ -n "${DEBUG:-}" ]] && echo "---- Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
 status=0
 sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
+[[ -n "${DEBUG:-}" ]] && echo "---- End of Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+
 if [[ $status -ne 0 ]]; then
   case $status in
     10)

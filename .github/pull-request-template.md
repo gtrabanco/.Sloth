@@ -9,6 +9,13 @@ Also add [HELP NEEDED] before if you need some∩ help.
 Add also [WIP] before every other prefix if you have task to do or you have proposed task (because work in a team or you desire some help).
 -->
 
+## Humman Changelog
+<!--
+Provide a human changelog (does not need to be as your commits) with the changes you made, example:
+- Fix: Issue #83
+- Feature: Added new cool stuff...
+--->
+
 ## Description
 <!--- Describe your changes -->
 
@@ -26,26 +33,6 @@ Add also [WIP] before every other prefix if you have task to do or you have prop
 <!--- Please if you haven't tested please, mark this PR as draft and do some tests. If you need help, just ask for it --->
 
 ## Screenshots (if appropriate):
-
-## Types of changes
-<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Core update change (major change that changes the way Dotly work, for example if you change completely how scripts are stored or how load dotly).
-
-## Checklist:
-<!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
-<!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have read the **CONTRIBUTING** document.
-- [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
-- [ ] I do not have test but I have done testing.
-- [ ] My code need testing in other platforms or architecture (for example you need testing on ARM and you only have x86_64).
-- [ ] Need some pre-production testing. Is a beta and you need reports about usage.
 
 ## Tasks
 <!---

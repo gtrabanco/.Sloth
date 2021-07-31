@@ -7,18 +7,13 @@
 #
 export SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS=${SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS:-7}
 export SLOTH_AUTO_UPDATE_MODE=${SLOTH_AUTO_UPDATE_MODE:-auto}
-export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-latest}" # stable, latest, or any specified version if you want to pin to that version
-export SLOTH_ENV="${SLOTH_ENV:-production}"                   # production or development. If you define development
-# all updates must be manually or when you have a clean working directory and
-# pushed your commits.
-# This is done to avoid conflicts and lost changes.
-# For development all other configuration will be ignored and every time it
-# can be updated you will get the latest version.
+export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-stable}"
+export SLOTH_ENV="${SLOTH_ENV:-production}"
 
 # Files
-SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
-SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-"$DOTFILES_PATH/.sloth_update_available"}"
-SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
+export SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
+export SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-$DOTFILES_PATH/.sloth_update_available}"
+export SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
 
 # Urls, branches and remotes
 if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" ]]; then
@@ -170,12 +165,13 @@ sloth_update::should_be_updated() {
 
   # Stable channel must check with remote latest version
   if [[ $SLOTH_UPDATE_VERSION == "stable" && $(platform::semver compare "$latest_version" "$current_version") -eq 1 ]]; then
-    "$DOTFILES_PATH/.sloth_update_available"
+    touch "$DOTFILES_PATH/.sloth_update_available"
     return 0
   fi
 
   # Latest channel
-  if [[ $SLOTH_UPDATE_VERSION == "latest" ]] && git::check_branch_is_behind "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
+  if [[ $SLOTH_UPDATE_VERSION == "latest" && -n "$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch -ap --dry-run 2>&1)" ]]; then
+    touch "$DOTFILES_PATH/.sloth_update_available"
     return 0
   fi
 
@@ -256,7 +252,7 @@ sloth_update::gracefully() {
     [[ -f "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}" ]] ||
       [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] && ! sloth_update::local_sloth_repository_can_be_updated
   then
-    echo "Can't be updated"
+    output::error "Can't be updated"
     return 1
   fi
 
