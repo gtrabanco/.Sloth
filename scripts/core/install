@@ -192,10 +192,6 @@ fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
-if ! has_sudo; then
-  start_sudo
-fi
-
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
@@ -208,6 +204,7 @@ elif platform::is_linux; then
   output::answer "🐧 Setting up Linux Platform"
   install_linux_custom
 fi
+output::empty_line
 
 # Mandatory packages
 script::depends_on docpars
@@ -231,17 +228,18 @@ fi
 
 output::answer "Creating dotfiles structure"
 "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+output::empty_line
 
 # Apply user symlinks
 output::answer "Setting up symlinks"
 SYMLINKS_ARGS=(--interactive-backup)
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"
-if $?; then
+if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
   output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
 else
   output::solution "Symlinks applied"
 fi
 touch "$HOME/.z"
+output::empty_line
 unset SYMLINKS_ARGS bk
 
 # ZSH as default shell if we are using zsh
@@ -259,6 +257,7 @@ elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
 else
   output::answer "This is step is aborted on CI"
 fi
+output::empty_line
 unset zsh_shell_path
 
 # If exists zsh install ZIMFW
@@ -271,18 +270,23 @@ else
   output::write "You will need to run manually the ZIM Framework install command"
   output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
 fi
+output::empty_line
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
+
   {
     zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions'
+
+  output::empty_line
 fi
 
 output::answer "Linking dot command for all users in \`/usr/local/bin\`"
 ln -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
 [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+output::empty_line
 
 output::answer "Executing custom restoration scripts"
 install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
@@ -301,6 +305,7 @@ fi
 
 output::empty_line
 output::answer '🥳 🎉 SLOTH installed sucessfully'
+output::empty_line
 
 output::answer "Trying to load .Sloth"
 if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
@@ -321,6 +326,7 @@ else
   output::error ".Sloth could not be initilised"
   exit 1
 fi
+output::empty_line
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   output::answer "Updating all system packages"
