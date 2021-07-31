@@ -47,10 +47,10 @@ git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
   if [[ -n "${ALWAYS_USE_GIT_ARGS[*]:-}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 && $# -gt 0 ]]; then
-    echo "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@" 1>&2
+    [[ -n "${DEBUG:-}" ]] && echo "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@" | log::file "git execution of command"
     "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
   elif [[ $# -gt 0 ]]; then
-    echo "$GIT_EXECUTABLE" "$@" 1>&2
+    [[ -n "${DEBUG:-}" ]] && echo "$GIT_EXECUTABLE" "$@" | log::file "git execution of command"
     "$GIT_EXECUTABLE" "$@"
   fi
 }

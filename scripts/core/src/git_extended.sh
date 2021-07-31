@@ -239,7 +239,7 @@ git::set_remote_head_upstream_branch() {
 # git::check_file_exists_in_previous_commit()
 #"
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" > /dev/null 2>&1
+  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" &> /dev/null
 }
 
 #;
