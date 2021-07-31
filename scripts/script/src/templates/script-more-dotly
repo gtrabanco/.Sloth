@@ -47,6 +47,7 @@ case $1 in
     echo "The optional variable value is \"${example_optional_variable:-No value provided}\""
     ;;
   *)
+    output::error "Exit with error: no content yet"
     exit 1
     ;;
 esac
