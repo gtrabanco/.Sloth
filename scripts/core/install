@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2016
 
 set -euo pipefail
 
@@ -133,7 +134,7 @@ export SETUP_ZSH_AND_BASH_IN_SHELLS
 # Backups
 if
   { ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
-  [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
+    [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
     ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
 then
   SYMLINKS_ARGS=(--interactive-backup)
@@ -219,32 +220,46 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   script::depends_on fzf python-yq jq cargo-update
 fi
 
-output::answer "Initilizing .Sloth as repository"
-sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
-git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive | log::file "Update .Sloth submodules" || true
-output::empty_line
-
 if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
   output::answer "Initilizing .Sloth as repository"
   sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
-  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive | log::file "Update .Sloth submodules" || true
   output::empty_line
 fi
 
-output::answer "Creating dotfiles structure"
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+output::anser "Updating .Sloth submodules"
+git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
 output::empty_line
+
+if [[ -n "$DOTFILES_PATH" ]]; then
+  output::answer "Creating dotfiles structure"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+  output::empty_line
+else
+  output::answer "Skipping dotfiles creation"
+  output::write "If you want to do it later, execute:"
+  output::answer "\`dot dotfiles create\`"
+fi
 
 # Apply user symlinks
 if ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; then
   output::answer "Setting up symlinks"
   SYMLINKS_ARGS=(--interactive-backup)
-  if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
-    output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
+      output::solution "Symlinks applied"
+    else
+      output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+    fi
   else
-    output::solution "Symlinks applied"
+    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error core 2>&1 | log::file "Applying symlinks"; then
+      output::solution "Symlinks applied"
+    else
+      output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+    fi
   fi
   output::empty_line
+else
+  output::answer "Skipping the symlinks apply"
 fi
 touch "$HOME/.z"
 unset SYMLINKS_ARGS bk
@@ -260,7 +275,7 @@ if $SETUP_ZSH_AS_DEFAULT_SHELL && has_sudo; then
   } | log::file "Setting zsh as default shell"
 
 elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  output::answer "ZSH is not installed, is your current shell or you decide not to do this step."
+  output::answer "ZSH is not installed or you decide not to setup as default shell."
 else
   output::answer "This is step is aborted on CI"
 fi
@@ -285,7 +300,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   {
     zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
-  } || output::error '❌ Error reloading completions'
+  } || output::error '❌ Error reloading completions. Execute later \`dot shell zsh reload_completions\`'
 
   output::empty_line
 fi
@@ -335,7 +350,7 @@ else
 fi
 output::empty_line
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! ${IGNORE_UPDATE_PACKAGES:-false}; then
   output::answer "Updating all system packages"
   if platform::is_macos; then
     output::empty_line
@@ -348,6 +363,8 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   fi
   "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
   output::empty_line
+elif ${IGNORE_UPDATE_PACKAGES:-false}; then
+  output::answer "All system packages update aborted by the user"
 fi
 
 output::solution "🏁 Now restart your terminal to finish the installation"
