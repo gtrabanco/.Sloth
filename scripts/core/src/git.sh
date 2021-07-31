@@ -16,8 +16,17 @@ if
 then
   GIT_EXECUTABLE="$(command -v git)"
 
-elif command -v git &> /dev/null; then
+elif
+  [[ -z "${GIT_EXECUTABLE:-}" ]] &&
+    command -v git &> /dev/null
+then
   GIT_EXECUTABLE="$(command -v git)"
+
+elif
+  [[ -z "${GIT_EXECUTABLE:-}" ]] &&
+    command -vp git &> /dev/null
+then
+  GIT_EXECUTABLE="$(command -vp git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] ||
@@ -37,9 +46,9 @@ export GIT_EXECUTABLE
 git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
-  if [[ -n "${ALWAYS_USE_GIT_ARGS[*]}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
+  if [[ -n "${ALWAYS_USE_GIT_ARGS[*]:-}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 && $# -gt 0 ]]; then
     "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
-  else
+  elif [[ $# -gt 0 ]]; then
     "$GIT_EXECUTABLE" "$@"
   fi
 }

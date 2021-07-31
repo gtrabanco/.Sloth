@@ -20,13 +20,6 @@ SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
 SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-"$DOTFILES_PATH/.sloth_update_available"}"
 SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
 
-# Git arguments
-if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
-  readonly SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
-  )
-fi
-
 # Urls, branches and remotes
 if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" ]]; then
   SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
@@ -52,6 +45,8 @@ fi
 [[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
 
 SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
+
+export SLOTH_DEFAULT_GIT_HTTP_URL SLOTH_DEFAULT_GIT_SSH_URL SLOTH_DEFAULT_REMOTE SLOTH_DEFAULT_BRANCH SLOTH_DEFAULT_URL
 ############## End of needed variables ##############
 
 #;
@@ -60,23 +55,25 @@ SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 # @return void
 #"
 sloth_update::sloth_repository_set_ready() {
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
 
-  if ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
+  if ! git::is_in_repo "${SLOTH_UPDATE_GIT_ARGS[@]}" || ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
     git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
 
   # Set head branch
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto &> /dev/null 1>&2
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto 1>&2 || true
 
   # Automatic convert windows git crlf to lf
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2 || true
 
   # Track default branch
-  git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" &> /dev/null || true
+  git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
 
   # Unshallow by the way
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow &> /dev/null
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow 1>&2 || true
 }
 
 #;
@@ -85,7 +82,9 @@ sloth_update::sloth_repository_set_ready() {
 # @return string|void
 #"
 sloth_update::get_current_version() {
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2> /dev/null
 }
 
@@ -95,8 +94,10 @@ sloth_update::get_current_version() {
 # @return string
 #"
 sloth_update::get_latest_stable_version() {
-  local latest_version
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
+
   git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
 }
 
@@ -107,7 +108,9 @@ sloth_update::get_latest_stable_version() {
 #"
 sloth_update::local_sloth_repository_can_be_updated() {
   local IS_WORKING_DIRECTORY_CLEAN=false HAS_UNPUSHED_COMMITS=false
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
 
   if [[ -f "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}" ]]; then
     return 1
@@ -135,7 +138,9 @@ sloth_update::local_sloth_repository_can_be_updated() {
 # @return boolean
 #"
 sloth_update::should_be_updated() {
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
   local -r latest_version=$(sloth_update::get_latest_stable_version)
   local -r current_version=$(sloth_update::get_current_version)
   local -r latest_available_local_version=$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" tag | sort -Vr | head -n1)
@@ -205,7 +210,9 @@ sloth_update::sloth_update_repository() {
   default_remote_branch="${remote}/${branch}"
   force_update="${4:-false}"
 
-  [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]] && SLOTH_UPDATE_GIT_ARGS=()
+  local -r SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
 
   # Check if can be updated
   if ! $force_update && sloth_update::local_sloth_repository_can_be_updated; then
@@ -214,7 +221,7 @@ sloth_update::sloth_update_repository() {
   fi
 
   # Set ready if necessary
-  sloth_update::sloth_repository_set_ready
+  sloth_update::sloth_repository_set_ready || true
 
   # Remote exists?
   ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 && output::error "Remote \`${remote}\` does not exists" && return 20
@@ -253,7 +260,7 @@ sloth_update::gracefully() {
   fi
 
   # Make some checks and put the repository ready to make an update
-  sloth_update::sloth_repository_set_ready
+  sloth_update::sloth_repository_set_ready || true
 
   if ! sloth_update::should_be_updated; then
     # Already up to date

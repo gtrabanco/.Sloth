@@ -157,7 +157,7 @@ if ${version:-false}; then
   output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
   exit
 elif ${help:-false}; then
-  grep "##?" "$(dot::get_full_script_path)"
+  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
   exit
 fi
 

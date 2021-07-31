@@ -20,6 +20,7 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
   if [[ -z "${DOTFILES_PATH:-}" && -d "${HOME}/.dotfiles/scripts" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
   fi
+  unset dot_path
   export SLOTH_PATH DOTLY_PATH DOTFILES_PATH
 fi
 
@@ -47,17 +48,17 @@ SLOTH_SCRIPT_BASE_NAME="sloth"
 ##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts"
 ##?    script   Is the script in "\${DOTFILES_PATH}/scripts/<context>" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>"
 ##?
-#}#? Options:
+##? Options:
 ##?    -h --help     Gives help to the user
 ##?    -v --version  Show the dot command version
 ##?
 ##?    self-update
 ##?
-##? SCRIPT_VERSION 2.0.0
+##? SCRIPT_VERSION 2.1.0
 
 # This script help
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  docs::parse "$@"
+  grep "^##?" "$BASH_SOURCE" | cut -c 5-
 fi
 
 # This script version
@@ -74,15 +75,27 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   exit
 fi
 
+if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  output::error "Error: .Sloth needs to execute \`dot core install --ignore-symlinks\` previously to be used."
+  output::answer "This will install some tools in your system and also init current .Sloth folder as repository"
+  exit 1
+fi
+
 # Self-update (Why not in dot directly?)
 if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
 fi
 
+# Self-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
+  exit
+fi
+
 # Autoupdate (Async update)
-if [[ "$1" == "autoupdate" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core async-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
   exit
 fi
 

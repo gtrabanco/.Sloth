@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+#shellcheck disable=SC2016
+
+set -euo pipefail
+
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+
+zshrc_load() {
+  case "${1:-both}" in
+    "zshenv")
+      echo
+      echo '###### .Sloth Variables ######'
+      echo "export DOTFILES_PATH=\"${DOTFILES_PATH:-<write the path to your dotfiles here>}\""
+      echo 'export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"'
+      echo "export SLOTH_PATH=\"\${SLOTH_PATH:-\${DOTLY_PATH:-}}\""
+      echo 'export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"'
+      echo '###### End of .Sloth Variables ######'
+      echo
+      ;;
+    "zshrc")
+      echo
+      echo '###### .Sloth Loader ######'
+      echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
+      echo 'then'
+      echo '  #shellcheck disable=SC1091'
+      echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
+      echo 'else'
+      echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH variable\033[0m"'
+      echo 'fi'
+      echo '###### End of .Sloth loader ######'
+      echo
+      ;;
+    *)
+      echo 'You need to create or modify two different files'
+      echo '--------------- BEGIN .zshenv file ---------------'
+      echo
+      zshrc_load "zshenv"
+      echo
+      echo '---------------  END .zshenv file  ---------------'
+      echo
+      echo
+      echo
+      echo '--------------- BEGIN .zshrc file ---------------'
+      echo
+      zshrc_load "zshrc"
+      echo
+      echo '---------------  END .zshrc file  ---------------'
+      echo
+      ;;
+  esac
+}
+
+bashrc_load() {
+  echo
+  echo '###### .Sloth Variables ######'
+  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+    echo "export DOTFILES_PATH=\"${DOTFILES_PATH//$HOME/\$HOME}\""
+  else
+    echo "export DOTFILES_PATH=\"${DOTFILES_PATH:-<write the path to your dotfiles here>}\""
+  fi
+  echo 'export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"'
+  echo "export SLOTH_PATH=\"\${SLOTH_PATH:-\${DOTLY_PATH:-}}\""
+  echo '###### End of .Sloth Variables ######'
+  echo
+  echo '###### .Sloth Loader ######'
+  echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
+  echo 'then'
+  echo '  #shellcheck disable=SC1091'
+  echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
+  echo 'else'
+  echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH variable\033[0m"'
+  echo 'fi'
+  echo '###### End of .Sloth loader ######'
+  echo
+}
+
+check_has_loader() {
+  local -r file="${1:-}"
+  if [[ -n "$file" && -f "${file}" ]]; then
+    grep -q 'shell/init-sloth.sh"$' "$file"
+  else
+    return 1
+  fi
+}
+
+check_has_dotfiles_var() {
+  local -r file="${1:-}"
+  if [[ -n "$file" && -f "${file}" ]]; then
+    grep -q 'export DOTFILES_PATH' "$file"
+  else
+    return 1
+  fi
+}
+
+##? Adds a .Sloth loader in your current dotfiles if it was not added. If you
+##? want to edit .bashrc or .zshenv, with your desired valur for DOTFILES_PATH
+##? and you do not have defined yet in .bashrc, .zshenv or .zshrc, you can
+##? use this script calling it with the variable DOTFILES_PATH. Example:
+##?
+##?   DOTFILES_PATH="${HOME}/.dotfiles" dot core loader --modify
+##?
+##?
+##? Usage:
+##?   loader (-h | --help)
+##?   loader (-v | --version)
+##?   loader bashrc [--modify]
+##?   loader zshrc [--modify]
+##?   loader --modify
+##?
+##? Arguments:
+##?   bashrc        Show or modify .bashrc content for .Sloth loading
+##?   zshrc         Show or modify .zshrc and .zshenv content for .Sloth loading
+##?
+##? Options:
+##?   -h --help     Show this help
+##?   -v --version  Show the program version
+##?   --modify      Modify zshrc (and zshenv) or bashrc or both and append the
+##?                 loader at the end if it is not. If files in \${HOME}
+##?                 \`.zshenv\`, \`.zshrc\` and \`.bashrc\` does not exist they
+##?                 will be created.
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+##? SCRIPT_VERSION "1.0.0"
+docs::parse "$@"
+
+SCRIPT_NAME="dot core loader"
+SCRIPT_VERSION="1.0.0"
+
+# Print name and version
+if ${version:-}; then
+  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
+  exit
+fi
+
+# Here begin your script
+zshrc=false
+zshenv=false
+bashrc=false
+case ${1-} in
+  # Any subcommand should be here
+  bashrc)
+    if check_has_loader "${HOME}/.bashrc" && check_has_dotfiles_var "${HOME}/.bashrc"; then
+      bashrc=true
+    fi
+
+    if ${modify:-false}; then
+      if ${bashrc:-}; then
+        output::error ".bashrc file already has the .Sloth loader and DOTFILES_PATH. If they are commented, uncoment them."
+      else
+        bashrc_load | tee -a "${HOME}/.bashrc" &> /dev/null
+        output::solution "\`.bashrc\` file modified"
+        output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
+      fi
+    else
+      bashrc_load
+    fi
+    ;;
+  zshrc)
+    if check_has_loader "${HOME}/.zshrc"; then
+      zshrc=true
+    fi
+
+    if grep -q 'DOTFILES_PATH=' "${HOME}/.zshenv"; then
+      zshenv=true
+    fi
+
+    if ${modify:-false}; then
+      if ${zshrc:-false} && ${zshenv:-false}; then
+        output::error ".zshrc & .zshenv files already have the .Sloth loader"
+      else
+        if ! ${zshenv:-false}; then
+          zshenv_load zshenv | tee -a "${HOME}/.zshenv" &> /dev/null
+          output::solution "\`.zshenv\` file modified"
+        fi
+
+        if ! ${zshrc:-false}; then
+          zshrc_load zshrc | tee -a "${HOME}/.zshrc" &> /dev/null
+          output::solution "\`.zshrc\` file modified"
+        fi
+
+        output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
+      fi
+    else
+      zshrc_load
+    fi
+    ;;
+  *)
+    if check_has_loader "${HOME}/.bashrc"; then
+      bashrc=true
+    fi
+
+    if check_has_loader "${HOME}/.zshrc"; then
+      zshrc=true
+    fi
+
+    if grep -q 'DOTFILES_PATH=' "${HOME}/.zshenv"; then
+      zshenv=true
+    fi
+    ;;
+esac
