@@ -20,13 +20,6 @@ SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
 SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-"$DOTFILES_PATH/.sloth_update_available"}"
 SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
 
-# Git arguments
-if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
-  export readonly SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
-  )
-fi
-
 # Urls, branches and remotes
 if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" ]]; then
   SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
@@ -51,7 +44,15 @@ fi
 # SLOTH_GITMODULES_BRANCH is the HEAD branch of remote repository were Pull Request are merged
 [[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
 
-export SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
+SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
+
+# Git arguments
+if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" ]]; then
+  readonly SLOTH_UPDATE_GIT_ARGS=(
+    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  )
+fi
+export SLOTH_DEFAULT_GIT_HTTP_URL SLOTH_DEFAULT_GIT_SSH_URL SLOTH_DEFAULT_REMOTE SLOTH_DEFAULT_BRANCH SLOTH_DEFAULT_URL SLOTH_UPDATE_GIT_ARGS
 ############## End of needed variables ##############
 
 #;
@@ -59,12 +60,13 @@ export SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 # Default repository initilisation and first fetch if is not ready to have updates
 # @return void
 #"
+# TODO Cleanup in production
 sloth_update::sloth_repository_set_ready() {
-  if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" || ${#SLOTH_UPDATE_GIT_ARGS[@]} -eq 0 ]]; then
-    SLOTH_UPDATE_GIT_ARGS=(
-      -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
-    )
-  fi
+  # if [[ -z "${SLOTH_UPDATE_GIT_ARGS[*]:-}" || ${#SLOTH_UPDATE_GIT_ARGS[@]} -eq 0 ]]; then
+  #   SLOTH_UPDATE_GIT_ARGS=(
+  #     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  #   )
+  # fi
   log::note "Setting .Sloth as repository with args: \`${SLOTH_UPDATE_GIT_ARGS[*]:-no arguments provided}\`"
 
   log::note "Checking if current .Sloth directory is a repository and have a remote called \`${SLOTH_DEFAULT_REMOTE:-origin}\`"
