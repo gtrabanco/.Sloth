@@ -208,7 +208,7 @@ git::get_remote_head_upstream_branch() {
   [[ -n "${1:-}" ]] && shift
 
   ! git::check_remote_exists "$remote" "$@" && return
-  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" | xargs 2> /dev/null || return
+  git::git "$@" symbolic-ref --short "refs/remotes/${remote}/HEAD" || return
 }
 
 #;
@@ -303,9 +303,9 @@ git::clone_track_branch() {
   fi
 
   ! git::check_remote_exists "$remote" "$@" && return 1
-  [[ -z "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" checkout -t "remotes/${remote}/${branch}" 1>&2
-  [[ -n "$(git::git "$@" branch --list "$branch")" ]] && git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
-  git::git "$@" checkout --force "${branch}"
+  [[ -z "$(git::git "$@" branch --list "$branch")" ]] && { git::git "$@" checkout -t "remotes/${remote}/${branch}" 1>&2 || true; }
+  [[ -n "$(git::git "$@" branch --list "$branch")" ]] && { git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2 || true; }
+  git::git "$@" checkout --force "${branch}" 1>&2 || true
 }
 
 #;
@@ -324,7 +324,7 @@ git::clone_branches() {
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
-    git::clone_track_branch "$remote" "$branch" "$@" 1>&2
+    git::clone_track_branch "$remote" "$branch" "$@" 1>&2 || true
   done
 }
 
@@ -368,7 +368,7 @@ git::pull_branch() {
   if [[ $(git::current_branch "$@") != "${branch}" ]]; then
     git::git "$@" clean -f -q 1>&2
     git::git "$@" reset --hard HEAD 1>&2
-    git::git "$@" checkout "${branch}" 1>&2
+    git::git "$@" checkout --force "${branch}" 1>&2
   fi
 
   # Clone and track the remote branch to make sure we have the branch
@@ -434,14 +434,9 @@ git::init_repository_if_necessary() {
       git::set_remote_head_upstream_branch "$remote" "$head_branch" "$@" 1>&2
     fi
 
+    git::pull_branch "$remote" "${head_branch//remotes\/origin\//}" "$@" 1>&2
     git::git "$@" reset --hard "${head_branch}" 1>&2
   else
     return 1
   fi
 }
-
-# Latest remote: git ls-remote origin HEAD | awk '{print $1}'
-#  headc="c688aabf4ed607f9084d9900ac0e7c27ab2f9f5d"
-
-# git merge-base --is-ancestor @{u} refs/heads/origin/HEAD
-# local -r remote_tracked="$("${GIT_EXECUTABLE}" -sb | head -n1 | awk '{print $2}' | awk -F '\.' '{print $NF}')"
