@@ -9,9 +9,10 @@ dot::load_library "git_extended.sh"
 dot::load_library "sloth_update.sh"
 
 start_sudo() {
-  sudo -n -v &> /dev/null && return 0
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  has_sudo && return 0
   sudo -v -B
-  if sudo -n -v &> /dev/null && [[ -z "${SUDO_PID:-}" ]]; then
+  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
     (while true; do
       sudo -v
       sleep 30
@@ -25,6 +26,11 @@ stop_sudo() {
   kill "$SUDO_PID" &> /dev/null
   trap - SIGINT SIGTERM
   sudo -k
+}
+
+has_sudo() {
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  command -p sudo -n -v &> /dev/null
 }
 
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
@@ -108,7 +114,7 @@ then
 
     sudo -n -v && SETUP_ZSH_AND_BASH_IN_SHELLS=true
 
-    ! sudo -n -v &> /dev/null && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+    ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
 # We need to cache sudo to avoid asking for password later and every time
@@ -118,7 +124,7 @@ elif
     [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   start_sudo
-  ! sudo -n -v &> /dev/null && output::error "It can not be done without elevation, aborting this options (should be done later manually)"
+  ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)"
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
@@ -152,7 +158,7 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   then
     output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
     output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
-    if ! sudo -n -v &> /dev/null; then
+    if ! has_sudo; then
       output::error "Without sudo authentication this can not be done. You should do this later manually"
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
@@ -167,7 +173,7 @@ elif
     ! grep -q "^${zsh_shell_path}$" "/etc/shells"
 then
   start_sudo
-  ! sudo -n -v &> /dev/null &&
+  ! has_sudo &&
     output::error "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
 else
@@ -178,7 +184,7 @@ else
       [[ ! -x "$zsh_shell_path" ]] ||
       [[ ! -f "/etc/shells" ]] ||
       grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-      ! sudo -n -v &> /dev/null
+      ! has_sudo
   then
     SETUP_ZSH_AS_DEFAULT_SHELL=false
   fi
@@ -186,7 +192,7 @@ fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
-if ! sudo -n -v &> /dev/null; then
+if ! has_sudo; then
   start_sudo
 fi
 
@@ -241,7 +247,7 @@ unset SYMLINKS_ARGS bk
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
 output::answer "Trying to setup zsh as the default shell"
-if $SETUP_ZSH_AS_DEFAULT_SHELL && sudo -n -v &> /dev/null; then
+if $SETUP_ZSH_AS_DEFAULT_SHELL && has_sudo; then
   sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
 
   {

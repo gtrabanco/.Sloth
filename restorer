@@ -156,9 +156,10 @@ is_clt_installed() {
 }
 
 start_sudo() {
-  sudo -n -v &> /dev/null && return 0
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  has_sudo && return 0
   sudo -v -B
-  if sudo -n -v &> /dev/null && [[ -z "${SUDO_PID:-}" ]]; then
+  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
     (while true; do
       sudo -v
       sleep 30
@@ -172,6 +173,11 @@ stop_sudo() {
   kill "$SUDO_PID" &> /dev/null
   trap - SIGINT SIGTERM
   sudo -k
+}
+
+has_sudo() {
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  command -p sudo -n -v &> /dev/null
 }
 
 _w "  ┌────────────────────────────────────┐"
@@ -202,8 +208,8 @@ then
   then
     start_sudo
 
-    sudo -n -v &> /dev/null && SETUP_ZSH_AND_BASH_IN_SHELLS=true
-    ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+    has_sudo && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+    ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
 # We need to cache sudo to avoid asking for password later and every time
@@ -213,7 +219,7 @@ elif
     [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   start_sudo
-  ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)"
+  ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)"
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
@@ -266,7 +272,7 @@ elif
     ! grep -q "^${zsh_shell_path}$" "/etc/shells"
 then
   start_sudo
-  ! sudo -n -v &> /dev/null &&
+  ! has_sudo &&
     _e "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
 elif
@@ -276,7 +282,7 @@ elif
     [[ ! -x "$zsh_shell_path" ]] ||
     [[ ! -f "/etc/shells" ]] ||
     grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-    ! sudo -n -v &> /dev/null
+    ! has_sudo
 then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
 fi

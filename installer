@@ -135,9 +135,10 @@ install_clt() {
 }
 
 start_sudo() {
-  sudo -n -v &> /dev/null && return 0
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  has_sudo && return 0
   sudo -v -B
-  if sudo -n -v &> /dev/null && [[ -z "${SUDO_PID:-}" ]]; then
+  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
     (while true; do
       sudo -v
       sleep 30
@@ -153,6 +154,11 @@ stop_sudo() {
   sudo -k
 }
 
+has_sudo() {
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  command -p sudo -n -v &> /dev/null
+}
+
 _w "  ┌──────────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
 _w "  └──────────────────────────────────────────┘"
@@ -162,7 +168,7 @@ _w
 if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
   _w "We will need to use user elevation with sudo to install Command Line Tools"
   start_sudo
-  if ! sudo -n -v; then
+  if ! has_sudo; then
     _e "Elevation error: wrong or not provided password"
     _a "Yow will be asked later for the password again"
   fi
@@ -180,8 +186,8 @@ then
   then
     start_sudo
 
-    sudo -n -v &> /dev/null && SETUP_ZSH_AND_BASH_IN_SHELLS=true
-    ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+    has_sudo && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+    ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
 # We need to cache sudo to avoid asking for password later and every time
@@ -191,7 +197,7 @@ elif
     [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   start_sudo
-  ! sudo -n -v &> /dev/null && _e "It can not be done without elevation, aborting this options (should be done later manually)"
+  ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)"
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
@@ -229,7 +235,7 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
       SETUP_ZSH_AS_DEFAULT_SHELL=true
     _a "This will need a sudo authentication to add it to \`/etc/shells\` file"
     start_sudo
-    if ! sudo -n -v; then
+    if ! has_sudo; then
       _e "Without sudo authentication this can not be done. You should do this later manually"
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
@@ -244,7 +250,7 @@ elif
     ! grep -q "^${zsh_shell_path}$" "/etc/shells"
 then
   start_sudo
-  ! sudo -n -v &> /dev/null &&
+  ! has_sudo &&
     _e "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
 elif
@@ -254,7 +260,7 @@ elif
     [[ ! -x "$zsh_shell_path" ]] ||
     [[ ! -f "/etc/shells" ]] ||
     grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-    ! sudo -n -v &> /dev/null
+    ! has_sudo
 then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
 fi
@@ -276,7 +282,7 @@ fi
 
 if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
   _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
-  if [[ "$DOTFILES_PATH" == "CI" ]]; then
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
   else
     DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
