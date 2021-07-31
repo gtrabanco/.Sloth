@@ -28,7 +28,7 @@
 ## About this
 [.Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
 
-Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
+Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea (supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
 
 ## Features & differences with Dotly Framework
 

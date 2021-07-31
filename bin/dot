@@ -20,6 +20,7 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
   if [[ -z "${DOTFILES_PATH:-}" && -d "${HOME}/.dotfiles/scripts" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
   fi
+  unset dot_path
   export SLOTH_PATH DOTLY_PATH DOTFILES_PATH
 fi
 
@@ -47,17 +48,17 @@ SLOTH_SCRIPT_BASE_NAME="sloth"
 ##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts"
 ##?    script   Is the script in "\${DOTFILES_PATH}/scripts/<context>" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>"
 ##?
-#}#? Options:
+##? Options:
 ##?    -h --help     Gives help to the user
 ##?    -v --version  Show the dot command version
 ##?
 ##?    self-update
 ##?
-##? SCRIPT_VERSION 2.0.0
+##? SCRIPT_VERSION 2.1.0
 
 # This script help
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  docs::parse "$@"
+  grep "^##?" "$BASH_SOURCE" | cut -c 5-
 fi
 
 # This script version
@@ -74,15 +75,27 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   exit
 fi
 
+if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  output::error "Error: .Sloth needs to execute \`dot core install --ignore-symlinks\` previously to be used."
+  output::answer "This will install some tools in your system and also init current .Sloth folder as repository"
+  exit 1
+fi
+
 # Self-update (Why not in dot directly?)
 if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
 fi
 
+# Self-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
+  exit
+fi
+
 # Autoupdate (Async update)
-if [[ "$1" == "autoupdate" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core async-update
+if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
   exit
 fi
 
@@ -127,33 +140,38 @@ else
     exit 1
   fi
 
+  # Full path to the calling script
   script_full_path="${script_path}/scripts/${context}/${script}"
+
+  # Automatic --help and --version
+  if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+    docs::parse_script "${script_full_path}" "--help"
+  elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
+    if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
+      "${SLOTH_LAZY_SCRIPT}" --version
+    else
+      SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
+      SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
+      if [[ -n "${SCRIPT_VERSION}" ]]; then
+        output::write "${SCRIPT_NAME}"
+        output::write "\t\`v${SCRIPT_VERSION}\`"
+      else
+        output::write "${SCRIPT_NAME}"
+        output::error "\t no version provided"
+      fi
+    fi
+  fi
+
+  # If old version call the script, else source it
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
       grep -q "^docs::parse" "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
   then
-    if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
-      docs::parse_script "${script_full_path}" "--help"
-    elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-      if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
-        "${SLOTH_LAZY_SCRIPT}" --version
-      else
-        SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
-        SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
-        if [[ -n "${SCRIPT_VERSION}" ]]; then
-          output::write "${SCRIPT_NAME}"
-          output::write "\t\`v${SCRIPT_VERSION}\`"
-        else
-          output::write "${SCRIPT_NAME}"
-          output::error "\t no version provided"
-        fi
-      fi
-    else
-      "${script_full_path}" "$@"
-    fi
+    "${script_full_path}" "$@"
   else
-    "${SLOTH_LAZY_SCRIPT}" "${script_full_path}" "$@"
+    #shellcheck disable=SC1090
+    . "${script_full_path}"
   fi
 fi

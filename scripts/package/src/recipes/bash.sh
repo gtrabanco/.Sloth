@@ -11,11 +11,7 @@ bash::is_installed() {
 }
 
 bash::install() {
-  if [[ $* == *"--force"* ]] && platform::command_exists brew && ! bash::is_installed; then
-    brew reinstall bash
-  else
-    package::install bash auto
-  fi
+  package::install bash auto "${1:-}"
 
   bash::is_installed || output::error "Could not be installed" && return 1
   output::solution "Bash installed"
@@ -28,6 +24,6 @@ bash::uninstall() {
     package::uninstall bash auto
   fi
 
-  bash::is_installed && output::error "Bash could not be installed" && return 1
+  bash::is_installed && output::error "Bash could not be uninstalled" && return 1
   output::solution "Bash uninstalled"
 }

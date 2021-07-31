@@ -176,13 +176,13 @@ registry::update_all() {
         registry::command_exists "$recipe" "is_outdated" &&
           registry::command "$recipe" "is_outdated"
       then
-        registry::upgrade "$recipe"
+        registry::upgrade "$recipe" 2>&1 | log::file "Updating ${registry_title} app: $recipe"
         any_update=true
 
       elif
         ! registry::command_exists "$recipe" "is_outdated"
       then
-        registry::upgrade "$recipe"
+        registry::upgrade "$recipe" 2>&1 | log::file "Updating ${registry_title} app: $recipe"
         any_update=true
       fi
     fi

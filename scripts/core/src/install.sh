@@ -23,6 +23,7 @@ install_macos_custom() {
       export CI=1
     fi
 
+    registry::install "clt"
     registry::install "brew"
   fi
 
@@ -46,19 +47,22 @@ install_macos_custom() {
   fi
 
   output::answer "Installing needed gnu packages"
-  custom::install coreutils findutils gnu-sed
+  custom::install clt curl git coreutils findutils gnu-sed
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install gnutls gnu-tar gnu-which gawk grep make bash zsh bash-completion@2 zsh-completions python3-pip
+    custom::install gnutls gnu-tar gnu-which gawk grep
+
+    output::answer "Installing other needed packages"
+    custom::install make bash zsh bash-completion@2 zsh-completions python3-pip
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
-    if [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -v; then
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -n -v &> /dev/null; then
       sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/zsh' | tee -a /etc/shells &> /dev/null"
     fi
 
-    if [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -v; then
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -n -v &> /dev/null; then
       sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/bash' | tee -a /etc/shells &> /dev/null"
     fi
 
@@ -112,7 +116,7 @@ install_linux_custom() {
   fi
 
   output::answer "Installing Linux Packages"
-  custom::install build-essential coreutils findutils
+  custom::install curl git build-essential coreutils findutils
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then

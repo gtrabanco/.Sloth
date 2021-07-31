@@ -1,21 +1,205 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2016
 
 set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
+dot::load_library "git_extended.sh"
+dot::load_library "sloth_update.sh"
+
+start_sudo() {
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  has_sudo && return 0
+  sudo -v -B
+  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
+    (while true; do
+      sudo -v
+      sleep 30
+    done) &
+    SUDO_PID="$!"
+    trap stop_sudo SIGINT SIGTERM
+  fi
+}
+
+stop_sudo() {
+  kill "$SUDO_PID" &> /dev/null
+  trap - SIGINT SIGTERM
+  sudo -k
+}
+
+has_sudo() {
+  [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
+  command -p sudo -n -v &> /dev/null
+}
+
+##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
+##?
+##? Usage:
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]]
+##?
+##? Options:
+##?    -h --help                Prints this help
+##?    -n --never-backup        Never do a backup of user symlinks without prompt
+##?    -b --always-backup       Always do a backup of user symlinks without prompt
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
+##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
+##?
+##?
+##? SCRIPT_VERSION "3.0.0"
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+  docs::parse "$@"
+else
+  version=false
+  help=false
+  backup=false
+  interactive_backup=false
+  ignore_backup=false
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --version | -v)
+        version=true
+        shift
+        ;;
+      --help | -h)
+        help=true
+        shift
+        ;;
+      --backup)
+        { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
+        backup=true
+        ;;
+      --interactive-backup)
+        { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
+        script::depends_on python-yq jq
+        interactive_backup=true
+        shift
+        ;;
+      --ignore-backup)
+        { $backup || $interactive_backup; } && output::error "Error you can not use \`--ignore-backup\` with \`--backup\` or \`--interactive-backup\`" && exit 4
+        ignore_backup=true
+        shift
+        ;;
+      *)
+        break 2
+        ;;
+    esac
+  done
+fi
+
+SCRIPT_NAME="dot core install"
+
+# Print name and version
+if ${version:-false}; then
+  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  exit
+elif ${help:-false}; then
+  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
+  exit
+fi
+
+#### Prompt user all the staff we want to know ####
+#### All questions at the very beginning
+# Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
+if
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    platform::is_macos &&
+    [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+then
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  if
+    output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)"
+  then
+    start_sudo
+
+    sudo -n -v && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+
+    ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  fi
+
+# We need to cache sudo to avoid asking for password later and every time
+elif
+  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    platform::is_macos &&
+    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+then
+  start_sudo
+  ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)"
+  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+fi
+export SETUP_ZSH_AND_BASH_IN_SHELLS
+
+# Backups
+if
+  { ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
+    [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
+    ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
+then
+  SYMLINKS_ARGS=(--interactive-backup)
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+    SYMLINKS_ARGS=(--ignore-backup)
+  elif ${always_backup:-}; then
+    SYMLINKS_ARGS=(--backup)
+  else
+    bk=false
+    output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
+    $bk && output::yesno "Do you want to be asked for every file" || SYMLINKS_ARGS=(--backup)
+    ! $bk && SYMLINKS_ARGS=(--ignore-backup)
+  fi
+fi
+
+# ZSH as default Shell
+zsh_shell_path="$(command -v zsh || true)"
+if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
+  SETUP_ZSH_AS_DEFAULT_SHELL=false
+  if
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+      ! str::contains zsh "$SHELL" &&
+      platform::command_exists chsh &&
+      [[ -x "$zsh_shell_path" ]] &&
+      [[ -f "/etc/shells" ]] &&
+      ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+  then
+    output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
+    output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    if ! has_sudo; then
+      output::error "Without sudo authentication this can not be done. You should do this later manually"
+      SETUP_ZSH_AS_DEFAULT_SHELL=false
+    fi
+  fi
+elif
+  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
+    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+    ! str::contains zsh "$SHELL" &&
+    platform::command_exists chsh &&
+    [[ -x "$zsh_shell_path" ]] &&
+    [[ -f "/etc/shells" ]] &&
+    ! grep -q "^${zsh_shell_path}$" "/etc/shells"
+then
+  start_sudo
+  ! has_sudo &&
+    output::error "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
+    SETUP_ZSH_AS_DEFAULT_SHELL=false
+else
+  if
+    [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
+      [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
+      ! platform::command_exists chsh ||
+      [[ ! -x "$zsh_shell_path" ]] ||
+      [[ ! -f "/etc/shells" ]] ||
+      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
+      ! has_sudo
+  then
+    SETUP_ZSH_AS_DEFAULT_SHELL=false
+  fi
+fi
+export SETUP_ZSH_AS_DEFAULT_SHELL
+#### End of prompt user all the staff we want to know ####
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
-
-# Mandatory packages first
-script::depends_on docpars fzf
-
-# Packages that are necessary but not in CI env
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on python-yq jq cargo-update
-fi
 
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
@@ -26,67 +210,76 @@ elif platform::is_linux; then
   output::answer "🐧 Setting up Linux Platform"
   install_linux_custom
 fi
+output::empty_line
 
-##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
-##?
-##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup]]
-##?
-##? Options:
-##?    -h --help                Prints this help
-##?    -n --never-backup        Never do a backup of user symlinks without prompt
-##?    -b --always-backup       Always do a backup of user symlinks without prompt
-##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
-##?
-##?    install
-##?
-##? SCRIPT_VERSION "2.0.0"
-if ! ${DOTLY_INSTALLER:-false}; then
-  docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
+# Mandatory packages
+script::depends_on docpars
+
+# Packages that are necessary but not in CI env
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+  script::depends_on fzf python-yq jq cargo-update
 fi
 
-output::answer "Creating dotfiles structure"
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  output::answer "Initilizing .Sloth as repository"
+  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
+  output::empty_line
+fi
+
+output::answer "Updating .Sloth submodules"
+git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
+output::empty_line
+
+if [[ -n "$DOTFILES_PATH" ]]; then
+  output::answer "Creating dotfiles structure"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+  output::empty_line
+else
+  output::answer "Skipping dotfiles creation"
+  output::write "If you want to do it later, execute:"
+  output::answer "\`dot dotfiles create\`"
+fi
 
 # Apply user symlinks
-output::answer "Setting up symlinks"
-symlinks_args=(--interactive-backup)
-if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
-  symlinks_args=(--ignore-backup)
-elif ${always_backup:-}; then
-  symlinks_args=(--backup)
+if ! ${ignore_symlinks:-false} || ! ${IGNORE_APPLY_SYMLINKS:-false}; then
+  output::answer "Setting up symlinks"
+  SYMLINKS_ARGS=(--interactive-backup)
+  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
+      output::solution "Symlinks applied"
+    else
+      output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+    fi
+  else
+    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error core 2>&1 | log::file "Applying symlinks"; then
+      output::solution "Symlinks applied"
+    else
+      output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
+    fi
+  fi
+  output::empty_line
 else
-  bk=false
-  output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
-  $bk && output::yesno "Do you want to be asked for every file" || symlinks_args=(--backup)
-  ! $bk && symlinks_args=(--ignore-backup)
+  output::answer "Skipping the symlinks apply"
 fi
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${symlinks_args[@]}" --continue-on-error --after-core | log::file "Applying symlinks"
 touch "$HOME/.z"
-unset symlinks_args bk
+unset SYMLINKS_ARGS bk
 
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
 output::answer "Trying to setup zsh as the default shell"
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! str::contains zsh "$SHELL" && platform::command_exists chsh && [[ -x "$zsh_shell_path" ]]; then
-  if
-    [[ -f "/etc/shells" ]] &&
-      ! grep -q "^${zsh_shell_path}$" "/etc/shells" &&
-      sudo -v
-  then
-    sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
-  fi
+if $SETUP_ZSH_AS_DEFAULT_SHELL && has_sudo; then
+  sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
 
   {
     sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
   } | log::file "Setting zsh as default shell"
+
 elif [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  output::error "ZSH is not installed or is your current shell"
+  output::answer "ZSH is not installed or you decide not to setup as default shell."
 else
   output::answer "This is step is aborted on CI"
 fi
+output::empty_line
 unset zsh_shell_path
 
 # If exists zsh install ZIMFW
@@ -94,23 +287,28 @@ output::answer "Installing zim"
 if platform::command_exists zsh; then
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
-  output::error "ZIM Framework could not be installed"
+  output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"
   output::write "You will need to run manually the ZIM Framework install command"
   output::write "  zsh \`$ZIM_HOME/zimfw.zsh\` install"
 fi
+output::empty_line
 
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
+
   {
     zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions &> /dev/null &&
       output::solution '✅ ZSH Completions realoaded'
-  } || output::error '❌ Error reloading completions'
+  } || output::error '❌ Error reloading completions. Execute later \`dot shell zsh reload_completions\`'
+
+  output::empty_line
 fi
 
 output::answer "Linking dot command for all users in \`/usr/local/bin\`"
 ln -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
 [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+output::empty_line
 
 output::answer "Executing custom restoration scripts"
 install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
@@ -129,6 +327,7 @@ fi
 
 output::empty_line
 output::answer '🥳 🎉 SLOTH installed sucessfully'
+output::empty_line
 
 output::answer "Trying to load .Sloth"
 if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
@@ -149,8 +348,9 @@ else
   output::error ".Sloth could not be initilised"
   exit 1
 fi
+output::empty_line
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! ${IGNORE_UPDATE_PACKAGES:-false}; then
   output::answer "Updating all system packages"
   if platform::is_macos; then
     output::empty_line
@@ -162,7 +362,9 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     output::empty_line
   fi
   "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
+  output::empty_line
+elif ${IGNORE_UPDATE_PACKAGES:-false}; then
+  output::answer "All system packages update aborted by the user"
 fi
 
-output::empty_line
 output::solution "🏁 Now restart your terminal to finish the installation"

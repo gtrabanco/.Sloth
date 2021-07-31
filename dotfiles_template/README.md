@@ -1,6 +1,6 @@
 <div align="center">
   <h1>
-    .dotfiles created using <a href="https://github.com/gtrabanco/sloth">SLOTH</a>
+    .dotfiles created using <a href="https://github.com/gtrabanco/sloth">.Sloth</a>
     <div style="display:block">
       <a href="https://github.com/gtrabanco/sloth">
         <img src="sloth.svg" alt="Sloth Logo" width="256px" height="256px" />
@@ -8,6 +8,18 @@
     </div>
   </h1>
 </div>
+
+## Initilize as repository
+
+After installing <a href="https://github.com/gtrabanco/sloth">.Sloth</a> if you want to use it as repository you must initilize as repository:
+
+```bash
+cd "$DOTFILES_PATH"
+git init
+git remote add origin "git+ssh://git@github.com:<github_user>/<repository>.git"
+git add .
+git commit -m "Initial comit"
+```
 
 ## Restore your Dotfiles manually
 
