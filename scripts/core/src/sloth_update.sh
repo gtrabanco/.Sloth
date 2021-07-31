@@ -175,7 +175,7 @@ sloth_update::should_be_updated() {
   fi
 
   # Latest channel
-  if [[ $SLOTH_UPDATE_VERSION == "latest" ]] && git::check_branch_is_behind "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
+  if [[ $SLOTH_UPDATE_VERSION == "latest"  &&  -n "$(git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch -ap --dry-run)" ]]; then
     return 0
   fi
 
