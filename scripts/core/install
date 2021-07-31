@@ -340,7 +340,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
     output::empty_line
   fi
   "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
+  output::empty_line
 fi
 
-output::empty_line
 output::solution "🏁 Now restart your terminal to finish the installation"

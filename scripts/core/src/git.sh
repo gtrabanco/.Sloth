@@ -38,8 +38,10 @@ git::git() {
   [[ ! -x "$GIT_EXECUTABLE" ]] && return 1
 
   if [[ -n "${ALWAYS_USE_GIT_ARGS[*]:-}" && ${#ALWAYS_USE_GIT_ARGS[@]} -gt 0 ]]; then
+    echo "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
     "$GIT_EXECUTABLE" "${ALWAYS_USE_GIT_ARGS[@]}" "$@"
   else
+    echo "$GIT_EXECUTABLE" "$@"
     "$GIT_EXECUTABLE" "$@"
   fi
 }
