@@ -227,7 +227,7 @@ export SETUP_ZSH_AND_BASH_IN_SHELLS
 # Backups
 if
   ! ${IGNORE_APPLY_SYMLINKS:-false} &&
-  [[ -z "${SYMLINKS_ARGS[*]:-}" ]]
+    [[ -z "${SYMLINKS_ARGS[*]:-}" ]]
 then
   SYMLINKS_ARGS=(--interactive-backup)
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
