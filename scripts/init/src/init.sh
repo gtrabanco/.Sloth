@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
+if [[ -z "${DOTFILES_PATH:-}" ]]; then
+  output::error "DOTFILES_PATH is not set"
+  exit 4
+fi
+
 # PR annotation
 # If you change this folders you should also change them in init-dotly.sh
 SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts"
-DOTFILES_INIT_SCRIPTS_PATH="$DOTFILES_PATH/shell/init.scripts"
-ENABLED_INIT_SCRIPTS_PATH="$DOTFILES_PATH/shell/init.scripts-enabled"
+DOTFILES_INIT_SCRIPTS_PATH="${DOTFILES_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts}"
+ENABLED_INIT_SCRIPTS_PATH="${ENABLED_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts-enabled}"
 
 [[ ! -d "$ENABLED_INIT_SCRIPTS_PATH" ]] &&
   output::error "The folder path to enable scripts does not exists." &&
