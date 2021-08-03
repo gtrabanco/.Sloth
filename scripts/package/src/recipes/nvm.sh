@@ -31,10 +31,13 @@ nvm::is_installed() {
   [[ -s "${NVM_DIR}/nvm.sh" ]] && platform::command_exists nvm
 }
 
-npm::install() {
+nvm::install() {
   script::depends_on curl clt
 
-  package::install "nvm" "auto" "${1:-}"
+  if [[ "$*" == *"--force"* ]]; then
+    output::answer "Force detected, uninstall first and try a reinstall"
+    nvm::uninstall
+  fi
 
   if ! nvm::is_installed; then
     nvm::install_script
@@ -61,6 +64,12 @@ npm::install() {
   fi
 
   return 1
+}
+
+nvm::uninstall() {
+  [[ -d "${NVM_DIR:-}" ]] && rm -rf "${NVM_DIR:-}"
+  [[ -e "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+  output::answer "nvm uninstalled"
 }
 
 nvm::is_outdated() {
