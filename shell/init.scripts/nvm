@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC1091
 #
-# Lazy loading for nvm, node and npm
+# Loads nvm, node, npm and npx
 #
 
 if
@@ -23,28 +23,4 @@ if [[ $SHELL == *"bash"* || $SHELL == *"zsh"* ]]; then
 fi
 
 # Load only if installed
-if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
-  nvm() {
-    unset -f nvm
-    [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${NVM_DIR}/nvm.sh" # This loads nvm
-    nvm "$@"
-  }
-
-  node() {
-    unset -f node
-    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
-    node "$@"
-  }
-
-  npm() {
-    unset -f npm
-    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
-    npm "$@"
-  }
-
-  npx() {
-    unset -f npx
-    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
-    npm "$@"
-  }
-fi
+[[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${NVM_DIR}/nvm.sh" # This loads nvm, node, npm & npx

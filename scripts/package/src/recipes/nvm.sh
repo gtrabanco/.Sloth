@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC1091
 
-# Try to load nvm
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
-
 nvm::install_script() {
   PROFILE="/dev/null" curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v$(nvm::latest)/install.sh" | bash
 }
