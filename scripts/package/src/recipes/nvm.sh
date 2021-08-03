@@ -49,21 +49,20 @@ nvm::install() {
   if nvm::is_installed && [[ -n "${DOTFILES_PATH:-}" ]]; then
     nvm::finish_install
     ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
-    output::answer "Nvm, node, npm and npx installed"
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
     output::answer "You should add these lines to your \`.bashrc\` & \`.zshrc\` manully because your \`DOTFILES_PATH\` could not be detected"
     output::write "    \`. \"${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm\"\`"
     output::empty_line
-
-    #shellcheck disable=SC1091
-    output::answer "Nvm, node, npm and npx installed"
   fi
 
   . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
 
-  nvm::is_installed
+  nvm::is_installed &&
+    output::solution "Nvm, node, npm and npx installed" &&
+    output::answer "Restart your terminal to have available nvm" &&
+    output::empty_line
 }
 
 nvm::uninstall() {
