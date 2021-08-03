@@ -125,8 +125,7 @@ fi
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
-  [[ -n "$(registry::recipe_exists "$package_name")" ]]
-then
+  [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
   if $force; then
     registry::install "$package_name" --force || true
   else

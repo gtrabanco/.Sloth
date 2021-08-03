@@ -6,8 +6,8 @@
 
 if
   [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]] &&
-  command -v brew &> /dev/null &&
-  [[ -n "$(brew --prefix nvm)" ]]
+    command -v brew &> /dev/null &&
+    [[ -n "$(brew --prefix nvm)" ]]
 then
   NVM_DIR="$(brew --prefix nvm)"
 elif [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]]; then
