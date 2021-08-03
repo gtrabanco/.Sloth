@@ -19,23 +19,29 @@ export NVM_DIR
 
 # This loads nvm bash_completion which is bash and zsh
 if [[ $SHELL == *"bash"* || $SHELL == *"zsh"* ]]; then
-  [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"
+  [[ -s "${NVM_DIR}/bash_completion" ]] && \. "${NVM_DIR}/bash_completion"
 fi
 
 nvm() {
   unset -f nvm
-  [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${NVM_DIR}/nvm.sh" # This loads nvm
   nvm "$@"
 }
+
 node() {
   unset -f node
-  export NVM_DIR=~/.nvm
-  [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh" # This loads nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
   node "$@"
 }
+
 npm() {
   unset -f npm
-  export NVM_DIR=~/.nvm
-  [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh" # This loads nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
+  npm "$@"
+}
+
+npx() {
+  unset -f npx
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
   npm "$@"
 }
