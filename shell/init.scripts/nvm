@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#shellcheck disable=SC1091
+#
+# Lazy loading for nvm, node and npm
+#
+
+if
+  [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]] &&
+    command -v brew &> /dev/null &&
+    [[ -n "$(brew --prefix nvm)" ]]
+then
+  NVM_DIR="$(brew --prefix nvm)"
+elif [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]]; then
+  NVM_DIR="$HOME/.nvm"
+elif [[ -z "${NVM_DIR:-}" ]]; then
+  NVM_DIR="${XDG_CONFIG_HOME}/nvm"
+fi
+export NVM_DIR
+
+# This loads nvm bash_completion which is bash and zsh
+if [[ $SHELL == *"bash"* || $SHELL == *"zsh"* ]]; then
+  [[ -s "${NVM_DIR}/bash_completion" ]] && \. "${NVM_DIR}/bash_completion"
+fi
+
+# Load only if installed
+if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
+  nvm() {
+    unset -f nvm
+    [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${NVM_DIR}/nvm.sh" # This loads nvm
+    nvm "$@"
+  }
+
+  node() {
+    unset -f node
+    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
+    node "$@"
+  }
+
+  npm() {
+    unset -f npm
+    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
+    npm "$@"
+  }
+
+  npx() {
+    unset -f npx
+    [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh" # This loads nvm
+    npm "$@"
+  }
+fi

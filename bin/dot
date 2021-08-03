@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2128,SC2016
 
-set -o pipefail
+set -euo pipefail
 
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then

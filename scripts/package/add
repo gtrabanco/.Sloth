@@ -8,15 +8,16 @@
 ##? Usage:
 ##?    add -v | --version
 ##?    add -h | --help
-##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] <packages_names>...
+##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] [--force] <packages_names>...
 ##?
 ##? Options:
 ##?    -h --help         Show script help
 ##?    -v --version      Show script version
 ##?    -s --skip-recipe  Skip the receipe and force to use a package manager, this omit any recipe
 ##?    --pkgmgr          Force to use a package manager, for example: cargo
+##?    --force           Force to install the package
 ##?
-##? SCRIPT_VERSION 3.1.0
+##? SCRIPT_VERSION 3.2.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
   _all_args=("$@")
@@ -35,6 +36,7 @@ else
   version=false
   help=false
   skip_recipe=false
+  force=false
   package_manager=""
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
@@ -52,6 +54,10 @@ else
         ;;
       --help | -h)
         help=true
+        shift
+        ;;
+      --force)
+        force=true
         shift
         ;;
       *)
@@ -115,17 +121,27 @@ if [[ -f "$HOME/.cargo/env" ]]; then
 fi
 
 # Check if package is installed
-package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+! $force && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
-  if registry::install "$package_name"; then
+  if $force; then
+    registry::install "$package_name" --force || true
+  else
+    registry::install "$package_name" || true
+  fi
+
+  if registry::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
     exit 0
   fi
 else
-  package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
+  if $force; then
+    package::install "$package_name" "${FORCED_PKGMGR:-auto}" --force 2>&1 || true
+  else
+    package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
+  fi
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
