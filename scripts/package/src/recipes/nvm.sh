@@ -9,6 +9,7 @@ nvm::install_script() {
 }
 
 nvm::finish_install() {
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
   nvm install --lts --latest-npm
   sleep 1s
   nvm use --lts
@@ -30,7 +31,7 @@ nvm::is_installed() {
   fi
   export NVM_DIR
 
-  [[ -s "${NVM_DIR}/nvm.sh" ]] && platform::command_exists nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" && platform::command_exists nvm
 }
 
 nvm::install() {
@@ -48,10 +49,7 @@ nvm::install() {
   if nvm::is_installed && [[ -n "${DOTFILES_PATH:-}" ]]; then
     nvm::finish_install
     ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
-    #shellcheck disable=SC1091
-    . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" && output::solution "You can use nvm, node, npm and npx now"
     output::answer "Nvm, node, npm and npx installed"
-    return 0
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
@@ -61,15 +59,17 @@ nvm::install() {
 
     #shellcheck disable=SC1091
     output::answer "Nvm, node, npm and npx installed"
-    return 0
   fi
 
-  return 1
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
+
+  nvm::is_installed
 }
 
 nvm::uninstall() {
   [[ -d "${NVM_DIR:-}" ]] && rm -rf "${NVM_DIR:-}"
   [[ -e "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+  unset -f nvm npx npm node
   ! nvm::is_installed && output::answer "nvm uninstalled" && return 0
 
   output::error "NVM could not be uninstalled"
