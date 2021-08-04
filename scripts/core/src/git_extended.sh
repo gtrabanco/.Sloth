@@ -93,7 +93,7 @@ git::is_valid_commit() {
 # @return boolean
 #"
 git::remote_branch_exists() {
-  local remote_branch
+  local remote branch
 
   if [[ $# -gt 1 ]]; then
     remote="$1"
