@@ -27,6 +27,7 @@ fi
 
 case $1 in
   "optimize")
+    compaudit 2> /dev/null | xargs -I _ chmod -R go-w _
     output::header "Cleaning stuff"
     find "$DOTFILES_PATH/shell/zsh" -name '*.zwc' -exec rm -rf {} \;
     find "$DOTFILES_PATH/shell/zsh" -name '*.old' -exec rm -rf {} \;
@@ -80,6 +81,7 @@ case $1 in
     find "$HOME" -name '*.zwc' -delete
     ;;
   "reload_completions")
+    compaudit 2> /dev/null | xargs -I _ chmod -R go-w _
     rm -f "$HOME/.zcompdump"
     zsh -i -c "autoload -U compaudit && autoload -Uz compinit && compinit"
 
@@ -87,7 +89,7 @@ case $1 in
     output::answer 'Now restart your terminal'
     ;;
   "fix_permissions")
-    compaudit 2> /dev/null | xargs chmod -R go-w
+    compaudit 2> /dev/null | xargs -I _ chmod -R go-w _
     ;;
   *)
     exit 1
