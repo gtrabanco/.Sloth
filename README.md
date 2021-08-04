@@ -17,20 +17,33 @@
 </p>
 
 - [About this](#about-this)
-- [Features & differences with Dotly Framework](#features--differences-with-dotly-framework)
-- [INSTALLATION](#installation)
-  - [Linux, macOS, FreeBSD](#linux-macos-freebsd)
-- [Restoring dotfiles](#restoring-dotfiles)
-  - [Linux, macOS, FreeBSD](#linux-macos-freebsd-1)
-- [Migration from Dotly](#migration-from-dotly)
+- [Features](#features)
+  - [Migration from Dotly](#migration-from-dotly)
+- [Getting Started](#getting-started)
+  - [After installing](#after-installing)
+  - [Configuration](#configuration)
+  - [Creating a custom script](#creating-a-custom-script)
+  - [Fully automated restoration with restoration scripts](#fully-automated-restoration-with-restoration-scripts)
+  - [Creating your own package manager wrapper](#creating-your-own-package-manager-wrapper)
+  - [Creating your own recipe](#creating-your-own-recipe)
+  - [Creating your own theme](#creating-your-own-theme)
+  - [Init scripts](#init-scripts)
+- [Contributing](#contributing)
 - [Roadmap](#roadmap)
 
 ## About this
+<!--
+This section must be changed, Dotly was referenced in the top so no other references are necessary. The target of this section must be define the target of the project.
+-->
 [.Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
 
 Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea (supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
 
-## Features & differences with Dotly Framework
+## Features
+<!--
+This need a very big improvement
+- No more than 5/10 features, more features should be discovered and users needs samples of the stuff they can do
+-->
 
 * Abstraction from Framework loader you only need to add in your `.bashrc` or `.zshrc` (it will be done automatically but make a backup first).
  ```bash
@@ -64,6 +77,26 @@ Using curl
 bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer)
 ```
 
+### Migration from Dotly
+
+If you have currently dotly in your .dotfiles you can migrate.
+
+Using wget
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
+```
+
+Using curl
+```bash
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
+```
+
+
+<!--
+
+Maybe this section should be in the getting started (at the end)
+
+
 ## Restoring dotfiles
 
 In your repository you see a way to restore your dotfiles, anyway you can restory by using the restoration script.
@@ -79,22 +112,29 @@ Using curl
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
 ```
+-->
+
+## Getting Started
+
+### After installing
+
+### Configuration
+
+### Creating a custom script
+
+### Fully automated restoration with restoration scripts
+
+### Creating your own package manager wrapper
+
+### Creating your own recipe
+
+### Creating your own theme
+
+### Init scripts
 
 <hr>
 
-## Migration from Dotly
-
-If you have currently dotly in your .dotfiles you can migrate.
-
-Using wget
-```bash
-bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
-```
-
-Using curl
-```bash
-bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
-```
+## Contributing
 
 ## Roadmap
 
