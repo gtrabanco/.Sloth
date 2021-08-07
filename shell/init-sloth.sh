@@ -199,7 +199,7 @@ if command -vp gem &> /dev/null || command -v gem &> /dev/null; then
   gem_bin="${gem_bin:-$(command -vp gem)}"
   gem_paths="$("$gem_bin" env gempath 2> /dev/null)"
   #shellcheck disable=SC2207
-  [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' '\n'))
+  [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' "\n" | command -p xargs -I _ echo _"/bin"))
 fi
 [[ -d "${GOHOME:-}" ]] && path+=("$GOHOME/bin")
 [[ -d "${HOME}/.deno/bin" ]] && path+=("$HOME/.deno/bin")
