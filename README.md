@@ -18,6 +18,8 @@
 
 - [About this](#about-this)
 - [Features](#features)
+- [INSTALLATION](#installation)
+  - [Linux, macOS, FreeBSD](#linux-macos-freebsd)
   - [Migration from Dotly](#migration-from-dotly)
 - [Getting Started](#getting-started)
   - [After installing](#after-installing)
@@ -45,23 +47,17 @@ This need a very big improvement
 - No more than 5/10 features, more features should be discovered and users needs samples of the stuff they can do
 -->
 
-* Abstraction from Framework loader you only need to add in your `.bashrc` or `.zshrc` (it will be done automatically but make a backup first).
- ```bash
- DOTFILES_PATH="${HOME}/.dotfiles"
- SLOTH_PATH="${DOTFILES_PATH}/modules/sloth"
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"
- ```
+* Can be installed as standalone, not mandatory to be as git submodule (Should be done manually). 
 * Init scripts [see (init-scripts](https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts) in [gtrabanco/dotfiles](https://github.com/gtrabanco/dotfiles)). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
 * Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
-* Non opinionated `git` scripts.
-* Compatibility with all Dotly features and scripts.
-* When you install SLOTH a backup of all files that well be linked is done (`.bashrc`, `.zshrc`, `.zshenv`... All files in symlinks/conf.yaml and equivalent files that are applied with `sloth core install`). So you won't loose any old data if you migrate to SLOTH.
+* Compatibility with all Dotly scripts.
+* When you install SLOTH a backup of all previous files is done (`.bashrc`, `.zshrc` and `.zshenv`) if you request it.
 * Easy way to create new scripts from Terminal `sloth script create --help`
-* Easy way to install scripts from Terminal `sloth script install_remote --help`
-```
-* Scripts marketplace (Coming soon...)
-* Auto update (Coming soon...)
+* Easy way to install scripts on GitHub from Terminal `sloth script install_remote --help`
+* Auto update
 * We promise to reply all issues and support messages and review PRs.
+* Improved package managers and the way they are executed. You can also create your own wrappers for your package manager.
+* Improved registry (recipes) and how recipes can be updated as if they were packages.
 
 ## INSTALLATION
 
