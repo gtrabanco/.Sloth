@@ -13,7 +13,7 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
   DOTLY_PATH="$SLOTH_PATH"
 
   if [[ ! -d "$SLOTH_PATH" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
-    echo "Error: Could not find the SLOTH source code."
+    echo "Error: Could not find the .Sloth source code."
     exit 1
   fi
 

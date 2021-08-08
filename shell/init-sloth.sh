@@ -234,13 +234,13 @@ elif [[ -r "/etc/profile.d/nix.sh" ]]; then
 fi
 ###### End of load nix package manager if available ######
 
-###### SLOTH bin path first & Remove duplicated PATHs ######
+###### .Sloth bin path first & Remove duplicated PATHs ######
 PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH"
 
 # Remove duplicated PATH's
 PATH=$(printf %s "$PATH" | awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
 export PATH
-###### End of SLOTH bin path first & Remove duplicated PATHs ######
+###### End of .Sloth bin path first & Remove duplicated PATHs ######
 
 ###### User aliases & functions ######
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user aliases"; } || true

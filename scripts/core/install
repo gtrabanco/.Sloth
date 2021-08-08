@@ -356,7 +356,7 @@ if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
 fi
 
 output::empty_line
-output::answer '🥳 🎉 SLOTH installed sucessfully'
+output::answer '🥳 🎉 .Sloth installed sucessfully'
 output::empty_line
 
 output::answer "Trying to load .Sloth"

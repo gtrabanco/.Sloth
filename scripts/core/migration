@@ -53,7 +53,7 @@ then
     to_version="$(sloth_update::get_current_version)"
     rm -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
     output::empty_line
-    output::write "     🥳 🎉 🍾      SLOTH UPDATED     🥳 🎉 🍾  "
+    output::write "     🥳 🎉 🍾      .Sloth updated     🥳 🎉 🍾  "
     output::empty_line
     output::answer "Detected a migration script: executing the script."
   else
@@ -90,7 +90,7 @@ if ${updated:-false}; then
   if [[ -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}" ]]; then
     rm -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
     output::empty_line
-    output::write "     🥳 🎉 🍾      SLOTH UPDATED     🥳 🎉 🍾  "
+    output::write "     🥳 🎉 🍾      .Sloth updated     🥳 🎉 🍾  "
     output::empty_line
   fi
 fi
