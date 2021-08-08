@@ -28,9 +28,6 @@ fi
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 # Define variables for this script
-SLOTH_LAZY_SCRIPT_NAME="sloth_lazy_script"
-SLOTH_LAZY_SCRIPT_CONTEXT="core"
-SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${SLOTH_LAZY_SCRIPT_CONTEXT}/${SLOTH_LAZY_SCRIPT_NAME}"
 SLOTH_SCRIPT_BASE_NAME="dot"
 
 ##? Execute lazy scripts in your dotfiles
