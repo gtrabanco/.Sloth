@@ -73,7 +73,7 @@ else
   ignore_backup=false
   ignore_symlinks=false
   ignore_restoration=false
-  only_initilize_sloth=false
+  only_initialize_sloth=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --version | -v)
@@ -108,8 +108,8 @@ else
         ignore_restoration=true
         shift
         ;;
-      --only-initilize-sloth)
-        only_initilize_sloth=true
+      --only-initialize-sloth)
+        only_initialize_sloth=true
         shift
         ;;
       *)
@@ -128,7 +128,7 @@ if ${version:-false}; then
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
   exit
-elif ${only_initilize_sloth:-false}; then
+elif ${only_initialize_sloth:-false}; then
   initilize_sloth_if_necessary
   exit
 fi
