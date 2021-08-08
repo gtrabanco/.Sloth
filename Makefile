@@ -4,7 +4,7 @@ default: install
 # Set SLOTH Path as the directory of the Makefile
 export SLOTH_PATH ?=  $(CURDIR)
 export DOTLY_PATH ?=  $(CURDIR)
-export DOTLY_INSTALLER=true
+export DOTLY_INSTALLER = true
 
 all: init install loader link
 
