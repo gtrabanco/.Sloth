@@ -10,7 +10,7 @@ all: init install loader link
 
 init:
 	@echo "Initilise .Sloth installation as repository..."
-	@chmod u+x "scripts/core/install"
+	@chmod u+x "./scripts/core/install"
 	"./scripts/core/install" --only-git-init-sloth
 
 install:
