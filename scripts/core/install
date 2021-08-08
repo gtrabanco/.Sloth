@@ -39,6 +39,8 @@ initilize_sloth_if_necessary() {
     output::answer "Initilizing .Sloth as repository"
     sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
     output::empty_line
+  else
+    output::answer ".Sloth is already a repository"
   fi
 
   output::answer "Updating .Sloth submodules"
@@ -49,7 +51,7 @@ initilize_sloth_if_necessary() {
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-restoration]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-restoration] [--only-git-init-sloth]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
@@ -58,7 +60,7 @@ initilize_sloth_if_necessary() {
 ##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
 ##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
 ##?    --ignore-restoration     Ignore user restoration scripts
-##?    --only-initilize-sloth   Executes only the .Sloth initilization if necessary
+##?    --only-git-init-sloth    Executes only the .Sloth initilization if necessary
 ##?
 ##? SCRIPT_VERSION "3.1.0"
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
@@ -71,7 +73,7 @@ else
   ignore_backup=false
   ignore_symlinks=false
   ignore_restoration=false
-  only_initilize_sloth=false
+  only_git_init_sloth=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --version | -v)
@@ -106,8 +108,8 @@ else
         ignore_restoration=true
         shift
         ;;
-      --only-initilize-sloth)
-        only_initilize_sloth=true
+      --only-git-init-sloth)
+        only_git_init_sloth=true
         shift
         ;;
       *)
@@ -126,7 +128,7 @@ if ${version:-false}; then
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
   exit
-elif ${only_initilize_sloth:-false}; then
+elif ${only_git_init_sloth:-false}; then
   initilize_sloth_if_necessary
   exit
 fi
