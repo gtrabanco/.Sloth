@@ -11,23 +11,21 @@ export SLOTH_UPDATE_VERSION="${SLOTH_UPDATE_VERSION:-stable}"
 export SLOTH_ENV="${SLOTH_ENV:-production}"
 
 # Files
-export SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_updated}"
-export SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_update_available}"
-export SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_force_current_version}"
+export SLOTH_UPDATED_FILE="${SLOTH_UPDATED_FILE:-${DOTFILES_PATH:-${HOME}/.dotfiles}/.sloth_updated}"
+export SLOTH_UPDATE_AVAILABE_FILE="${SLOTH_UPDATE_AVAILABE_FILE:-${DOTFILES_PATH:-${HOME}/.dotfiles}/.sloth_update_available}"
+export SLOTH_FORCE_CURRENT_VERSION_FILE="${SLOTH_FORCE_CURRENT_VERSION_FILE:-${DOTFILES_PATH:-${HOME}/.dotfiles}/.sloth_force_current_version}"
 
 # Urls, branches and remotes
-if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" ]]; then
+if [[ -z "${SLOTH_SUBMODULES_DIRECTORY:-}" && -f "${DOTFILES_PATH:-${HOME}/.dotfiles}/.gitmodules" ]]; then
   SLOTH_SUBMODULES_DIRECTORY="${SLOTH_SUBMODULES_DIRECTORY:-modules/sloth}"
 fi
 
-if [[ -z "${SLOTH_GITMODULES_URL:-}" ]]; then
-  SLOTH_GITMODULES_URL="$(git::get_submodule_property "${DOTFILES_PATH:-${HOME}}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "url")"
-  SLOTH_GITMODULES_URL="${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_HTTP_URL}"
+if [[ -z "${SLOTH_GITMODULES_URL:-}" && -f "${DOTFILES_PATH:-${HOME}/.dotfiles}/.gitmodules" ]]; then
+  SLOTH_GITMODULES_URL="$(git::get_submodule_property "${DOTFILES_PATH:-${HOME}/.dotfiles}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "url" || true)"
 fi
 
-if [[ -z "${SLOTH_GITMODULES_BRANCH:-}" ]]; then
-  SLOTH_GITMODULES_BRANCH="$(git::get_submodule_property "${DOTFILES_PATH:-${HOME}}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "branch")"
-  SLOTH_GITMODULES_BRANCH="${SLOTH_GITMODULES_BRANCH:-}"
+if [[ -z "${SLOTH_GITMODULES_BRANCH:-}" && -f "${DOTFILES_PATH:-${HOME}/.dotfiles}/.gitmodules" ]]; then
+  SLOTH_GITMODULES_BRANCH="$(git::get_submodule_property "${DOTFILES_PATH:-${HOME}/.dotfiles}/.gitmodules" "$SLOTH_SUBMODULES_DIRECTORY" "branch" || true)"
 fi
 
 # Defaults values if no values are provided
