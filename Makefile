@@ -9,30 +9,30 @@ export DOTLY_INSTALLER = true
 all: init install loader link
 
 init:
-	@echo "Initilise .Sloth installation as repository..."
-	@chmod u+x "${SLOTH_PATH}/scripts/core/install"
-	"${SLOTH_PATH}/scripts/core/install" --only-git-init-sloth
+  @echo "Initilise .Sloth installation as repository..."
+  @chmod u+x "${SLOTH_PATH}/scripts/core/install"
+  "${SLOTH_PATH}/scripts/core/install" --only-git-init-sloth
 
 install:
-	if [[ -n "${DOTFILES_PATH:-}" ]]; then
-		@echo "Install dotfiles in: \`${DOTFILES_PATH}\`"
-		@chmod u+x "${SLOTH_PATH}/scripts/dotfiles/create"
-		"${SLOTH_PATH}/scripts/dotfiles/create"
-	fi
+  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+    @echo "Install dotfiles in: \`${DOTFILES_PATH}\`"
+    @chmod u+x "${SLOTH_PATH}/scripts/dotfiles/create"
+    "${SLOTH_PATH}/scripts/dotfiles/create"
+  fi
 
-	@chmod u+x "scripts/core/install"
-	"${SLOTH_PATH}/scripts/core/install" --ignore-symlinks --ignore-restoration
+  @chmod u+x "scripts/core/install"
+  "${SLOTH_PATH}/scripts/core/install" --ignore-symlinks --ignore-restoration
 
 link:
-	@echo "Added link in /usr/local/bin for dot command"
-	ln -s "${SLOTH_PATH}/bin/dot" "/usr/local/bin/dot"
+  @echo "Added link in /usr/local/bin for dot command"
+  ln -s "${SLOTH_PATH}/bin/dot" "/usr/local/bin/dot"
 
 unlink:
-	@echo "Removed link in /usr/local/bin for dot command"
-	rm -f "/usr/local/bin/dot"
+  @echo "Removed link in /usr/local/bin for dot command"
+  rm -f "/usr/local/bin/dot"
 
 loader:
-	@echo "Installing loader for .Sloth..."
-	@chmod u+x "${SLOTH_PATH}/bin/dot"
-	"${SLOTH_PATH}/bin/dot" core loader bashrc --modify
-	"${SLOTH_PATH}/bin/dot" core loader zshrc --modify
+  @echo "Installing loader for .Sloth..."
+  @chmod u+x "${SLOTH_PATH}/bin/dot"
+  "${SLOTH_PATH}/bin/dot" core loader bashrc --modify
+  "${SLOTH_PATH}/bin/dot" core loader zshrc --modify
