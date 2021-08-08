@@ -25,11 +25,11 @@ install:
 
 link:
 	@echo "Added link in /usr/local/bin for dot command"
-	ln -s ".//bin/dot" "/usr/local/bin/dot"
+	ln -s "./bin/dot" "/usr/local/bin/dot"
 
 unlink:
 	@echo "Removed link in /usr/local/bin for dot command"
-	rm -f /usr/local/bin/dot
+	rm -f "/usr/local/bin/dot"
 
 loader:
 	@echo "Installing loader for .Sloth..."
