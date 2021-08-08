@@ -34,6 +34,18 @@ has_sudo() {
   command -p sudo -n -v &> /dev/null
 }
 
+initilize_sloth_if_necessary() {
+  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+    output::answer "Initilizing .Sloth as repository"
+    sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
+    output::empty_line
+  fi
+
+  output::answer "Updating .Sloth submodules"
+  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
+  output::empty_line
+}
+
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
@@ -46,8 +58,9 @@ has_sudo() {
 ##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
 ##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
 ##?    --ignore-restoration     Ignore user restoration scripts
+##?    --only-initilize-sloth   Executes only the .Sloth initilization if necessary
 ##?
-##? SCRIPT_VERSION "3.0.0"
+##? SCRIPT_VERSION "3.1.0"
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
@@ -58,6 +71,7 @@ else
   ignore_backup=false
   ignore_symlinks=false
   ignore_restoration=false
+  only_initilize_sloth=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --version | -v)
@@ -92,6 +106,10 @@ else
         ignore_restoration=true
         shift
         ;;
+      --only-initilize-sloth)
+        only_initilize_sloth=true
+        shift
+        ;;
       *)
         break 2
         ;;
@@ -107,6 +125,9 @@ if ${version:-false}; then
   exit
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
+  exit
+elif ${only_initilize_sloth:-false}; then
+  initilize_sloth_if_necessary
   exit
 fi
 
@@ -211,6 +232,9 @@ export SETUP_ZSH_AS_DEFAULT_SHELL
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
+# Initilize .Sloth only if necessary
+initilize_sloth_if_necessary
+
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
 if platform::is_macos; then
@@ -229,16 +253,6 @@ script::depends_on docpars
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
   script::depends_on fzf python-yq jq cargo-update
 fi
-
-if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  output::answer "Initilizing .Sloth as repository"
-  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
-  output::empty_line
-fi
-
-output::answer "Updating .Sloth submodules"
-git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
-output::empty_line
 
 if [[ -n "$DOTFILES_PATH" ]]; then
   output::answer "Creating dotfiles structure"

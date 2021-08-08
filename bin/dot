@@ -72,7 +72,7 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
 fi
 
 if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  output::error "Error: .Sloth needs to execute \`dot core install --ignore-symlinks\` previously to be used."
+  output::error "Error: .Sloth needs to execute \`dot core install --only-initilize-sloth\` previously to be used."
   output::answer "This will install some tools in your system and also init current .Sloth folder as repository"
   exit 1
 fi
