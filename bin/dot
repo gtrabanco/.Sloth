@@ -31,7 +31,7 @@ fi
 SLOTH_LAZY_SCRIPT_NAME="sloth_lazy_script"
 SLOTH_LAZY_SCRIPT_CONTEXT="core"
 SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${SLOTH_LAZY_SCRIPT_CONTEXT}/${SLOTH_LAZY_SCRIPT_NAME}"
-SLOTH_SCRIPT_BASE_NAME="sloth"
+SLOTH_SCRIPT_BASE_NAME="dot"
 
 ##? Execute lazy scripts in your dotfiles
 ##?
@@ -66,8 +66,7 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   SCRIPT_VERSION="$(dot::parse_script_version "$BASH_SOURCE")"
   SCRIPT_NAME="$(basename "$BASH_SOURCE")"
   if [[ -n "${SCRIPT_VERSION}" ]]; then
-    output::write "${SCRIPT_NAME}"
-    output::write "\t\`v${SCRIPT_VERSION}\`"
+    output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
   else
     output::write "${SCRIPT_NAME}"
     output::error "\t no version provided"
@@ -146,20 +145,17 @@ else
   # Automatic --help and --version
   if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
     docs::parse_script "${script_full_path}" "--help"
+    exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
-      "${SLOTH_LAZY_SCRIPT}" --version
+    SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
+    SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
+    if [[ -n "${SCRIPT_VERSION}" ]]; then
+      output::write "${SCRIPT_NAME} \`v${SCRIPT_VERSION}\`"
     else
-      SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
-      SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
-      if [[ -n "${SCRIPT_VERSION}" ]]; then
-        output::write "${SCRIPT_NAME}"
-        output::write "\t\`v${SCRIPT_VERSION}\`"
-      else
-        output::write "${SCRIPT_NAME}"
-        output::error "\t no version provided"
-      fi
+      output::write "${SCRIPT_NAME}"
+      output::error "\t no version provided"
     fi
+    exit
   fi
 
   # If old version call the script, else source it
