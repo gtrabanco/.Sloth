@@ -1,12 +1,15 @@
 # Default target
 default: install
 
-SLOTH_PATH=${SLOTH_PATH:-$(dirname $BASH_SOURCE)}
-DOTLY_INSTALLER=true
+# Set SLOTH Path as the directory of the Makefile
+export SLOTH_PATH ?=  $(CURDIR)
+export DOTLY_PATH ?=  $(CURDIR)
+export DOTLY_INSTALLER=true
 
 all: init install loader link
 
 init:
+	@echo "${SLOTH_PATH}"
 	@echo "Initilise .Sloth installation as repository..."
 	@chmod u+x "scripts/core/install"
 	@./scripts/core/install --only-git-init-sloth
@@ -23,7 +26,7 @@ install:
 
 link:
 	@echo "Added link in /usr/local/bin for dot command"
-	@ln -s "${SLOTH_PATH}/bin/dot" /usr/local/bin/dot
+	@ln -s "${SLOTH_PATH}/bin/dot" "/usr/local/bin/dot"
 
 unlink:
 	@echo "Removed link in /usr/local/bin for dot command"
