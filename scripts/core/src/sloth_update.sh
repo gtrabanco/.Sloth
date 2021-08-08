@@ -285,7 +285,7 @@ sloth_update::async() {
     fi
 
     output::empty_line
-    output::write "     🥳 🎉 🍾      SLOTH UPDATED     🥳 🎉 🍾  "
+    output::write "     🥳 🎉 🍾      .Sloth updated     🥳 🎉 🍾  "
     output::empty_line
 
   elif [[ -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}" ]]; then
@@ -304,7 +304,7 @@ sloth_update::async() {
       touch "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
       output::empty_line
       output::write " ---------------------------------------------"
-      output::write "|  🥳🎉🍾 NEW SLOTH VERSION AVAILABLE 🥳🎉🍾  |"
+      output::write "|  🥳🎉🍾  New .Sloth version available 🥳🎉🍾  |"
       output::write " ---------------------------------------------"
       output::empty_line
     fi

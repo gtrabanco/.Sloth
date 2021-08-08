@@ -13,7 +13,7 @@ is_valid_name() {
   ! [[ "${name:0:1}" == "_" || "${name:0:1}" == "." ]]
 }
 
-##? Sloth script creator. To generate a .Sloth compatible script use \`--dotly\` option.
+##? .Sloth script creator. To generate a .Sloth compatible script use \`--dotly\` option.
 ##?
 ##?
 ##? Usage:
