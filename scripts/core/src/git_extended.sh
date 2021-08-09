@@ -18,7 +18,7 @@ git::get_submodule_property() {
     submodule_directory="$1"
   fi
 
-  gitmodules_path="${gitmodules_path:-${DOTFILES_PATH:-}/.gitmodules}"
+  gitmodules_path="${gitmodules_path:-${DOTFILES_PATH:-/dev/null}/.gitmodules}"
   submodule_directory="${submodule_directory:-modules/${1:-}}"
   property="${2:-}"
 

@@ -43,9 +43,9 @@ nvm::install() {
     nvm::install_script
   fi
 
-  if nvm::is_installed && [[ -n "${DOTFILES_PATH:-}" ]]; then
+  if nvm::is_installed && [[ -z "${DOTFILES_PATH:-}" ]]; then
     nvm::finish_install
-    ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+    ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
@@ -64,7 +64,7 @@ nvm::install() {
 
 nvm::uninstall() {
   [[ -d "${NVM_DIR:-}" ]] && rm -rf "${NVM_DIR:-}"
-  [[ -e "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+  [[ -e "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
   unset -f nvm npx npm node
   ! nvm::is_installed && output::answer "nvm uninstalled" && return 0
 

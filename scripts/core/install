@@ -60,18 +60,23 @@ initilize_sloth_if_necessary() {
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-restoration] [--only-git-init-sloth]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
 ##?    -n --never-backup        Never do a backup of user symlinks without prompt
 ##?    -b --always-backup       Always do a backup of user symlinks without prompt
-##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
-##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for
+##?                             every existing symlink before to be applied (default).
+##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom
+##?                             installations.
+##?    --ignore-loader          Ignore the modification of .bashrc, .zshrc and .zshenv
+##?                             (see \`dot core loader --help\` for non default
+##?                             locations of these files)
 ##?    --ignore-restoration     Ignore user restoration scripts
 ##?    --only-git-init-sloth    Executes only the .Sloth initilization if necessary
 ##?
-##? SCRIPT_VERSION "3.1.0"
+##? SCRIPT_VERSION "3.2.0"
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
   docs::parse "$@"
 else
@@ -81,6 +86,7 @@ else
   interactive_backup=false
   ignore_backup=false
   ignore_symlinks=false
+  ignore_loader=false
   ignore_restoration=false
   only_git_init_sloth=false
   while [[ $# -gt 0 ]]; do
@@ -113,6 +119,10 @@ else
         ignore_symlinks=true
         shift
         ;;
+      --ignore-loader)
+        ignore_loader=true
+        shift
+        ;;
       --ignore-restoration)
         ignore_restoration=true
         shift
@@ -128,11 +138,9 @@ else
   done
 fi
 
-SCRIPT_NAME="dot core install"
-
 # Print name and version
 if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  output::write "${SCRIPT_NAME:-dot core install} v$(dot::parse_script_version "$(dot::get_full_script_path)")"
   exit
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
@@ -142,9 +150,20 @@ elif ${only_git_init_sloth:-false}; then
   exit
 fi
 
+# Default values in CI env
+if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
+  export SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  export IGNORE_APPLY_SYMLINKS=false
+  export SYMLINKS_ARGS=(--ignore-backup)
+  export SETUP_ZSH_AS_DEFAULT_SHELL=false
+  export IS_ICLOUD_DOTFILES=false
+  export DOTFILES_PATH="${HOME}/.dotfiles"
+  ignore_loader=true
+fi
+
+# FIXME Change this to the new prompts in installer
 #### Prompt user all the staff we want to know ####
 #### All questions at the very beginning
-# Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
 if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
   _w "We will need to use user elevation with sudo to install Command Line Tools"
   start_sudo
@@ -288,7 +307,7 @@ fi
 if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
   output::answer "Setting up symlinks"
   SYMLINKS_ARGS=(--interactive-backup)
-  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+  if [[ -z "${DOTFILES_PATH:-}" ]]; then
     if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
       output::solution "Symlinks applied"
     else
@@ -353,6 +372,12 @@ output::answer "Linking dot command for all users in \`/usr/local/bin\`"
 ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
 [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
 output::empty_line
+
+if ! ${ignore_loader}; then
+  # Adding .Sloth loader to bashrc and zshrc
+  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+fi
 
 if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
   output::answer "Executing custom restoration scripts"

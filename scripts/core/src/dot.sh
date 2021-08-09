@@ -71,7 +71,7 @@ dot::load_library() {
     if [[ -n "${2:-}" ]]; then
       # Context
       lib_paths+=(
-        "$DOTFILES_PATH/scripts/$2/src"
+        "${DOTFILES_PATH:-/dev/null}/scripts/$2/src"
         "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$2/src"
       )
 
