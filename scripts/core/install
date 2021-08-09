@@ -145,31 +145,40 @@ fi
 #### Prompt user all the staff we want to know ####
 #### All questions at the very beginning
 # Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
+if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
+  _w "We will need to use user elevation with sudo to install Command Line Tools"
+  start_sudo
+  if ! has_sudo; then
+    _e "Elevation error: wrong or not provided password"
+    _a "Yow will be asked later for the password again"
+  fi
+fi
+
 if
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    platform::is_macos &&
-    [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+  is_macos &&
+    ! ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
-    output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)"
+    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)? [Y/n]" "PROMPT_REPLY" &&
+      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]]
   then
     start_sudo
 
-    sudo -n -v && SETUP_ZSH_AND_BASH_IN_SHELLS=true
-
-    ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
+    has_sudo && SETUP_ZSH_AND_BASH_IN_SHELLS=true
+    ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
-# We need to cache sudo to avoid asking for password later and every time
+# If defined the variable, we need to cache the sudo password
 elif
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    platform::is_macos &&
-    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+  is_macos &&
+    ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
 then
   start_sudo
-  ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)"
-  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+
+  ! has_sudo &&
+    _e "It can not be done without elevation, aborting this options (should be done later manually)" &&
+    SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
 
