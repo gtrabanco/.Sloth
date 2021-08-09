@@ -27,6 +27,9 @@ fi
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
+# git dependency
+script::depends_on git
+
 # Define variables for this script
 SLOTH_SCRIPT_BASE_NAME="dot"
 
@@ -72,9 +75,8 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
 fi
 
 if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  output::error "Error: .Sloth needs to execute \`dot core install --only-initilize-sloth\` previously to be used."
-  output::answer "This will install some tools in your system and also init current .Sloth folder as repository"
-  exit 1
+  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
+  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
 fi
 
 # Self-update (Why not in dot directly?)
