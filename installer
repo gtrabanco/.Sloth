@@ -364,10 +364,10 @@ fi
 _a "Initializing your dotfiles git repository"
 git init 2>&1 | _log "Initializing repository"
 
-_a "Cloning sloth/dotly"
+_a "Cloning .Sloth"
 git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
 
-_a "Installing sloth/dotly dependencies"
+_a "Installing .Sloth dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
 cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"
@@ -383,5 +383,5 @@ fi
 
 "$PWD/bin/dot" core install
 
-_a "🎉 sloth/dotly installed correctly! 🎉"
+_a "🎉 .Sloth was sucessfully installed! 🎉"
 _a "Please, restart your terminal to see the changes"
