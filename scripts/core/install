@@ -161,21 +161,12 @@ if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
   ignore_loader=true
 fi
 
-# FIXME Change this to the new prompts in installer
 #### Prompt user all the staff we want to know ####
 #### All questions at the very beginning
-if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
-  _w "We will need to use user elevation with sudo to install Command Line Tools"
-  start_sudo
-  if ! has_sudo; then
-    _e "Elevation error: wrong or not provided password"
-    _a "Yow will be asked later for the password again"
-  fi
-fi
-
+# Adds zsh and bash in /etc/shells (only in macos, in linux is done by the package manager)
 if
   is_macos &&
-    ! ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
+    [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
@@ -203,12 +194,11 @@ export SETUP_ZSH_AND_BASH_IN_SHELLS
 
 # Backups
 if
-  { ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
-    [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
-    ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
+  ! ${IGNORE_APPLY_SYMLINKS:-false} &&
+    [[ -z "${SYMLINKS_ARGS[*]:-}" ]]
 then
   SYMLINKS_ARGS=(--interactive-backup)
-  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+  if ${never_backup:-}; then
     SYMLINKS_ARGS=(--ignore-backup)
   elif ${always_backup:-}; then
     SYMLINKS_ARGS=(--backup)
@@ -219,51 +209,44 @@ then
     ! $bk && SYMLINKS_ARGS=(--ignore-backup)
   fi
 fi
+export SYMLINKS_ARGS
 
 # ZSH as default Shell
 zsh_shell_path="$(command -v zsh || true)"
 if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
   if
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-      ! str::contains zsh "$SHELL" &&
-      platform::command_exists chsh &&
+    [[ "$SHELL" == *"zsh"* ]] &&
+      command_exists chsh &&
       [[ -x "$zsh_shell_path" ]] &&
       [[ -f "/etc/shells" ]] &&
       ! grep -q "^${zsh_shell_path}$" "/etc/shells"
   then
-    output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
-    output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    _q "Do you want to setup the zsh \`$zsh_shell_path\` as default shell? [Y/n]" "PROMPT_REPLY" &&
+      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
+      SETUP_ZSH_AS_DEFAULT_SHELL=true
+
+    _a "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    start_sudo
     if ! has_sudo; then
-      output::error "Without sudo authentication this can not be done. You should do this later manually"
+      _e "Without sudo authentication this can not be done. You should do this later manually"
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
   fi
 elif
-  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    ! str::contains zsh "$SHELL" &&
-    platform::command_exists chsh &&
+  ${SETUP_ZSH_AS_DEFAULT_SHELL:-false} &&
+    [[ "$SHELL" == *"zsh"* ]] &&
+    command_exists chsh &&
     [[ -x "$zsh_shell_path" ]] &&
     [[ -f "/etc/shells" ]] &&
     ! grep -q "^${zsh_shell_path}$" "/etc/shells"
 then
   start_sudo
   ! has_sudo &&
-    output::error "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
+    _e "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
 else
-  if
-    [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
-      [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
-      ! platform::command_exists chsh ||
-      [[ ! -x "$zsh_shell_path" ]] ||
-      [[ ! -f "/etc/shells" ]] ||
-      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-      ! has_sudo
-  then
-    SETUP_ZSH_AS_DEFAULT_SHELL=false
-  fi
+  SETUP_ZSH_AS_DEFAULT_SHELL=${SETUP_ZSH_AS_DEFAULT_SHELL:-false}
 fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
