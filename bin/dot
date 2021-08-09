@@ -54,12 +54,12 @@ SLOTH_SCRIPT_BASE_NAME="dot"
 ##? SCRIPT_VERSION 2.1.0
 
 # This script help
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   grep "^##?" "$BASH_SOURCE" | cut -c 5-
 fi
 
 # This script version
-if [[ "$1" == "-v" || "$1" == "--version" ]]; then
+if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   SCRIPT_VERSION="$(dot::parse_script_version "$BASH_SOURCE")"
   SCRIPT_NAME="$(basename "$BASH_SOURCE")"
   if [[ -n "${SCRIPT_VERSION}" ]]; then
@@ -78,19 +78,19 @@ if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
 fi
 
 # Self-update (Why not in dot directly?)
-if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
+if [[ "${1:-}" == "self-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
 fi
 
 # Self-update
-if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+if [[ "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
 fi
 
 # Autoupdate (Async update)
-if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+if [[ "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
   exit
 fi
@@ -121,11 +121,11 @@ if args::has_no_args "$@"; then
 elif args::total_is 1 "$@"; then
   fzf_prompt "$(dot::list_scripts_path | grep "/$1/")"
 else
-  context="$1"
-  script="$2"
+  context="${1:-}"
+  script="${2:-}"
   firstarg="${3:-}"
 
-  shift 2
+  [[ $# -ge 2 ]] && shift 2
 
   script_path=""
   script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
