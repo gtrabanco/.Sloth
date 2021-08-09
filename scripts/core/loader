@@ -16,7 +16,7 @@ SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 # Standalone install with brew
 if [[ -n "${SLOTH_PATH:-}" && -d "${SLOTH_PATH}" ]]; then
   SLOTH_PATH_VALUE="${SLOTH_PATH//$DOTFILES_PATH/\${DOTFILES_PATH\}}"
-  SLOTH_PATH_VALUE="${SLOTH_PATH//$HOME/\${HOME\}}"
+  SLOTH_PATH_VALUE="${SLOTH_PATH_VALUE//$HOME/\${HOME\}}"
 elif
   command -v brew &> /dev/null &&
     brew list gtrabanco/tools/dot 2> /dev/null &&
