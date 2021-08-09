@@ -130,7 +130,7 @@ else
   [[ $# -ge 2 ]] && shift 2
 
   script_path=""
-  script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
+  [[ -n "${DOTFILES_PATH:-}" ]] && script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
   script_exist "${SLOTH_PATH:-${DOTLY_PATH:-}}" "$context" "$script" && script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
   if [ -z "$script_path" ]; then
