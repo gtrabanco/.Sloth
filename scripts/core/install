@@ -5,7 +5,7 @@ set -euo pipefail
 
 if
   command -v brew 2> /dev/null &&
-  command brew --prefix gtrabanco/tools/.sloth &> /dev/null
+    command brew --prefix gtrabanco/tools/.sloth &> /dev/null
 then
   SLOTH_PATH="$(command brew --prefix .sloth)"
 else
