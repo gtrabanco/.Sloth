@@ -145,7 +145,7 @@ templating::modify_bash_file_variable() {
   value="${*:-}"
 
   if [[ -n "$file_path" ]] && [[ -f "$file_path" ]] && [[ -n "$var_name" ]]; then
-    file_line="$(grep --line-number "\s*export\s*$var_name\s*=." "$file_path" | awk -F ':' '{print $1}' | head -n 1)"
+    file_line="$(grep --line-number "\s*export\s*${var_name}\s*=." "$file_path" | awk -F ':' '{print $1}' | head -n 1)"
     [[ -n "$file_line" ]] && sed -i "${file_line:-1}d" "$file_path"
     sed -i "${file_line:-1}i export $var_name=\"$value\"" "$file_path"
   fi
