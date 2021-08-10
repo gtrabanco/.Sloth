@@ -156,9 +156,10 @@ if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
   export IGNORE_APPLY_SYMLINKS=false
   export SYMLINKS_ARGS=(--ignore-backup)
   export SETUP_ZSH_AS_DEFAULT_SHELL=false
-  export IS_ICLOUD_DOTFILES=false
   export DOTFILES_PATH="${HOME}/.dotfiles"
   ignore_loader=true
+  ignore_restoration=true
+  IGNORE_UPDATE_PACKAGES=true
 fi
 
 #### Prompt user all the staff we want to know ####
@@ -402,7 +403,7 @@ else
 fi
 output::empty_line
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! ${IGNORE_UPDATE_PACKAGES:-false}; then
+if ! ${IGNORE_UPDATE_PACKAGES:-false}; then
   output::answer "Updating all system packages"
   if platform::is_macos; then
     output::empty_line
