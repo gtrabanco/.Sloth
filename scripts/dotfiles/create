@@ -1,16 +1,10 @@
 #!/usr/bin/env bash
 
-# TODO Delete echoes in production
-
-echo "Creating dotfiles"
-
 set -euo pipefail
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
-
-echo "Loaded libraries"
 
 ##? Create the dotfiles structure
 ##?
@@ -25,20 +19,15 @@ fi
 
 DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
 
-echo "DOTFILES_PATH = $DOTFILES_PATH"
-
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 
-if ! mkdir -p "$DOTFILES_PATH"; then
-  echo "Error creating the path"
+if ! mkdir -p "$DOTFILES_PATH" 2> /dev/null; then
   output::error "Could not create \`${DOTFILES_PATH}\`" && exit 1
 fi
 
 if [ ! -d "${DOTFILES_PATH}/shell" ]; then
-  echo "Copying files"
   cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
 
-  echo "Applying loader"
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
 
   log::success "Done!"
