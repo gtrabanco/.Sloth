@@ -165,7 +165,7 @@ fi
 #### All questions at the very beginning
 # Adds zsh and bash in /etc/shells (only in macos, in linux is done by the package manager)
 if
-  is_macos &&
+  platform::is_macos &&
     [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
@@ -181,7 +181,7 @@ then
 
 # If defined the variable, we need to cache the sudo password
 elif
-  is_macos &&
+  platform::is_macos &&
     ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
 then
   start_sudo
