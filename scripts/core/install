@@ -15,7 +15,7 @@ fi
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "gitoutput::errorxtended.sh"
+dot::load_library "git_extended.sh"
 dot::load_library "sloth_update.sh"
 
 start_sudo() {
@@ -328,7 +328,7 @@ unset zsh_shell_path
 
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
-if platform::platform::command_exists zsh; then
+if platform::command_exists zsh; then
   zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
 else
   output::answer "ZIM Framework not installed because zsh shell were not found"
@@ -338,7 +338,7 @@ else
 fi
 output::empty_line
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::platform::command_exists zsh; then
+if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
 
   {
