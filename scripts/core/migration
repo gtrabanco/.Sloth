@@ -7,8 +7,6 @@ set -uo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
 
 ##?  Executes migration scripts for dotfiles. If your dotly is updated and no
 ##? script version is provided then try to guess the latest necessary migration

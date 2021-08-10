@@ -15,8 +15,6 @@ fi
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "git_extended.sh"
-dot::load_library "sloth_update.sh"
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return

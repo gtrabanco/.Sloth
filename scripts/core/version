@@ -8,8 +8,6 @@ set +e # Avoid crash if any function return false
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
 dot::load_library "templating.sh" "core"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
 
 check_local_tag_exists() {
   local -r tag="${1:-}"
