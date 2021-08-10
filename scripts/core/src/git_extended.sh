@@ -419,9 +419,9 @@ git::init_repository_if_necessary() {
   local -r remote="${2:-origin}"
   local -r branch="${3:-master}"
   [[ -n "${url}" ]] && shift
-  [[ -n "${1:-}" ]] && shift
-  [[ -n "${1:-}" ]] && shift
-  git::is_in_repo "$@" 2> /dev/null && return
+  [[ -n "${1:-}" ]] && shift # remote
+  [[ -n "${1:-}" ]] && shift # branch
+  git::is_in_repo "$@" &> /dev/null && return
 
   if [[ -n "$url" ]]; then
     git::git "$@" init 1>&2

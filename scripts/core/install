@@ -44,9 +44,9 @@ has_sudo() {
 }
 
 initilize_sloth_if_necessary() {
-  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
+  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" &> /dev/null; then
     output::answer "Initilizing .Sloth as repository"
-    sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
+    sloth_update::sloth_repository_set_ready 2>&1 | log::file "Initilizing .Sloth as repository" || true
     output::empty_line
   else
     output::answer ".Sloth is already a repository"
