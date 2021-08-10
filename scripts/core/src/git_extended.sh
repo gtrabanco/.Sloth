@@ -421,9 +421,11 @@ git::init_repository_if_necessary() {
   [[ -n "${url}" ]] && shift
   [[ -n "${1:-}" ]] && shift
   [[ -n "${1:-}" ]] && shift
-  git::is_in_repo "$@" && return
+  git::is_in_repo "$@" 2> /dev/null && return
 
-  if ! git::is_in_repo "$@" && [[ -n "$url" ]]; then
+  if [[ -n "$url" ]]; then
+    git::git "$@" init 1>&2
+    git::git "$@" remote add "$remote" "$url" 1>&2
     git::git "$@" config "remote.${remote}.url" "$url" 1>&2
     git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
     git::git "$@" fetch --force --tags "$remote" 1>&2
