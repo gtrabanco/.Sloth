@@ -64,7 +64,6 @@ if [ ! $? ]; then
 fi
 
 # Getting the name
-# FIXME SC2012
 #shellcheck disable=SC2012
 script_name="$(ls -Art | tail -n 1)"
 

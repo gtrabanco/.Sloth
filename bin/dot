@@ -151,10 +151,7 @@ else
     if [[ -n "${SCRIPT_VERSION}" ]]; then
       output::write "${SCRIPT_NAME} \`v${SCRIPT_VERSION}\`"
     else
-      # TODO PRODUCTION FIX THIS
-      output::error "No version found for \`${SCRIPT_NAME}\`"
-      echo "$script_full_path"
-      docs::parse_script_version "$script_full_path"
+      output::error "\`${SCRIPT_NAME}\` \`0.0.0\`"
     fi
     exit
   fi
