@@ -12,6 +12,9 @@ else
   SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/scripts\/core\/install/}}}"
 fi
 
+echo "Bash source is: ${BASH_SOURCE[0]}"
+echo "Bash source mod: ${BASH_SOURCE[0]//\/scripts\/core\/install/}"
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
