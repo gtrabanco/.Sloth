@@ -10,13 +10,17 @@ set -euo pipefail
 dot::load_library "templating.sh" "core"
 
 # Define DOTFILES_PATH and SLOTH_PATH values in .bashrc and .zshrc
-DOTFILES_PATH_VALUE="${DOTFILES_PATH//$HOME/\${HOME\}}"
+[[ -n "${DOTFILES_PATH:-}" ]] && DOTFILES_PATH_VALUE="${DOTFILES_PATH//$HOME/\${HOME\}}"
 SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Standalone install with brew
 if [[ -n "${SLOTH_PATH:-}" && -d "${SLOTH_PATH}" ]]; then
-  SLOTH_PATH_VALUE="${SLOTH_PATH//$DOTFILES_PATH/\${DOTFILES_PATH\}}"
-  SLOTH_PATH_VALUE="${SLOTH_PATH_VALUE//$HOME/\${HOME\}}"
+  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+    SLOTH_PATH_VALUE="${SLOTH_PATH//$DOTFILES_PATH/\${DOTFILES_PATH\}}"
+    SLOTH_PATH_VALUE="${SLOTH_PATH_VALUE//$HOME/\${HOME\}}"
+  else
+    SLOTH_PATH_VALUE="${SLOTH_PATH//$HOME/\${HOME\}}"
+  fi
 elif
   command -v brew &> /dev/null &&
     brew list gtrabanco/tools/dot 2> /dev/null &&
@@ -40,15 +44,15 @@ zshrc_load() {
     "zshenv")
       echo
       echo '###### .Sloth Variables ######'
-      if [[ -n "${DOTFILES_PATH_VALUE}" ]]; then
+      if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
         echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
       else
-        echo "# When you have setup your custom dotfiles path modify next value and uncoment it"
-        echo "# export DOTFILES_PATH=\"\${HOME}/.dotfiles\""
+        echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
+        echo '# export DOTFILES_PATH="\${HOME}/.dotfiles"'
       fi
       echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
-      echo "export DOTLY_PATH='\${SLOTH_PATH:-}'"
-      echo 'export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"'
+      echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
+      echo "export ZIM_HOME=\"\${SLOTH_PATH:-\${DOTLY_PATH:-}}/modules/zimfw\""
       echo '###### End of .Sloth Variables ######'
       echo
       ;;
@@ -90,14 +94,14 @@ bashrc_load() {
     "vars")
       echo
       echo '###### .Sloth Variables ######'
-      if [[ -n "${DOTFILES_PATH_VALUE}" ]]; then
+      if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
         echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
       else
-        echo "# When you have setup your custom dotfiles path modify next value and uncoment it"
-        echo "# export DOTFILES_PATH=\"\${HOME}/.dotfiles\""
+        echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
+        echo '# export DOTFILES_PATH="\${HOME}/.dotfiles"'
       fi
       echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
-      echo "export DOTLY_PATH='\${SLOTH_PATH:-}'"
+      echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
       echo '###### End of .Sloth Variables ######'
       echo
       ;;
@@ -137,7 +141,7 @@ check_file_has_var_defined() {
   [[ -z "$file" || ! -f "${file}" || -z "$var" ]] && return 1
 
   if [[ -n "$value" ]]; then
-    grep --quiet --extended-regexp "${var}=\"?${value//\$/\\\$}\"?( |;|$)" "$file"
+    grep --quiet --extended-regexp "${var}=(\"|'?)${value//\$/\\\$}(\"|'?)?( |;|$)" "$file"
   fi
 }
 
@@ -147,18 +151,22 @@ setup_bashrc() {
   [[ ! -f "$rcfile" ]] && return 1
 
   if check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
+    _log "Modifing \`DOTFILES_PATH\` variable in \`${rcfile}\`"
     templating::modify_bash_file_variable "$rcfile" "DOTFILES_PATH" "$DOTFILES_PATH_VALUE"
   fi
 
   if check_file_has_var_defined "$rcfile" "SLOTH_PATH"; then
+    _log "Modifing \`SLOTH_PATH\` variable in \`${rcfile}\`"
     templating::modify_bash_file_variable "$rcfile" "SLOTH_PATH" "$SLOTH_PATH_VALUE"
   fi
 
   if ! check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && ! check_file_has_var_defined "$rcfile" "SLOTH_PATH"; then
+    _log "Appending .Sloth variables in \`${rcfile}\`"
     bashrc_load "vars" | tee -a "$rcfile"
   fi
 
   if ! check_has_loader "$rcfile"; then
+    _log "Appending .Sloth loader in \`${rcfile}\`"
     bashrc_load "loader" | tee -a "$rcfile"
   fi
 
@@ -166,16 +174,17 @@ setup_bashrc() {
     [[ -f "${HOME}/.bash_profile" ]] &&
       { ! grep -q '. "$HOME/.bashrc"' "${HOME}/.bash_profile" || ! grep -q '. "${HOME}/.bashrc"' "${HOME}/.bash_profile"; }
   then
+    _log "Adding .bashrc to .bash_profile"
     echo '. "${HOME}/.bashrc"' >> "${HOME}/.bash_profile"
   fi
 
   if check_has_loader "$rcfile" && check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && check_file_has_var_defined "$rcfile" "SLOTH_PATH"; then
-    output::solution ".Sloth loader added in \`${rcfile//$HOME/\${HOME\}}\`"
+    log::success ".Sloth loader added in \`${rcfile//$HOME/\${HOME\}}\`"
     return 0
   fi
 
-  output::error "Could not add .Sloth loader or variables in \`${rcfile}\`"
-  output::answer "Check the file, maybe add manually the loader should fix this."
+  log::warning "Could not add .Sloth loader or variables in \`${rcfile}\`"
+  log::note "Check the file, maybe add manually the loader should fix this."
   return 1
 }
 
@@ -187,18 +196,22 @@ setup_zsh() {
   [[ ! -f "$zshrcfile" || ! -f "$zshenvfile" ]] && return 1
 
   if check_file_has_var_defined "$zshenvfile" "DOTFILES_PATH" && [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
+    _log "Modifing \`DOTFILES_PATH\` value in \`${zshenvfile}\`"
     templating::modify_bash_file_variable "$zshenvfile" "DOTFILES_PATH" "$DOTFILES_PATH_VALUE"
   fi
 
   if check_file_has_var_defined "$zshenvfile" "SLOTH_PATH"; then
+    _log "Modifing \`SLOTH_PATH\` value in \`${zshenvfile}\`"
     templating::modify_bash_file_variable "$zshenvfile" "SLOTH_PATH" "$SLOTH_PATH_VALUE"
   fi
 
   if ! check_file_has_var_defined "$zshenvfile" "DOTFILES_PATH" && ! check_file_has_var_defined "$zshenvfile" "SLOTH_PATH"; then
+    _log "Appending variables in zshenv in \`${zshenvfile}\`"
     zshrc_load "zshenv" | tee -a "$zshenvfile"
   fi
 
   if ! check_has_loader "$zshrcfile"; then
+    _log "Appending .Sloth loader in \`${zshrcfile}\`"
     zshrc_load "zshrc" | tee -a "$zshrcfile"
   fi
 
@@ -206,16 +219,17 @@ setup_zsh() {
     [[ -f "${HOME}/.zlogin" ]] &&
       { ! grep -q '. "$ZIM_HOME/login_init.zsh" -q &!' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
   then
+    _log "Appending login_init.zsh in \`${HOME}/.zlogin\`"
     echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >> "${HOME}/.zlogin"
   fi
 
   if check_has_loader "$zshrcfile" && check_file_has_var_defined "$zshenvfile" "DOTFILES_PATH" && check_file_has_var_defined "$zshenvfile" "SLOTH_PATH"; then
-    output::solution ".Sloth loader added for \`zsh\` shell"
+    log::success ".Sloth loader added for \`zsh\` shell"
     return 0
   fi
 
-  output::error "Could not add .Sloth loader or variables in ZSH files \`$zshrcfile\` & \`$zshenvfile\`"
-  output::answer "Check the file, maybe add manually the loader should fix this."
+  log::warning "Could not add .Sloth loader or variables in ZSH files \`$zshrcfile\` & \`$zshenvfile\`"
+  log::note "Check the file, maybe add manually the loader should fix this."
   return 1
 }
 
@@ -307,7 +321,7 @@ case ${1-} in
   # Any subcommand should be here
   bashrc)
     if ${modify:-false}; then
-      if setup_bashrc; then
+      if setup_bashrc 1>&2 | log::file "Setup .Sloth in .bashrc file" &> /dev/null; then
         output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went modifing your \`.bashrc\` file"
@@ -318,7 +332,7 @@ case ${1-} in
     ;;
   zshrc)
     if ${modify:-false}; then
-      if setup_zsh | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
+      if setup_zsh 1>&2 | log::file "Setup .Sloth in .zshenv & .zshrc files" &> /dev/null; then
         output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
@@ -329,13 +343,13 @@ case ${1-} in
     ;;
   *)
     if ${modify:-false}; then
-      if setup_bashrc | log::file "Setup .Sloth in .bashrc file"; then
+      if setup_bashrc 1>&2 | log::file "Setup .Sloth in .bashrc file" &> /dev/null; then
         output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your \`.bashrc\` file"
       fi
 
-      if setup_zsh | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
+      if setup_zsh 1>&2 | log::file "Setup .Sloth in .zshenv & .zshrc files" &> /dev/null; then
         output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
