@@ -5,15 +5,12 @@ set -euo pipefail
 
 if
   command -v brew &> /dev/null &&
-    command brew --prefix gtrabanco/tools/dot &> /dev/null
+    brew --prefix gtrabanco/tools/dot &> /dev/null
 then
   SLOTH_PATH="$(command brew --prefix gtrabanco/tools/dot)"
 else
   SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/scripts\/core\/install/}}}"
 fi
-
-echo "Bash source is: ${BASH_SOURCE[0]}"
-echo "Bash source mod: ${BASH_SOURCE[0]//\/scripts\/core\/install/}"
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
@@ -63,6 +60,8 @@ initilize_sloth_if_necessary() {
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
+##?    install [-v | --version]
+##?    install [-h | --help]
 ##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth]
 ##?
 ##? Options:
@@ -143,7 +142,7 @@ fi
 
 # Print name and version
 if ${version:-false}; then
-  output::write "${SCRIPT_NAME:-dot core install} v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  output::write "${SCRIPT_NAME:-dot core install} v$(docs::parse_script_version "$(dot::get_full_script_path)")"
   exit
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-

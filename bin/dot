@@ -63,7 +63,7 @@ fi
 
 # This script version
 if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  SCRIPT_VERSION="$(dot::parse_script_version "$BASH_SOURCE")"
+  SCRIPT_VERSION="$(docs::parse_script_version "$BASH_SOURCE")"
   SCRIPT_NAME="$(basename "$BASH_SOURCE")"
   if [[ -n "${SCRIPT_VERSION}" ]]; then
     output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
@@ -146,13 +146,15 @@ else
     docs::parse_script "${script_full_path}" "--help"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
+    SCRIPT_VERSION="$(docs::parse_script_version "$script_full_path")"
     SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
     if [[ -n "${SCRIPT_VERSION}" ]]; then
       output::write "${SCRIPT_NAME} \`v${SCRIPT_VERSION}\`"
     else
-      output::write "${SCRIPT_NAME}"
-      output::error "\t no version provided"
+      # TODO PRODUCTION FIX THIS
+      output::error "No version found for \`${SCRIPT_NAME}\`"
+      echo "$script_full_path"
+      docs::parse_script_version "$script_full_path"
     fi
     exit
   fi

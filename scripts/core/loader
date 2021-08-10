@@ -309,7 +309,7 @@ fi
 
 # Print name and version or help
 if ${version:-}; then
-  SCRIPT_VERSION="${SCRIPT_VERSION:-$(dot::parse_script_version "$(dot::get_full_script_path)")}"
+  SCRIPT_VERSION="${SCRIPT_VERSION:-$(docs::parse_script_version "$(dot::get_full_script_path)")}"
   output::write "${SCRIPT_NAME:-dot core loader} v$SCRIPT_VERSION"
   exit
 elif ${help:-}; then

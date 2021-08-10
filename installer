@@ -282,8 +282,8 @@ then
   if _is_y "${ICLOUD_REPLY:-Y}"; then
     IS_ICLOUD_DOTFILES=true
     _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
-    DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
-    DOTFILES_LINK_PATH="$HOME/$(basename "$ICLOUD_DOTFILES")"
+    DOTFILES_PATH="${ICLOUD_PATH}/${DOTFILES_PATH:-.dotfiles}"
+    DOTFILES_LINK_PATH="${HOME}/$(basename "$ICLOUD_DOTFILES")"
   fi
 fi
 
@@ -293,9 +293,9 @@ if
 then
   _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-    DOTFILES_PATH="$HOME/.dotfiles"
+    DOTFILES_PATH="${HOME}/.dotfiles"
   else
-    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+    DOTFILES_PATH="${DOTFILES_PATH:-${HOME}/.dotfiles}"
   fi
   DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
 fi
@@ -303,7 +303,7 @@ export DOTFILES_PATH="$DOTFILES_PATH"
 #### End user prompts ####
 
 dotly_inner_path="modules/sloth"
-export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
+export DOTLY_PATH="${DOTFILES_PATH}/${dotly_inner_path}"
 export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 create_dotfiles_dir "$DOTFILES_PATH"
@@ -377,9 +377,7 @@ git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" 
 _a "Installing .Sloth dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
-echo "End dependencies"
-
-cd "${SLOTH_PATH:-${DOTLY_PATH:-}}" || _e "Could not find SLOTH_PATH" && exit 1
+cd "${SLOTH_PATH:-${DOTLY_PATH:-}}" || true
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
   if [[ -d "$DOTFILES_LINK_PATH" ]]; then
@@ -391,7 +389,7 @@ if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
 fi
 
 _a "Installing .Sloth"
-"${PWD}/scripts/core/install"
+"${PWD}/bin/dot" core install 2>&1 | _log "Installing .Sloth"
 
 _a "🎉 .Sloth was sucessfully installed! 🎉"
 _a "Please, restart your terminal to see the changes"

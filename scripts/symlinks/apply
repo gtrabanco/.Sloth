@@ -154,7 +154,7 @@ SCRIPT_NAME="dot symlinks apply"
 
 # Print name and version
 if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
+  output::write "$SCRIPT_NAME v$(docs::parse_script_version "$(dot::get_full_script_path)")"
   exit
 elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
