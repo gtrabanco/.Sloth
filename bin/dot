@@ -5,11 +5,27 @@ set -euo pipefail
 
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
-  dot_path="$BASH_SOURCE"
-  until [[ ! -L $dot_path ]]; do
-    dot_path="$(readlink "$dot_path")"
-  done
-  SLOTH_PATH="$(dirname "$(dirname "$dot_path")")"
+  if ! command -vp realpath &> /dev/null; then
+    # https://unix.stackexchange.com/a/558360
+    realpath() {
+      local -r file_path="${1:-}"
+      if [[ -d "${1:-}" ]]; then
+        cd -P -- "${file_path}" && builtin pwd
+      else
+        cd -P -- "${file_path%/*}" && printf "%s/%s\n" "$PWD" "${file_path##*/}"
+      fi
+    }
+  fi
+
+  if command -v brew &> /dev/null && brew list gtrabanco/tools/dot &> /dev/null; then
+    dot_path="$(brew --prefix gtrabanco/tools/dot)"
+  else
+    dot_path="${BASH_SOURCE}"
+    until [[ ! -L $dot_path ]]; do
+      dot_path="$(readlink "$dot_path")"
+    done
+  fi
+  SLOTH_PATH="$(realpath "${dot_path//\/bin\/dot/}")"
   DOTLY_PATH="$SLOTH_PATH"
 
   if [[ ! -d "$SLOTH_PATH" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
@@ -163,7 +179,7 @@ else
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
   then
-    "${script_full_path}" "$@"
+    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="$DOTLY_PATH" DOTFILES_PATH="${DOTFILES_PATH:-}" "${script_full_path}" "$@"
   else
     #shellcheck disable=SC1090
     . "${script_full_path}"
