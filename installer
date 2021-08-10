@@ -377,6 +377,8 @@ git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" 
 _a "Installing .Sloth dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
+echo "End dependencies"
+
 cd "${SLOTH_PATH:-${DOTLY_PATH:-}}" || _e "Could not find SLOTH_PATH" && exit 1
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
