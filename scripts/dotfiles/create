@@ -17,7 +17,7 @@ elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   grep '^##?' "$0" | tr '##? ' ' '
 fi
 
-DOTFILES_PATH="${2:-${DOTFILES_PATH:-/dev/null}}"
+DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 

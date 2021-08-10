@@ -160,6 +160,7 @@ if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
   ignore_loader=true
   ignore_restoration=true
   IGNORE_UPDATE_PACKAGES=true
+  DOTFILES_PATH="${HOME}/.dotfiles"
 fi
 
 #### Prompt user all the staff we want to know ####
