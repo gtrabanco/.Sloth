@@ -191,7 +191,7 @@ if
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
-    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)? [Y/n]" "PROMPT_REPLY" &&
+    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (elevation required; sudo)? [Y/n]" "PROMPT_REPLY" &&
       [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]]
   then
     start_sudo
