@@ -278,7 +278,7 @@ fi
 
 if [[ -n "$DOTFILES_PATH" ]]; then
   output::answer "Creating dotfiles structure"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create "$DOTFILES_PATH" | log::file "Creating dotfiles structure" || exit 1
   output::empty_line
 else
   output::answer "Skipping dotfiles creation"
