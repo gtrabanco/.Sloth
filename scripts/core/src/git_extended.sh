@@ -18,7 +18,7 @@ git::get_submodule_property() {
     submodule_directory="$1"
   fi
 
-  gitmodules_path="${gitmodules_path:-${DOTFILES_PATH:-}/.gitmodules}"
+  gitmodules_path="${gitmodules_path:-${DOTFILES_PATH:-/dev/null}/.gitmodules}"
   submodule_directory="${submodule_directory:-modules/${1:-}}"
   property="${2:-}"
 
@@ -419,11 +419,13 @@ git::init_repository_if_necessary() {
   local -r remote="${2:-origin}"
   local -r branch="${3:-master}"
   [[ -n "${url}" ]] && shift
-  [[ -n "${1:-}" ]] && shift
-  [[ -n "${1:-}" ]] && shift
-  git::is_in_repo "$@" && return
+  [[ -n "${1:-}" ]] && shift # remote
+  [[ -n "${1:-}" ]] && shift # branch
+  git::is_in_repo "$@" &> /dev/null && return
 
-  if ! git::is_in_repo "$@" && [[ -n "$url" ]]; then
+  if [[ -n "$url" ]]; then
+    git::git "$@" init 1>&2
+    git::git "$@" remote add "$remote" "$url" 1>&2
     git::git "$@" config "remote.${remote}.url" "$url" 1>&2
     git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
     git::git "$@" fetch --force --tags "$remote" 1>&2

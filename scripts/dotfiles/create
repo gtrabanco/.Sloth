@@ -21,22 +21,14 @@ DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 
-dotfiles::apply_templating() {
-  local tpl_files=(
-    "$DOTFILES_PATH/bin/sdot"
-    "$DOTFILES_PATH/shell/bash/.bashrc"
-    "$DOTFILES_PATH/shell/zsh/.zshenv"
-  )
+if ! mkdir -p "$DOTFILES_PATH" 2> /dev/null; then
+  output::error "Could not create \`${DOTFILES_PATH}\`" && exit 1
+fi
 
-  for file in "${tpl_files[@]}"; do
-    templating::replace "$file" --dotfiles-path="${DOTFILES_PATH//$HOME/\$HOME}"
-  done
-}
+if [ ! -d "${DOTFILES_PATH}/shell" ]; then
+  cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
 
-if [ ! -d "$DOTFILES_PATH/shell" ]; then
-  cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "$DOTFILES_PATH/"
-
-  dotfiles::apply_templating
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
 
   log::success "Done!"
 else

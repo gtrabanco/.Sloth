@@ -25,7 +25,7 @@ function recent_dirs() {
 
 # Advise no vars defines
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking SLOTH_PATH and DOTFILES_PATH variables"; } || true
-if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
+if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-/dev/null}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
   if [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/dotly"
