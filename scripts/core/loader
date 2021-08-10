@@ -321,7 +321,7 @@ case ${1-} in
   # Any subcommand should be here
   bashrc)
     if ${modify:-false}; then
-      if setup_bashrc 1>&2 | log::file "Setup .Sloth in .bashrc file" &> /dev/null; then
+      if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
         output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went modifing your \`.bashrc\` file"
@@ -332,7 +332,7 @@ case ${1-} in
     ;;
   zshrc)
     if ${modify:-false}; then
-      if setup_zsh 1>&2 | log::file "Setup .Sloth in .zshenv & .zshrc files" &> /dev/null; then
+      if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
         output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
@@ -343,13 +343,13 @@ case ${1-} in
     ;;
   *)
     if ${modify:-false}; then
-      if setup_bashrc 1>&2 | log::file "Setup .Sloth in .bashrc file" &> /dev/null; then
+      if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
         output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your \`.bashrc\` file"
       fi
 
-      if setup_zsh 1>&2 | log::file "Setup .Sloth in .zshenv & .zshrc files" &> /dev/null; then
+      if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
         output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
       else
         output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
