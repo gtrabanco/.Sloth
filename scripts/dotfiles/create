@@ -6,19 +6,6 @@ set -euo pipefail
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
 
-# FIXME Modify this to use dot core loader --modify DOTFILES_PATH
-dotfiles::apply_templating() {
-  local tpl_files=(
-    "${DOTFILES_PATH}/bin/sdot"
-    "${DOTFILES_PATH}/shell/bash/.bashrc"
-    "${DOTFILES_PATH}/shell/zsh/.zshenv"
-  )
-
-  for file in "${tpl_files[@]}"; do
-    templating::replace "$file" --dotfiles-path="${DOTFILES_PATH//$HOME/\$HOME}"
-  done
-}
-
 ##? Create the dotfiles structure
 ##?
 ##? Usage:
@@ -39,7 +26,7 @@ mkdir -p "$DOTFILES_PATH" || output::error "Could not create \`${DOTFILES_PATH}\
 if [ ! -d "${DOTFILES_PATH}/shell" ]; then
   cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
 
-  dotfiles::apply_templating
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
 
   log::success "Done!"
 else
