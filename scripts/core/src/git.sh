@@ -511,7 +511,8 @@ git::init_repository_if_necessary() {
     git::git "$@" remote add "$remote" "$url" 1>&2
     git::git "$@" config "remote.${remote}.url" "$url" 1>&2
     git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
-    git::git "$@" fetch --force --tags "$remote" 1>&2
+    git::git "$@" fetch --all --tags --force 1>&2
+    git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
     git::git "$@" remote set-head "$remote" --auto &> /dev/null 1>&2
     head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
 
@@ -520,6 +521,7 @@ git::init_repository_if_necessary() {
       git::set_remote_head_upstream_branch "$remote" "$head_branch" "$@" 1>&2
     fi
 
+    git::git "$@" clean -f -d 1>&2
     git::pull_branch "$remote" "${head_branch//remotes\/origin\//}" "$@" 1>&2
     git::git "$@" reset --hard "${head_branch}" 1>&2
   else

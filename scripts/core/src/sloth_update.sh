@@ -29,8 +29,8 @@ if [[ -z "${SLOTH_GITMODULES_BRANCH:-}" && -f "${DOTFILES_PATH:-${HOME}/.dotfile
 fi
 
 # Defaults values if no values are provided
-[[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/sloth"
-[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git+ssh://git@github.com:gtrabanco/sloth.git"
+[[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/.Sloth"
+[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git+ssh://git@github.com:gtrabanco/.Sloth.git"
 [[ -z "${SLOTH_DEFAULT_REMOTE:-}" ]] && readonly SLOTH_DEFAULT_REMOTE="origin"
 # SLOTH_DEFAULT_BRANCH is not the same as SLOTH_GITMODULES_BRANCH
 # SLOTH_GITMODULES_BRANCH is the branch we want to use if we are using always latest version
