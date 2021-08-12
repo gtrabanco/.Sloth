@@ -148,7 +148,7 @@ check_file_has_var_defined() {
 setup_bashrc() {
   local -r rcfile="${DEFAULT_BASHRC_FILE:-${HOME}/.bashrc}"
   command -p touch "$rcfile"
-  [[ ! -f "$rcfile" ]] && return 1
+  [[ ! -f "$rcfile" ]] && return 1 # Expect unexpected
 
   if check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
     _log "Modifing \`DOTFILES_PATH\` variable in \`${rcfile}\`"
@@ -172,9 +172,10 @@ setup_bashrc() {
 
   if
     [[ -f "${HOME}/.bash_profile" ]] &&
-      { ! grep -q '. "$HOME/.bashrc"' "${HOME}/.bash_profile" || ! grep -q '. "${HOME}/.bashrc"' "${HOME}/.bash_profile"; }
+      ! grep -q '. .*/\.bashrc' "${HOME}/.bash_profile"
   then
     _log "Adding .bashrc to .bash_profile"
+    echo '#shellcheck disable=SC1091' >> "${HOME}/.bash_profile"
     echo '. "${HOME}/.bashrc"' >> "${HOME}/.bash_profile"
   fi
 
@@ -217,7 +218,7 @@ setup_zsh() {
 
   if
     [[ -f "${HOME}/.zlogin" ]] &&
-      { ! grep -q '. "$ZIM_HOME/login_init.zsh" -q &!' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
+      { ! grep -q '\. .*/login_init.zsh.* -q &!$' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
   then
     _log "Appending login_init.zsh in \`${HOME}/.zlogin\`"
     echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >> "${HOME}/.zlogin"
