@@ -34,17 +34,16 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
   fi
 
   if [[ -z "${DOTFILES_PATH:-}" && -d "${HOME}/.dotfiles/scripts" ]]; then
-    DOTFILES_PATH="$HOME/.dotfiles"
+    export DOTFILES_PATH="$HOME/.dotfiles"
   fi
   unset dot_path
-  export SLOTH_PATH DOTLY_PATH DOTFILES_PATH
+  export SLOTH_PATH DOTLY_PATH
 fi
+
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && echo "Error: Could not find where the .Sloth is installed." && exit 1
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
-
-# git dependency
-script::depends_on git
 
 # Define variables for this script
 SLOTH_SCRIPT_BASE_NAME="dot"
@@ -90,11 +89,6 @@ if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   exit
 fi
 
-if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
-  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
-fi
-
 # Self-update (Why not in dot directly?)
 if [[ "${1:-}" == "self-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
@@ -110,6 +104,12 @@ fi
 # Autoupdate (Async update)
 if [[ "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
+  exit
+fi
+
+# Get PATH to .Sloth
+if [[ "${1:-}" == "--path" || "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
+  echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   exit
 fi
 
@@ -177,7 +177,9 @@ else
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
       grep -q "^docs::parse" "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
-      grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
+      grep -q "/scripts/core/src/_main.sh" "${script_full_path}" ||
+      grep -q "/scripts/self/_main.sh" "${script_full_path}" ||
+      grep -q "/scripts/self/src/_main.sh" "${script_full_path}"
   then
     SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="$DOTLY_PATH" DOTFILES_PATH="${DOTFILES_PATH:-}" "${script_full_path}" "$@"
   else

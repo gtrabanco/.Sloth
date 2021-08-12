@@ -24,8 +24,7 @@ function recent_dirs() {
 }
 
 # Advise no vars defines
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Checking SLOTH_PATH and DOTFILES_PATH variables"; } || true
-if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-/dev/null}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
+if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
   if [[ -d "$HOME/.dotfiles" && -d "$HOME/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="$HOME/.dotfiles"
     SLOTH_PATH="$DOTFILES_PATH/modules/dotly"
@@ -41,7 +40,6 @@ fi
 
 # Envs
 # GPG TTY
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining GPG_TTY"; } || true
 GPG_TTY="$(tty || echo -n)"
 export GPG_TTY
 
@@ -51,7 +49,6 @@ export GPG_TTY
 [[ -z "${DOTLY_PATH:-}" && -n "${SLOTH_PATH:-}" ]] && DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Sloth aliases and functions
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining Sloth aliases"; } || true
 alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
@@ -66,13 +63,9 @@ alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
 # Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
 user_paths=("${path[@]}")
-# Define PATH to be used with brew and use of uname, we keep user paths because maybe brew is installled in other path
-PATH="${PATH:+$PATH}:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# Define variables for OS, arch and shell
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Defining SLOTH_UNAME, SLOTH_OS, SLOTH_ARCH and SLOTH_SHELL"; } || true
 #shellcheck disable=SC2034,SC2207
-SLOTH_UNAME=($(uname -sm))
+SLOTH_UNAME=($(command -p uname -sm))
 if [[ -n "${SLOTH_UNAME[0]:-}" ]]; then
   SLOTH_OS="${SLOTH_UNAME[0]}"
   SLOTH_ARCH="${SLOTH_UNAME[1]}"
@@ -91,7 +84,6 @@ fi
 export SLOTH_UNAME SLOTH_OS SLOTH_ARCH SLOTH_SHELL
 
 ###### Macports support ######
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading macports if installed"; } || true
 # Load macports paths in user paths because we prefer brew over macports
 if [[ -x "/opt/local/bin/port" && -n "$BREW_PREFIX" ]]; then
   export user_paths=(
@@ -111,7 +103,6 @@ fi
 ###### End of Macports support ######
 
 ###### Brew Package manager support ######
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Brew"; } || true
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
 if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
   # Locating brew binary
@@ -125,16 +116,14 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
     BREW_BIN="/usr/local/bin/brew"
   elif command -v brew &> /dev/null; then
     BREW_BIN="$(command -v brew)"
-  elif command -vp brew &> /dev/null; then
-    BREW_BIN="$(command -vp brew)"
   fi
 fi
 
 # Check with -x has no sense because we have done it before :)
 if [[ -n "$BREW_BIN" ]]; then
   HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
-  HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
-  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+  HOMEBREW_CELLAR="$("$BREW_BIN" --cellar)"
+  HOMEBREW_REPOSITORY="$("$BREW_BIN" --repo)"
 
   # Brew add gnutools in macos or bsd only and brew paths
   if [[ "$SLOTH_OS" == Darwin* || "$SLOTH_OS" == *"BSD"* ]]; then
@@ -189,7 +178,6 @@ fi
 ###### End of Brew Package manager support ######
 
 ###### PATHS ######
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Conditional PATHs"; } || true
 # Conditional paths
 [[ -d "${HOME}/.cargo/bin" ]] && path+=("$HOME/.cargo/bin")
 [[ -d "${JAVA_HOME:-}" ]] && path+=("$JAVA_HOME/bin")
@@ -208,7 +196,6 @@ if [[ -x "/usr/bin/python3" && -d "$(/usr/bin/python3 -c 'import site; print(sit
 fi
 
 # System paths
-[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "System PATHs"
 #shellcheck disable=SC2207
 path+=($(command -p getconf PATH | command -p tr ':' '\n'))
 ###### END OF PATHS ######
@@ -223,7 +210,6 @@ fi
 ###### End of load dotly core for your current BASH ######
 
 ###### Load nix package manager if available ######
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading Nix package manager if present"; } || true
 # Load single user nix installation in the shell
 if [[ -r "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]]; then
   . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
@@ -243,21 +229,23 @@ export PATH
 ###### End of .Sloth bin path first & Remove duplicated PATHs ######
 
 ###### User aliases & functions ######
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user aliases"; } || true
 { [[ -f "$DOTFILES_PATH/shell/aliases.sh" ]] && . "$DOTFILES_PATH/shell/aliases.sh"; } || true
 
-{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loading user functions"; } || true
 { [[ -f "$DOTFILES_PATH/shell/functions.sh" ]] && . "$DOTFILES_PATH/shell/functions.sh"; } || true
 ###### End of User aliases & functions ######
 
 ###### User init scripts ######
-[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Auto init scripts that are enabled"
-init_scripts_path="$DOTFILES_PATH/shell/init.scripts-enabled"
-if [[ ${SLOTH_INIT_SCRIPTS:-true} == true ]] && [[ -d "$init_scripts_path" ]]; then
+init_scripts_path="${DOTFILES_PATH:-}/shell/init.scripts-enabled"
+if
+  [[
+    ${SLOTH_INIT_SCRIPTS:-true} == true &&
+    -n "${DOTFILES_PATH:-}" &&
+    -d "$init_scripts_path"
+  ]]
+then
   for init_script in $(find "$DOTFILES_PATH/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
-    { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Trying to load \`${init_script}\`"; } || true
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
