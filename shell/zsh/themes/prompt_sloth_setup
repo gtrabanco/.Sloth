@@ -1,62 +1,50 @@
 #!/usr/bin/env zsh
 
-CODELY_THEME_MINIMAL=${CODELY_THEME_MINIMAL:-false}
-CODELY_THEME_MODE=${CODELY_THEME_MODE:-"dark"}
-CODELY_THEME_PROMPT_IN_NEW_LINE=${CODELY_THEME_PROMPT_IN_NEW_LINE:-false}
-CODELY_THEME_PWD_MODE=${CODELY_THEME_PWD_MODE:-"short"} # full, short, home_relative
+# Theme configuration
+SLOTH_THEME_MINIMAL=${SLOTH_THEME_MINIMAL:-false}
+SLOTH_THEME_MULTILINE=${SLOTH_THEME_MULTILINE:-false}
+SLOTH_THEME_SHOW_UNTRACKED=${SLOTH_THEME_SHOW_BEHIND:-true}
+SLOTH_THEME_SHOW_BEHIND=${SLOTH_THEME_SHOW_BEHIND:-true}
+SLOTH_USE_RIGHT_PROMPT=${SLOTH_USE_RIGHT_PROMPT:-true} # Only used when no minimal theme is set
+SLOTH_THEME_PWD_MODE="${SLOTH_THEME_PWD_MODE:-short}" # short or full
 
-CODELY_THEME_STATUS_ICON_KO=${CODELY_THEME_STATUS_ICON_KO:-"▪"}
 
  [[ $(echotc Co) -gt 100 ]] && support_color_tones=true || support_color_tones=false
 
-status_icon_ok="▸"
-status_icon_ko="$CODELY_THEME_STATUS_ICON_KO"
 git_no_changes_status="✓"
 git_dirty_status="✗"
+git_branch_color="green"
+git_dirty_status_color="yellow"
+git_on_branch_color="white"
+pwd_color="yellow"
+status_incon_color="white"
 
-if [ "$CODELY_THEME_MODE" = "dark" ]; then
-  git_branch_color="green"
-  git_dirty_status_color="yellow"
-  git_no_changes_status_color="white"
-  git_on_branch_color="white"
-  pwd_color="yellow"
-  status_icon_color="white"
-  [[ $support_color_tones = true ]] && ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=magenta'
-else
-  git_branch_color="black"
-  git_dirty_status_color="magenta"
-  git_no_changes_status_color="green"
-  git_on_branch_color="green"
-  pwd_color="black"
-  status_icon_color="black"
-  [[ $support_color_tones = true ]] && ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=magenta'
-fi
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
 
-prompt_codely_pwd() {
+prompt_sloth_pwd() {
   case "$CODELY_THEME_PWD_MODE" in
     short) local -r prompt_dir=$("${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core short_pwd) ;;
     full) local -r prompt_dir="$PWD" ;;
-    home_relative) local -r prompt_dir=$(print -rD "$PWD") ;;
   esac
 
   print -n "%F{$pwd_color}${prompt_dir}"
 }
 
-prompt_codely_git() {
+prompt_sloth_git() {
   [[ -n ${git_info} ]] && print -n "%F{$git_on_branch_color} on${(e)git_info[prompt]}"
 }
 
-prompt_codely_precmd() {
+prompt_sloth_precmd() {
   (( ${+functions[git-info]} )) && git-info
 }
 
-prompt_dotly_autoupdate() {
+prompt_sloth_autoupdate() {
   if [ -f "$DOTFILES_PATH/.sloth_update_available" ]; then
     print -n "📥 | "
   fi
 }
 
-prompt_codely_setup() {
+prompt_sloth_setup() {
   local prompt_codely_status
   
   prompt_codely_status="%(?:%F{green}{%F{$status_icon_color}$status_icon_ok%F{green}}:%F{red}{%F{$status_icon_color}$status_icon_ko%F{red}})"
@@ -84,4 +72,4 @@ prompt_codely_setup() {
   RPS1=''
 }
 
-prompt_codely_setup "${@}"
+prompt_sloth_setup "${@}"
