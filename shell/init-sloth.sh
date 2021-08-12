@@ -236,8 +236,8 @@ export PATH
 ###### User init scripts ######
 init_scripts_path="${DOTFILES_PATH:-}/shell/init.scripts-enabled"
 if
+  ${SLOTH_INIT_SCRIPTS:-true} &&
   [[
-    ${SLOTH_INIT_SCRIPTS:-true} == true &&
     -n "${DOTFILES_PATH:-}" &&
     -d "$init_scripts_path"
   ]]
