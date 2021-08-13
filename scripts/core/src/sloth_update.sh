@@ -52,6 +52,11 @@ sloth_update::sloth_repository_set_ready() {
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
 
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot; then
+    return
+  fi
+
   if ! git::is_in_repo "${SLOTH_UPDATE_GIT_ARGS[@]}" || ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
     git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
@@ -90,6 +95,9 @@ sloth_update::get_latest_stable_version() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
+
+  local url="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
+  url="${url//git+ssh:\/\//}"
 
   git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
 }
