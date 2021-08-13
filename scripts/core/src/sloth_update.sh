@@ -53,7 +53,7 @@ sloth_update::sloth_repository_set_ready() {
   )
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot; then
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
     return
   fi
 
@@ -83,6 +83,14 @@ sloth_update::get_current_version() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
+
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    #shellcheck disable=SC2016
+    brew list gtrabanco/tools/dot --versions | awk '{print $NF}'
+    return
+  fi
+
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2> /dev/null
 }
 
@@ -98,6 +106,13 @@ sloth_update::get_latest_stable_version() {
 
   local url="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
   url="${url//git+ssh:\/\//}"
+
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    #shellcheck disable=SC2016
+    brew info gtrabanco/tools/dot 2>&1 | command -p head -n1 | command -p sed 's/[,|HEAD]//g' | command -p awk '{print $NF}' | command -p xargs
+    exit
+  fi
 
   git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
 }
@@ -115,6 +130,11 @@ sloth_update::local_sloth_repository_can_be_updated() {
 
   if [[ -f "${SLOTH_FORCE_CURRENT_VERSION_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_force_current_version}" ]]; then
     return 1
+  fi
+
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    return
   fi
 
   git::is_clean "${SLOTH_UPDATE_GIT_ARGS[@]}" && IS_WORKING_DIRECTORY_CLEAN=true
@@ -148,6 +168,16 @@ sloth_update::should_be_updated() {
 
   if [[ -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}" ]]; then
     return 0
+  fi
+
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    # False if there is an update & true if current version is the latest version
+    if brew outdated dot &> /dev/null; then
+      return 1
+    else
+      return 0
+    fi
   fi
 
   # Check if currently we want to pin to a fixed version but is more recent that current version
@@ -196,7 +226,7 @@ sloth_update::exists_migration_script() {
 }
 
 #;
-# sloth_update::sloth_update_repositry()
+# sloth_update::sloth_update()
 # Gracefully update sloth repository to the latest version. Use defined vars in top as default values if no one is provided. It will use \${SLOTH_UPDATE_GIT_ARGS[@]} as default arguments for git. This update only the SLOTH_DEFAULT_BRANCH and tags.
 # @param string remote
 # @param string url Default url for the remote to be configured if not exists
@@ -204,7 +234,7 @@ sloth_update::exists_migration_script() {
 # @param bool force_update Default false. If true it will force update even if there are pending commits
 # @return 0 if all ok, error code otherwise 10, in no force means has pending commits or dirty directory, 20 remote does not exists or can't be set, no default branch, 40 git pull fails
 #"
-sloth_update::sloth_update_repository() {
+sloth_update::sloth_update() {
   local remote url default_branch head_branch force_update updated_version
   remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
   url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}}"
@@ -215,6 +245,17 @@ sloth_update::sloth_update_repository() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
+
+  # .Sloth were installed using a package manager
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    # False if there is an update & true if current version is the latest version
+    if brew outdated dot &> /dev/null; then
+      return
+    else
+      output::answer "Updating .Sloth by using brew"
+      brew upgrade gtrabanco/tools/dot 1>&2
+    fi
+  fi
 
   # Check if can be updated
   if ! $force_update && sloth_update::local_sloth_repository_can_be_updated; then
@@ -271,7 +312,7 @@ sloth_update::gracefully() {
   fi
 
   # Force update
-  sloth_update::sloth_update_repository "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-master}" true || exit_code=$?
+  sloth_update::sloth_update "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-master}" true || exit_code=$?
 
   return $exit_code
 }
