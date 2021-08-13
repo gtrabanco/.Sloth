@@ -237,11 +237,11 @@ export PATH
 init_scripts_path="${DOTFILES_PATH:-}/shell/init.scripts-enabled"
 if
   ${SLOTH_INIT_SCRIPTS:-true} &&
-  [[
-    -n "${DOTFILES_PATH:-}" &&
-    -d "$init_scripts_path"
-  ]]
+    [[ 
+      -n "${DOTFILES_PATH:-}" &&
+      -d "$init_scripts_path" ]]
 then
+
   for init_script in $(find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
