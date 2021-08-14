@@ -53,7 +53,7 @@ fi
 ##?    dot async-update
 ##?    dot -h | --help
 ##?    dot -v | --version
-##?    dot --prefix | --path
+##?    dot --prefix
 ##?    dot <context> <script> [<args>...]
 ##?    dot <context>
 ##?    dot
@@ -67,7 +67,7 @@ fi
 ##? Options:
 ##?    -h --help           Gives help to the user
 ##?    -v --version        Show the dot command version
-##?    --prefix --path     Prints the path to .Sloth
+##?    --prefix            Prints the path to .Sloth
 ##?    self-update update  Autoupdate .Sloth. If brew was used to install use brew
 ##?                        to update.
 ##?    async-update        Same as self-update but asynchronously
@@ -98,20 +98,22 @@ elif [[ "${1:-}" == "async-update" ]] && args::total_is 1 "$@"; then
   exit
 
 # Get PATH to .Sloth
-elif [[ "${1:-}" == "--path" || "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
+elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
   echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   exit
 fi
 
 fzf_prompt() {
-  local paths="$1"
+  local fzf_paths="$1"
+
+  script::depends_on fzf
 
   script="$(
-    echo "$paths" |
-      command -p xargs -I % sh -c 'echo "$(basename $(dirname %)) $(basename %)"' |
-      command fzf \
+    echo "$fzf_paths" |
+      command -p xargs -I % sh -c 'echo "$(command -p basename $(command -p dirname %)) $(command -p basename %)"' |
+      fzf \
         --height 100% \
-        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" $(echo {} | cut -d" " -f 1) $(echo {} | cut -d" " -f 2) -h'
+        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" $(echo {} | command -p cut -d" " -f 1) $(echo {} | command -p cut -d" " -f 2) -h'
   )"
 
   printf "%s" "$script"
