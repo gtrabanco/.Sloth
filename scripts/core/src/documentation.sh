@@ -67,18 +67,22 @@ docs::parse_script() {
 }
 
 docs::parse_docopt_section() {
-  if [[ -t 0 ]]; then
-    local -r SCRIPT_FULL_PATH="${1:-}"
-    local -r SECTION_NAME="${2:-}"
-    [[ -n "${SCRIPT_FULL_PATH:-}" && ! -r "${SCRIPT_FULL_PATH:-}" ]] && return 1
-  else
-    local -r SECTION_NAME="${1:-Usage}"
-    local -r SCRIPT_FULL_PATH="/dev/stdin"
-  fi
+  local -r SCRIPT_FULL_PATH="${1:-}"
+  local -r SECTION_NAME="${2:-Usage}"
+  [[ -n "${SCRIPT_FULL_PATH:-}" && ! -r "${SCRIPT_FULL_PATH:-}" ]] && return 1
 
   if [[ $SECTION_NAME == "Version" ]]; then
     docs::parse_script_version "$SCRIPT_FULL_PATH"
   else
-    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${SECTION_NAME}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
+    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${SECTION_NAME}:/,/^$/ p" | command -p sed -e '1d' -e '$d'
   fi
+}
+
+docs::parse_docopt_argument() {
+  local -r SCRIPT_FULL_PATH="${1:-}"
+  [[ -n "${SCRIPT_FULL_PATH:-}" && ! -r "${SCRIPT_FULL_PATH:-}" ]] && return 1
+  shift
+  local -r ARGUMENT="${1:-}"
+
+  docs::parse_docopt_section "$SCRIPT_FULL_PATH" | command -p awk '{$1="";gsub(/^ |\|/, "", $0); gsub(/[\[]?<[^>]+>[\.]{0,3}[\]]?/,"", $0);} !/^ *$/ {print " "$0" "}' | command -p grep " ${ARGUMENT//\-/\\-}"
 }
