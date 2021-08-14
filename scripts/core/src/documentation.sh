@@ -79,6 +79,6 @@ docs::parse_docopt_section() {
   if [[ $SECTION_NAME == "Version" ]]; then
     docs::parse_script_version "$SCRIPT_FULL_PATH"
   else
-    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${section}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
+    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${SECTION_NAME}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
   fi
 }
