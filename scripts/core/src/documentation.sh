@@ -31,7 +31,6 @@ docs::parse_script_version() {
   fi
 
   if [[ -z "$version" ]]; then
-    #command -p grep "^#?" "$SCRIPT_FULL_PATH" | command -p cut -c 4-
     version="$(command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH")"
   fi
 
@@ -80,8 +79,6 @@ docs::parse_docopt_section() {
   if [[ $SECTION_NAME == "Version" ]]; then
     docs::parse_script_version "$SCRIPT_FULL_PATH"
   else
-    #grep "^##?" "$SCRIPT_FULL_PATH" | cut -c 4- | command -p sed -n "/${section}:$/,/^$/ p" | command -p sed -e '1d' -e '$d'
-    #command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH" | command -p sed -n "/^${section}:$/,/^$/ p" | command -p sed -e '1d' -e '$d'
     command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${section}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
   fi
 }

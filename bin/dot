@@ -132,6 +132,7 @@ else
   context="${1:-}"
   script="${2:-}"
   firstarg="${3:-}"
+  #shellcheck disable=SC2034
   SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
 
   [[ $# -ge 2 ]] && shift 2
@@ -153,12 +154,6 @@ else
     docs::parse_script "${script_full_path}" "--help"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    # SCRIPT_VERSION="$(docs::parse_script_version "$script_full_path")"
-    # if [[ -n "${SCRIPT_VERSION}" ]]; then
-    #   output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
-    # else
-    #   output::error "${SCRIPT_NAME} v0.0.0"
-    # fi
     docs::parse_script "${script_full_path}" "--version"
     exit
   fi
