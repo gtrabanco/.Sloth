@@ -75,6 +75,10 @@ initilize_sloth_if_necessary() {
 ##?                             locations of these files)
 ##?    --ignore-restoration     Ignore user restoration scripts
 ##?    --only-git-init-sloth    Executes only the .Sloth initilization if necessary
+##?    --ignore-link            Does not install \`dot\` for all users in /usr/local/bin
+##?                             This option is applied always if .Sloth was installed
+##?                             with Brew Package Manager.
+##?
 ##?
 ##? SCRIPT_VERSION "3.2.0"
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
@@ -89,6 +93,7 @@ else
   ignore_loader=false
   ignore_restoration=false
   only_git_init_sloth=false
+  ignore_link=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --version | -v)
@@ -131,6 +136,10 @@ else
         only_git_init_sloth=true
         shift
         ;;
+      --ignore-link)
+        ignore_link=true
+        shift
+        ;;
       *)
         break 2
         ;;
@@ -146,7 +155,11 @@ elif ${help:-false}; then
   grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
   exit
 elif ${only_git_init_sloth:-false}; then
-  initilize_sloth_if_necessary
+  if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+    initilize_sloth_if_necessary
+  else
+    output::answer "Skiping init .Sloth installation as repository because you have used a package manager to install it"
+  fi
   exit
 fi
 
@@ -254,8 +267,10 @@ export SETUP_ZSH_AS_DEFAULT_SHELL
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# Initilize .Sloth only if necessary
-initilize_sloth_if_necessary
+if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+  # Initilize .Sloth only if necessary
+  initilize_sloth_if_necessary
+fi
 
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
@@ -351,10 +366,15 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::empty_line
 fi
 
-output::answer "Linking dot command for all users in \`/usr/local/bin\`"
-ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
-[[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
-output::empty_line
+if
+  platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null ||
+    ! ${ignore_link:-false}
+then
+  output::answer "Linking dot command for all users in \`/usr/local/bin\`"
+  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
+  [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+  output::empty_line
+fi
 
 if ! ${ignore_loader}; then
   # Adding .Sloth loader to bashrc and zshrc
