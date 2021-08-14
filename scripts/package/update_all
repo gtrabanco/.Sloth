@@ -17,7 +17,7 @@ update_all_error() {
 ##? Arguments:
 ##?   package_manager  Package manager to use for updating (could be registry, cargo, apt, yum, etc.)
 ##?
-##? SCRIPT_VERSION "3.1.0"
+#? v3.1.0
 docs::parse "$@"
 
 output::h1_without_margin "♻️  Updating all the apps on your system"

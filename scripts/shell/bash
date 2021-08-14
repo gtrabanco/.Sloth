@@ -22,9 +22,8 @@ set -euo pipefail
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION "1.0.0"
-##?
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] || package::is_installed docpars; then
+#? v1.0.0
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
   docs::parse "$@"
 fi
 

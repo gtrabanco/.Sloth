@@ -20,6 +20,7 @@ FORCED_PKGMGR="brew"
 ##?                      same name as current hostname the package/lang is ignored and continue to try
 ##?                      with next package
 ##?
+#? v2.0.0
 docs::parse "$@"
 
 if ! platform::command_exists brew; then

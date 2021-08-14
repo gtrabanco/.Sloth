@@ -21,7 +21,7 @@ void() {
 ##?    --enable   Activate the dotly update command
 ##?    --async    Asynchronous update
 ##?
-##? SCRIPT_VERSION=3.0.0
+#? v3.0.0
 docs::parse "$@"
 
 if ${disable:-enable}; then

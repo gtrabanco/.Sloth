@@ -9,15 +9,16 @@ dot::load_library "templating.sh" "core"
 ##? Create the dotfiles structure
 ##?
 ##? Usage:
+##?    create -h | --help
+##?    create -v | --version
 ##?    create [<dotfiles_path>]
 ##?
-if ! ${DOTLY_INSTALLER:-false}; then
+#? v2.0.1
+if [[ $1 == "-v" || $1 == "--version" || $1 == "-h" || $1 == "--help" ]]; then
   docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
 fi
 
-DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
+DOTFILES_PATH="${1:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 

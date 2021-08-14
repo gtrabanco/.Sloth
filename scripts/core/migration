@@ -26,16 +26,8 @@ dot::load_library "templating.sh" "core"
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION "2.0.0"
+#? v2.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth core version"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 output::header "SLOTH migration wizard"
 

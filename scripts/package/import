@@ -23,6 +23,7 @@ script::depends_on docpars
 ##?                      same name as current hostname the package/lang is ignored and continue to try
 ##?                      with next package
 ##?
+#? v3.0.0
 docs::parse "$@"
 
 output::write "🎩 Let's import your packages (this could take a while)" && output::empty_line

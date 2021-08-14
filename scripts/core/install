@@ -80,12 +80,10 @@ initilize_sloth_if_necessary() {
 ##?                             with Brew Package Manager.
 ##?
 ##?
-##? SCRIPT_VERSION "3.2.0"
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+#? v3.2.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
 else
-  version=false
-  help=false
   backup=false
   interactive_backup=false
   ignore_backup=false
@@ -96,14 +94,6 @@ else
   ignore_link=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      --version | -v)
-        version=true
-        shift
-        ;;
-      --help | -h)
-        help=true
-        shift
-        ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
         script::depends_on python-yq jq
@@ -147,14 +137,7 @@ else
   done
 fi
 
-# Print name and version
-if ${version:-false}; then
-  output::write "${SCRIPT_NAME:-dot core install} v$(docs::parse_script_version "$(dot::get_full_script_path)")"
-  exit
-elif ${help:-false}; then
-  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
-  exit
-elif ${only_git_init_sloth:-false}; then
+if ${only_git_init_sloth:-false}; then
   if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
     initilize_sloth_if_necessary
   else

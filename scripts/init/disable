@@ -22,16 +22,9 @@ dot::load_library "init.sh"
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+#? v1.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth init disable"
-SCRIPT_VERSION="1.0.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 if [[ ${SLOTH_INIT_SCRIPTS:-true} != true ]]; then
   output::error "Init scripts are disabled"

@@ -31,17 +31,8 @@ check_local_tag_exists() {
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION 1.1.0
+#? v1.1.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth core version"
-SCRIPT_VERSION="1.0.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 if ${view_remote:-false}; then
   SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
