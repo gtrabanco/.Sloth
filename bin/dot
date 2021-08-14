@@ -68,15 +68,16 @@ fi
 ##?    -h --help           Gives help to the user
 ##?    -v --version        Show the dot command version
 ##?    --prefix            Prints the path to .Sloth
-##?    self-update update  Autoupdate .Sloth. If brew was used to install use brew
+##?    self-update         Autoupdate .Sloth. If brew was used to install use brew
 ##?                        to update.
+##?    update              Same as self-update
 ##?    async-update        Same as self-update but asynchronously
 ##?
 #? v2.2.0
 
 # This script help
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  docs::parse_docopt "$BASH_SOURCE"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+  docs::parse_script "$BASH_SOURCE"
   exit
 
 # This script version
