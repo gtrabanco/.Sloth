@@ -55,10 +55,10 @@ docs::parse_script() {
     output::error "The given script does not exists"
     exit 1
 
-  elif [[ $1 == "--help" || $1 == "-h" ]]; then
+  elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     docs::parse_docopt "$script_path"
     exit 0
-  elif [[ $1 == "--version" || $1 == "-v" ]]; then
+  elif [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
     docs::parse_script_version "$script_path"
     exit 0
   fi
