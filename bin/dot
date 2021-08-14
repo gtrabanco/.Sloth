@@ -45,70 +45,60 @@ fi
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
-# Define variables for this script
-SLOTH_SCRIPT_BASE_NAME="dot"
-
 ##? Execute lazy scripts in your dotfiles
 ##?
 ##? Usage:
 ##?    dot self-update
 ##?    dot autoupdate
+##?    dot async-update
 ##?    dot -h | --help
 ##?    dot -v | --version
+##?    dot --prefix | --path
 ##?    dot <context> <script> [<args>...]
 ##?    dot <context>
 ##?    dot
 ##?
 ##? Arguments:
-##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts"
-##?    script   Is the script in "\${DOTFILES_PATH}/scripts/<context>" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>"
+##?    context  Is the subfolder in "\`\${DOTFILES_PATH}/scripts\`" or
+##?             "\`\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts\`"
+##?    script   Is the script in "\`\${DOTFILES_PATH}/scripts/<context>\`" or
+##?             "\`\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>\`"
 ##?
 ##? Options:
-##?    -h --help     Gives help to the user
-##?    -v --version  Show the dot command version
+##?    -h --help           Gives help to the user
+##?    -v --version        Show the dot command version
+##?    --prefix --path     Prints the path to .Sloth
+##?    self-update update  Autoupdate .Sloth. If brew was used to install use brew
+##?                        to update.
+##?    async-update        Same as self-update but asynchronously
 ##?
-##?    self-update
-##?
-##? SCRIPT_VERSION 2.1.0
+#? v2.2.0
 
 # This script help
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  grep "^##?" "$BASH_SOURCE" | cut -c 5-
-fi
+  docs::parse_docopt "$BASH_SOURCE"
+  exit
 
 # This script version
-if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  SCRIPT_VERSION="$(docs::parse_script_version "$BASH_SOURCE")"
-  SCRIPT_NAME="$(basename "$BASH_SOURCE")"
-  if [[ -n "${SCRIPT_VERSION}" ]]; then
-    output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
+elif [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+    brew list gtrabanco/tools/dot --version | cut -d ' ' -f 2
   else
-    output::write "${SCRIPT_NAME}"
-    output::error "\t no version provided"
+    docs::parse_script_version "$BASH_SOURCE"
   fi
   exit
-fi
-
-# Self-update (Why not in dot directly?)
-if [[ "${1:-}" == "self-update" ]] && args::total_is 1 "$@"; then
+# Self-update of .Sloth
+elif [[ "${1:-}" == "self-update" || "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
-fi
-
-# Self-update
-if [[ "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
-  exit
-fi
 
 # Autoupdate (Async update)
-if [[ "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
+elif [[ "${1:-}" == "async-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
   exit
-fi
 
 # Get PATH to .Sloth
-if [[ "${1:-}" == "--path" || "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
+elif [[ "${1:-}" == "--path" || "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
   echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   exit
 fi
@@ -142,6 +132,7 @@ else
   context="${1:-}"
   script="${2:-}"
   firstarg="${3:-}"
+  SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
 
   [[ $# -ge 2 ]] && shift 2
 
@@ -162,13 +153,13 @@ else
     docs::parse_script "${script_full_path}" "--help"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    SCRIPT_VERSION="$(docs::parse_script_version "$script_full_path")"
-    SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
-    if [[ -n "${SCRIPT_VERSION}" ]]; then
-      output::write "${SCRIPT_NAME} \`v${SCRIPT_VERSION}\`"
-    else
-      output::error "\`${SCRIPT_NAME}\` \`0.0.0\`"
-    fi
+    # SCRIPT_VERSION="$(docs::parse_script_version "$script_full_path")"
+    # if [[ -n "${SCRIPT_VERSION}" ]]; then
+    #   output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
+    # else
+    #   output::error "${SCRIPT_NAME} v0.0.0"
+    # fi
+    docs::parse_script "${script_full_path}" "--version"
     exit
   fi
 

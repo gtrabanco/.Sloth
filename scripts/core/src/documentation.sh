@@ -24,12 +24,19 @@ docs::parse_script_version() {
   [[ ! -r "$SCRIPT_FULL_PATH" ]] && return 1
   version="$(command -p awk '/SCRIPT_VERSION[=| ]"?(.[^";]*)"?;?$/ {gsub(/[=|"]/, " "); print $NF}' "$SCRIPT_FULL_PATH" | command -p sort -Vr | command -p head -n1)"
 
+  if [[ -z "${SCRIPT_NAME:-}" && "$SCRIPT_FULL_PATH" == *scripts/*/* ]]; then
+    SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} $(command -p basename "$(dirname "$SCRIPT_FULL_PATH")") $(command -p basename "$SCRIPT_FULL_PATH")"
+  elif [[ -z "${SCRIPT_NAME:-}" ]]; then
+    SCRIPT_NAME="$(command -p basename "$SCRIPT_FULL_PATH")"
+  fi
+
   if [[ -z "$version" ]]; then
     #command -p grep "^#?" "$SCRIPT_FULL_PATH" | command -p cut -c 4-
-    command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH"
-  else
-    builtin echo "$version"
+    version="$(command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH")"
   fi
+  
+  [[ -n "${SCRIPT_NAME:-}" ]] && builtin echo -n "${SCRIPT_NAME} "
+  builtin echo "${version:-0.0.0}"
 }
 
 docs::parse() {
@@ -75,6 +82,6 @@ docs::parse_docopt_section() {
   else
     #grep "^##?" "$SCRIPT_FULL_PATH" | cut -c 4- | command -p sed -n "/${section}:$/,/^$/ p" | command -p sed -e '1d' -e '$d'
     #command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH" | command -p sed -n "/^${section}:$/,/^$/ p" | command -p sed -e '1d' -e '$d'
-    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' <"$SCRIPT_FULL_PATH" | command -p sed -n "/${section}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
+    command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$SCRIPT_FULL_PATH" | command -p sed -n "/${section}:/I,/^$/ p" | command -p sed -e '1d' -e '$d'
   fi
 }
