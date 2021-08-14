@@ -34,7 +34,7 @@ docs::parse_script_version() {
     #command -p grep "^#?" "$SCRIPT_FULL_PATH" | command -p cut -c 4-
     version="$(command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH")"
   fi
-  
+
   [[ -n "${SCRIPT_NAME:-}" ]] && builtin echo -n "${SCRIPT_NAME} "
   builtin echo "${version:-0.0.0}"
 }

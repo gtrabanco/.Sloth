@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # Prefix for SCRIPT_NAME variable
 #shellcheck disable=SC2034
 SLOTH_SCRIPT_BASE_NAME="dot"
