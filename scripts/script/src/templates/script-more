@@ -22,7 +22,9 @@
 ##? Author:
 ##?   XXX_SCRIPT_AUTHOR_XXX <XXX_SCRIPT_AUTHOR_EMAIL_XXX>
 ##?
-##? SCRIPT_VERSION "1.0.0"
+#? XXX_SCRIPT_NAME_XXX v1.0.0
+#? Copyright (c) 20XX XXX_SCRIPT_AUTHOR_XXX
+#? This script is licensed under the MIT license
 
 case "${1:-}" in
   "subcommand")
