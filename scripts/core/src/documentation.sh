@@ -25,5 +25,5 @@ docs::parse_script_version() {
   local -r SCRIPT_FULL_PATH="${1:-}"
 
   [[ ! -f "$SCRIPT_FULL_PATH" ]] && return 1
-  awk '/.*SCRIPT_VERSION[=| ]"?(.[^";]*)"?;?.*/ {gsub(/[=|"]/, " "); print $NF}' "$SCRIPT_FULL_PATH" | sort -Vr | head -n1
+  awk '/SCRIPT_VERSION[=| ]"?(.[^";]*)"?;?$/ {gsub(/[=|"]/, " "); print $NF}' "$SCRIPT_FULL_PATH" | sort -Vr | head -n1
 }
