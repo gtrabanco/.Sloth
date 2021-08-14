@@ -3,18 +3,26 @@
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 _dot() {
-  local suggestions=""
+  local script_path suggestions=""
+
+  echo "${#COMP_WORDS[@]}"
 
   case "${#COMP_WORDS[@]}" in
     2) suggestions=$(compgen -W "$(dot::list_contexts | tr '\n' ' ')") ;;
     3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}")" ;;
-    *) suggestions="" ;;
+    *)
+      script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${COMP_WORDS[1]}/${COMP_WORDS[2]}"
+
+      if [[ -r "$script_path" ]]; then
+        suggestions="$(docs::parse_docopt_argument "$script_path" "${COMP_WORDS[3]:-}")"
+      fi
+      ;;
   esac
 
   readarray -t COMPREPLY < <(compgen -W "$suggestions" "${COMP_WORDS[$COMP_CWORD]}")
 }
 
 complete -F _dot dot
-complete -F _dot sloth
-complete -F _dot s
-complete -F _dot lazy
+# complete -F _dot sloth
+# complete -F _dot s
+# complete -F _dot lazy
