@@ -21,7 +21,7 @@ check_local_tag_exists() {
 ##?   version [-h | --help]
 ##?   version [-v | --version]
 ##?   version [-r | --view-remote]
-##?   version
+##?   version [<select_version>]
 ##?
 ##? Options:
 ##?   -h --help         Show this help
@@ -49,10 +49,20 @@ if ${view_remote:-false}; then
   exit 0
 fi
 
-declare -a local_tags
-readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr)
-local_tags+=("stable" "latest")
-selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
+if [[ -z "${select_version:-}" ]]; then
+  declare -a local_tags
+  readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr)
+  local_tags+=("stable" "latest")
+  selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
+else
+  selected_tag="$select_version"
+fi
+
+# .Sloth were installed using a package manager
+if platform::command_exists brew && brew list gtrabanco/tools/dot; then
+  output::error "To choose a custom version use .Sloth as submodule and not brew version"
+  exit 1
+fi
 
 case "$selected_tag" in
   "stable")
