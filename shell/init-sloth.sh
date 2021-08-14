@@ -121,14 +121,13 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
     HOMEBREW_PREFIX="/usr/local"
   elif command -v brew &> /dev/null; then
     BREW_BIN="$(command -v brew)"
-    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$("$BREW_BIN" --prefix)}"
   elif command -vp brew &> /dev/null; then
     BREW_BIN="$(command -vp brew)"
-    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$("$BREW_BIN" --prefix)}"
   fi
 fi
 
 if [[ -n "$BREW_BIN" ]]; then
+  HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$("$BREW_BIN" --prefix)}"
   PATH="${HOMEBREW_PREFIX}/bin${PATH:+:${PATH}}"
   # Brew add gnutools in macos or bsd only and brew paths
   if [[ "$SLOTH_OS" == Darwin* ]]; then
@@ -242,7 +241,7 @@ if
       -d "$init_scripts_path" ]]
 then
 
-  for init_script in $(find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | xargs -0 -I _ realpath --quiet --logical _); do
+  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
     { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
