@@ -9,6 +9,7 @@ set -euo pipefail
 ##?
 ##? Usage:
 ##?   debug
+#? v1.0.0
 docs::parse "$@"
 script::depends_on tail
 

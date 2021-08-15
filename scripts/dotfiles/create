@@ -9,15 +9,20 @@ dot::load_library "templating.sh" "core"
 ##? Create the dotfiles structure
 ##?
 ##? Usage:
-##?    create [<dotfiles_path>]
+##?    create -h | --help
+##?    create -v | --version
+##?    create <dotfiles_path>]
 ##?
-if ! ${DOTLY_INSTALLER:-false}; then
+##? Options:
+##?    -h --help        Show this screen.
+##?    -v --version     Show version.
+##?
+#? v2.0.2
+if [[ $1 == "-v" || $1 == "--version" || $1 == "-h" || $1 == "--help" ]]; then
   docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
 fi
 
-DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
+DOTFILES_PATH="${1:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 
@@ -27,8 +32,6 @@ fi
 
 if [ ! -d "${DOTFILES_PATH}/shell" ]; then
   cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
-
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
 
   log::success "Done!"
 else

@@ -37,6 +37,13 @@ export CODELY_THEME_PROMPT_IN_NEW_LINE=false
 export CODELY_THEME_PWD_MODE="short" # full, short, home_relative
 
 # ------------------------------------------------------------------------------
+# Package Manager config
+# ------------------------------------------------------------------------------
+# BREW_BIN="/usr/local/bin/brew" # /opt/homebrew/bin/brew
+# Define BREW_BIN makes .Sloth to load quite faster
+# HOMEBREW_PREFIX="/usr/local" # /opt/homebrew
+
+# ------------------------------------------------------------------------------
 # Languages
 # ------------------------------------------------------------------------------
 JAVA_HOME="$(/usr/libexec/java_home 2>&1 /dev/null)"

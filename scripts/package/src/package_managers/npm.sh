@@ -23,7 +23,7 @@ npm::package_exists() {
   [[ -n "${1:-}" ]] && npm::is_available && npm search grunt | awk '{print $1}' | tail -n +2 | grep -q "^$1$"
 }
 
-npm::update_all() {
+npm::update_apps() {
   outdated=$(npm -g outdated | tail -n +2)
 
   if [ -n "$outdated" ]; then
@@ -47,6 +47,15 @@ npm::update_all() {
   else
     output::answer "Already up-to-date"
   fi
+}
+
+npm::self_update() {
+  npm install -g npm@latest
+}
+
+npm::update_all() {
+  npm::self_update
+  npm::update_apps
 }
 
 npm::dump() {

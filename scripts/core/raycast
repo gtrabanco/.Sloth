@@ -20,7 +20,7 @@ set -euo pipefail
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
-##?
+#? v1.0.0
 docs::parse "$@"
 
 output::write "This can not be done automatically"

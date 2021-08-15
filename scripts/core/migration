@@ -7,8 +7,6 @@ set -uo pipefail
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
 
 ##?  Executes migration scripts for dotfiles. If your dotly is updated and no
 ##? script version is provided then try to guess the latest necessary migration
@@ -28,16 +26,8 @@ dot::load_library "sloth_update.sh" "core"
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION "2.0.0"
+#? v2.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth core version"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 output::header "SLOTH migration wizard"
 

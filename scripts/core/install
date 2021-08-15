@@ -15,8 +15,6 @@ fi
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "git_extended.sh"
-dot::load_library "sloth_update.sh"
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
@@ -77,13 +75,15 @@ initilize_sloth_if_necessary() {
 ##?                             locations of these files)
 ##?    --ignore-restoration     Ignore user restoration scripts
 ##?    --only-git-init-sloth    Executes only the .Sloth initilization if necessary
+##?    --ignore-link            Does not install \`dot\` for all users in /usr/local/bin
+##?                             This option is applied always if .Sloth was installed
+##?                             with Brew Package Manager.
 ##?
-##? SCRIPT_VERSION "3.2.0"
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+##?
+#? v3.2.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
 else
-  version=false
-  help=false
   backup=false
   interactive_backup=false
   ignore_backup=false
@@ -91,24 +91,15 @@ else
   ignore_loader=false
   ignore_restoration=false
   only_git_init_sloth=false
+  ignore_link=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      --version | -v)
-        version=true
-        shift
-        ;;
-      --help | -h)
-        help=true
-        shift
-        ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;
@@ -133,6 +124,10 @@ else
         only_git_init_sloth=true
         shift
         ;;
+      --ignore-link)
+        ignore_link=true
+        shift
+        ;;
       *)
         break 2
         ;;
@@ -140,15 +135,12 @@ else
   done
 fi
 
-# Print name and version
-if ${version:-false}; then
-  output::write "${SCRIPT_NAME:-dot core install} v$(docs::parse_script_version "$(dot::get_full_script_path)")"
-  exit
-elif ${help:-false}; then
-  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
-  exit
-elif ${only_git_init_sloth:-false}; then
-  initilize_sloth_if_necessary
+if ${only_git_init_sloth:-false}; then
+  if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+    initilize_sloth_if_necessary
+  else
+    output::answer "Skiping init .Sloth installation as repository because you have used a package manager to install it"
+  fi
   exit
 fi
 
@@ -256,8 +248,10 @@ export SETUP_ZSH_AS_DEFAULT_SHELL
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# Initilize .Sloth only if necessary
-initilize_sloth_if_necessary
+if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+  # Initilize .Sloth only if necessary
+  initilize_sloth_if_necessary
+fi
 
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
@@ -270,12 +264,9 @@ elif platform::is_linux; then
 fi
 output::empty_line
 
-# Mandatory packages
-script::depends_on docpars
-
 # Packages that are necessary but not in CI env
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on fzf python-yq jq cargo-update
+  script::depends_on docpars fzf python-yq jq cargo-update
 fi
 
 if [[ -n "$DOTFILES_PATH" ]]; then
@@ -305,12 +296,43 @@ if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
       output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
     fi
   fi
+
+  if [[ ! -L "${HOME}/.bashrc" ]]; then
+    output::error "Failed to symlink .bashrc"
+  fi
+
+  if [[ ! -L "${HOME}/.bash_profile" ]]; then
+    output::error "Failed to symlink .bash_profile"
+  fi
+
+  if [[ ! -L "${HOME}/.zshrc" ]]; then
+    output::error "Failed to symlink .zshrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zshenv" ]]; then
+    output::error "Failed to symlink .zshenv"
+  fi
+
+  if [[ ! -L "${HOME}/.zimrc" ]]; then
+    output::error "Failed to symlink .zimrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zlogin" ]]; then
+    output::error "Failed to symlink .zlogin"
+  fi
+
   output::empty_line
 else
   output::answer "Skipping the symlinks apply"
 fi
 touch "$HOME/.z"
 unset SYMLINKS_ARGS bk
+
+if ! ${ignore_loader}; then
+  # Adding .Sloth loader to bashrc and zshrc
+  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+fi
 
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
@@ -333,7 +355,7 @@ unset zsh_shell_path
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
 if platform::command_exists zsh; then
-  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+  zsh "${ZIM_HOME}/zimfw.zsh" install | log::file "Installing zim"
 else
   output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"
@@ -353,15 +375,14 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::empty_line
 fi
 
-output::answer "Linking dot command for all users in \`/usr/local/bin\`"
-ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
-[[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
-output::empty_line
-
-if ! ${ignore_loader}; then
-  # Adding .Sloth loader to bashrc and zshrc
-  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+if
+  platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null ||
+    ! ${ignore_link:-false}
+then
+  output::answer "Linking dot command for all users in \`/usr/local/bin\`"
+  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
+  [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+  output::empty_line
 fi
 
 if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
@@ -386,10 +407,10 @@ output::answer '🥳 🎉 .Sloth installed sucessfully'
 output::empty_line
 
 output::answer "Trying to load .Sloth"
-if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
+if [[ -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
+  source "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error while loading .Sloth"
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file ".Sloth PATH's for Debugging"

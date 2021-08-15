@@ -148,7 +148,7 @@ check_file_has_var_defined() {
 setup_bashrc() {
   local -r rcfile="${DEFAULT_BASHRC_FILE:-${HOME}/.bashrc}"
   command -p touch "$rcfile"
-  [[ ! -f "$rcfile" ]] && return 1
+  [[ ! -f "$rcfile" ]] && return 1 # Expect unexpected
 
   if check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
     _log "Modifing \`DOTFILES_PATH\` variable in \`${rcfile}\`"
@@ -172,9 +172,10 @@ setup_bashrc() {
 
   if
     [[ -f "${HOME}/.bash_profile" ]] &&
-      { ! grep -q '. "$HOME/.bashrc"' "${HOME}/.bash_profile" || ! grep -q '. "${HOME}/.bashrc"' "${HOME}/.bash_profile"; }
+      ! grep -q '. .*/\.bashrc' "${HOME}/.bash_profile"
   then
     _log "Adding .bashrc to .bash_profile"
+    echo '#shellcheck disable=SC1091' >> "${HOME}/.bash_profile"
     echo '. "${HOME}/.bashrc"' >> "${HOME}/.bash_profile"
   fi
 
@@ -217,7 +218,7 @@ setup_zsh() {
 
   if
     [[ -f "${HOME}/.zlogin" ]] &&
-      { ! grep -q '. "$ZIM_HOME/login_init.zsh" -q &!' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
+      { ! grep -q '\. .*/login_init.zsh.* -q &!$' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
   then
     _log "Appending login_init.zsh in \`${HOME}/.zlogin\`"
     echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >> "${HOME}/.zlogin"
@@ -232,8 +233,6 @@ setup_zsh() {
   log::note "Check the file, maybe add manually the loader should fix this."
   return 1
 }
-
-script::depends_on docpars
 
 ##? Adds a .Sloth loader in your current dotfiles if it was not added. If you
 ##? want to edit .bashrc or .zshenv, with your desired valur for DOTFILES_PATH
@@ -262,19 +261,17 @@ script::depends_on docpars
 ##?   -h --help     Show this help
 ##?   -v --version  Show the program version
 ##?   --modify      Modify zshrc (and zshenv) or bashrc or both and append the
-##?                 loader at the end if it is not. If files in \${HOME}
+##?                 loader at the end if it is not. If files in \`\${HOME}\`
 ##?                 \`.zshenv\`, \`.zshrc\` and \`.bashrc\` does not exist they
 ##?                 will be created.
 ##?
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION "2.0.0"
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+#? v2.1.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
 else
-  version=false
-  help=false
   bashrc=false
   zshrc=false
   modify=false
@@ -305,16 +302,6 @@ else
         ;;
     esac
   done
-fi
-
-# Print name and version or help
-if ${version:-}; then
-  SCRIPT_VERSION="${SCRIPT_VERSION:-$(docs::parse_script_version "$(dot::get_full_script_path)")}"
-  output::write "${SCRIPT_NAME:-dot core loader} v$SCRIPT_VERSION"
-  exit
-elif ${help:-}; then
-  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
-  exit
 fi
 
 case ${1-} in

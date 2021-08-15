@@ -21,16 +21,8 @@ set -euo pipefail
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
+#? v1.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="dot mac fix_gem_openssl"
-SCRIPT_VERSION="1.0.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 if ! platform::is_macos; then
   output::error "This script is only for macOS"

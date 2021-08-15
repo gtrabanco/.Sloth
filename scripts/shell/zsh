@@ -20,8 +20,8 @@
 ##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
 ##?
 ##?
-##? SCRIPT_VERSION "2.2.0"
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] || package::is_installed docpars; then
+#? v2.2.0
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
   docs::parse "$@"
 fi
 
@@ -46,7 +46,7 @@ case $1 in
     output::header "ASL only storing critical files"
     if sudo -v -B; then
       asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
-      sudo sh -c "output::write '$asl_conf' > /etc/asl.conf"
+      sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
       output::empty_line
     else
       output::error "This final step require elevation with sudo"
@@ -56,6 +56,7 @@ case $1 in
   "test_performance")
     PATH="${HOME}/.cargo/bin:${PATH}"
     script::depends_on hyperfine
+
     if platform::command_exists brew; then
       HOMBREW_PREFIX="${HOMBREW_PREFIX:-$(brew --prefix)}"
     fi

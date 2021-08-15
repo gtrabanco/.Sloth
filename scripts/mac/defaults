@@ -20,6 +20,7 @@ DOTLY_MACOS_SETTINGS_PATH=${DOTLY_MACOS_SETTINGS_PATH:-"${DOTFILES_PATH}/os/mac/
 ##?                      same name as current hostname the package/lang is ignored and continue to try
 ##?                      with next package
 ##?
+#? v2.1.0
 docs::parse "$@"
 
 case $1 in
