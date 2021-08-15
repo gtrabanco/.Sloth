@@ -251,3 +251,5 @@ fi
 
 # Unset loader variables
 unset init_script init_scripts_path BREW_BIN user_paths gem_bin gem_paths python_path
+
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer finish loading"

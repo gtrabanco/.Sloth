@@ -390,7 +390,7 @@ output::answer "Trying to load .Sloth"
 if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error loading .Sloth"
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file ".Sloth PATH's for Debugging"
