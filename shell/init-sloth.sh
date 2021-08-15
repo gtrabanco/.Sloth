@@ -55,10 +55,10 @@ alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
-[[ -r "${DOTFILES_PATH}/shell/exports.sh" ]] && . "$DOTFILES_PATH/shell/exports.sh"
+. "${DOTFILES_PATH}/shell/exports.sh" || echo ".Sloth initializer: Error loading user exports"
 
 # Paths
-[[ -r "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
+. "${DOTFILES_PATH}/shell/paths.sh" || true
 
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: PATHs loaded"
 
@@ -204,8 +204,8 @@ path+=($(command -p getconf PATH | command -p tr ':' '\n'))
 ###### END OF PATHS ######
 
 ###### Load dotly core for your current BASH ######
-if [[ -n "$SLOTH_SHELL" && -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" ]]; then
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh"
+if [[ -n "$SLOTH_SHELL" && -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" ]]; then
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" || echo ".Sloth initializer: SHELL ($SLOTH_SHELL) initializer failed"
 else
   printf "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`%s\`\033[0m\n" "${SLOTH_SHELL}"
 fi
@@ -236,9 +236,8 @@ export PATH
 ###### End of .Sloth bin path first & Remove duplicated PATHs ######
 
 ###### User aliases & functions ######
-[[ -r "${DOTFILES_PATH}/shell/aliases.sh" ]] && . "${DOTFILES_PATH}/shell/aliases.sh"
-
-[[ -r "${DOTFILES_PATH}/shell/functions.sh" ]] && . "${DOTFILES_PATH}/shell/functions.sh"
+. "${DOTFILES_PATH}/shell/aliases.sh" || echo ".Sloth initializer: Error loading user aliases"
+. "${DOTFILES_PATH}/shell/functions.sh" || echo ".Sloth initializer: Error loading user functions"
 [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: User aliases and functions loaded"
 ###### End of User aliases & functions ######
 
@@ -248,7 +247,8 @@ if
   ${SLOTH_INIT_SCRIPTS:-true} &&
     [[ 
       -n "${DOTFILES_PATH:-}" &&
-      -d "$init_scripts_path" ]]
+      -d "$init_scripts_path"
+    ]]
 then
 
   for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
