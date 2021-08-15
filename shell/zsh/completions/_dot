@@ -3,8 +3,7 @@
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 _dot() {
-  local curcontext="$curcontext" state line script_path
-  typeset -A opt_args
+  local curcontext="$curcontext" state script_path
 
   _arguments \
     '1: :->context' \
@@ -17,7 +16,7 @@ _dot() {
     _arguments "1:Context:($existing_contexts)"
     ;;
   script)
-    existing_scripts=$(dot::list_context_scripts "${words[2]}")
+    existing_scripts=$(dot::list_context_scripts "${words[2]}" | xargs -I _ basename _)
     _arguments "2:Script:($existing_scripts)"
     ;;
   args)
