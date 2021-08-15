@@ -5,7 +5,7 @@
 
 dot::list_contexts() {
   dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
-  
+
   [[ -n "${DOTFILES_PATH:-}" ]] &&
     dotfiles_contexts=$(command -p find "${DOTFILES_PATH:-}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
 
