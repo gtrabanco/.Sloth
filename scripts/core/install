@@ -298,6 +298,31 @@ if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
       output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
     fi
   fi
+
+  if [[ ! -L "${HOME}/.bashrc" ]]; then
+    output::error "Failed to symlink .bashrc"
+  fi
+
+  if [[ ! -L "${HOME}/.bash_profile" ]]; then
+    output::error "Failed to symlink .bash_profile"
+  fi
+
+  if [[ ! -L "${HOME}/.zshrc" ]]; then
+    output::error "Failed to symlink .zshrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zshenv" ]]; then
+    output::error "Failed to symlink .zshenv"
+  fi
+
+  if [[ ! -L "${HOME}/.zimrc" ]]; then
+    output::error "Failed to symlink .zimrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zlogin" ]]; then
+    output::error "Failed to symlink .zlogin"
+  fi
+
   output::empty_line
 else
   output::answer "Skipping the symlinks apply"
