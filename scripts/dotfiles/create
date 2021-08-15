@@ -11,7 +11,11 @@ dot::load_library "templating.sh" "core"
 ##? Usage:
 ##?    create -h | --help
 ##?    create -v | --version
-##?    create [<dotfiles_path>]
+##?    create <dotfiles_path>]
+##?
+##? Options:
+##?    -h --help        Show this screen.
+##?    -v --version     Show version.
 ##?
 #? v2.0.1
 if [[ $1 == "-v" || $1 == "--version" || $1 == "-h" || $1 == "--help" ]]; then
@@ -28,8 +32,6 @@ fi
 
 if [ ! -d "${DOTFILES_PATH}/shell" ]; then
   cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
-
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
 
   log::success "Done!"
 else
