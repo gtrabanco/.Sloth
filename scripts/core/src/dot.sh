@@ -66,11 +66,11 @@ dot::fzf_view_doc() {
   esac
 
   if
-    [[
+    [[ 
       -x "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/${context}/${script}" ||
-      -x "${DOTFILES_PATH:-/dev/null}/scripts/${context}/${script}"
-    ]]
+      -x "${DOTFILES_PATH:-/dev/null}/scripts/${context}/${script}" ]]
   then
+
     "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$context" "$script" --help
   fi
 }

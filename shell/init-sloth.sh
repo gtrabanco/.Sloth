@@ -247,8 +247,7 @@ if
   ${SLOTH_INIT_SCRIPTS:-true} &&
     [[ 
       -n "${DOTFILES_PATH:-}" &&
-      -d "$init_scripts_path"
-    ]]
+      -d "$init_scripts_path" ]]
 then
 
   for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do

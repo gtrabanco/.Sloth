@@ -77,7 +77,7 @@ files::fzf() {
         # Load core .Sloth libraries
         preview=true
 
-        if [[ ${#preview_args[@]} -gt 0 ]]; then 
+        if [[ ${#preview_args[@]} -gt 0 ]]; then
           preview_args=(
             ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
             "${preview_args[@]};"

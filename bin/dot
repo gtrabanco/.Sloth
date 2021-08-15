@@ -112,7 +112,7 @@ fzf_prompt() {
     [[ ! -x "$full_script" ]] && continue
     fzf_context="$(basename "$(dirname "$full_script")")"
     fzf_script="$(basename "$full_script")"
-    fzf_scripts+=( "${fzf_context} ${fzf_script}" )
+    fzf_scripts+=("${fzf_context} ${fzf_script}")
   done
 
   script="$(
