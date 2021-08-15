@@ -3,7 +3,9 @@
 hyperfine::install() {
   script::depends_on cargo
 
-  cargo install hyperfine
+  platform::command_exists cargo && cargo install hyperfine && hyperfine::is_installed && return
+
+  return 1
 }
 
 hyperfine::is_installed() {

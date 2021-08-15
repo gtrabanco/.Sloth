@@ -234,8 +234,6 @@ setup_zsh() {
   return 1
 }
 
-script::depends_on docpars
-
 ##? Adds a .Sloth loader in your current dotfiles if it was not added. If you
 ##? want to edit .bashrc or .zshenv, with your desired valur for DOTFILES_PATH
 ##? and you do not have defined yet in .bashrc, .zshenv or .zshrc, you can

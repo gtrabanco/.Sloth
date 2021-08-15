@@ -25,7 +25,7 @@ dotbot_yaml_file_backup() {
 
   [[ $mode == "ignore" ]] && return
 
-  script::depends_on python-yq
+  script::depends_on python-yq jq
 
   for link in $(symlinks::get_all_links "$(dotbot::yaml_file_path "$yaml_file")"); do
     link="$(dotbot::realpath "$link")"
@@ -110,12 +110,10 @@ else
         ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;

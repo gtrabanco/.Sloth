@@ -4,8 +4,6 @@
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "dump.sh"
 
-script::depends_on docpars
-
 ##? Import previously dumped packages from:
 ##?  * Brew
 ##?  * Python
