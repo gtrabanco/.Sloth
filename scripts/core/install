@@ -266,12 +266,9 @@ elif platform::is_linux; then
 fi
 output::empty_line
 
-# Mandatory packages
-script::depends_on docpars
-
 # Packages that are necessary but not in CI env
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on fzf python-yq jq cargo-update
+  script::depends_on docpars fzf python-yq jq cargo-update
 fi
 
 if [[ -n "$DOTFILES_PATH" ]]; then

@@ -63,6 +63,8 @@ docs::parse_script() {
     exit 0
   fi
 
+  script::depends_on docpars
+
   eval "$(docpars -h "$(command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$script_path")" : "$@")"
 }
 
