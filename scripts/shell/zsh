@@ -46,7 +46,7 @@ case $1 in
     output::header "ASL only storing critical files"
     if sudo -v -B; then
       asl_conf=$(sed 's/notice] store/critical] store/g' /etc/asl.conf)
-      sudo sh -c "output::write '$asl_conf' > /etc/asl.conf"
+      sudo sh -c "echo '$asl_conf' > /etc/asl.conf"
       output::empty_line
     else
       output::error "This final step require elevation with sudo"
