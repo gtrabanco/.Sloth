@@ -18,6 +18,7 @@
 
 - [Getting Started](#getting-started)
   - [After installing using installer](#after-installing-using-installer)
+  - [Future restoration of your dotfiles](#future-restoration-of-your-dotfiles)
   - [Configuration](#configuration)
   - [Creating a custom script](#creating-a-custom-script)
     - [.Sloth Scripts](#sloth-scripts)
@@ -113,7 +114,25 @@ bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
 
 The first thing you must do is restart your terminal.
 
-You can check installation steps that have be done and check those which fail by using `dot self core`
+You can check installation steps that have be done and check those which fail by using `dot self core`.
+
+After that you should create a repository if you want to store your dotfiles as repository in github and init your `${DOTFILES_PATH}` as your repository.
+
+```bash
+dotfiles
+git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_DOTFILES_REPOSITORY}.git
+git add .
+git commit -m "Initial commit"
+git push origin master
+```
+Replace the variables for your own values or the full url for your repository.
+
+**IMPORTANT** If you make your repository public take care about the information you publish like tokens, password or any other sensible data. The responsability of this is from yourself and not from any .Sloth developer.
+
+## Future restoration of your dotfiles
+
+See the README that is created in your repository or in [`dotfiles_template`](dotfiles_template)
+
 
 ## Configuration
 
