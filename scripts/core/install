@@ -308,6 +308,12 @@ fi
 touch "$HOME/.z"
 unset SYMLINKS_ARGS bk
 
+if ! ${ignore_loader}; then
+  # Adding .Sloth loader to bashrc and zshrc
+  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+fi
+
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
 output::answer "Trying to setup zsh as the default shell"
@@ -329,7 +335,7 @@ unset zsh_shell_path
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
 if platform::command_exists zsh; then
-  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+  zsh "${ZIM_HOME}/zimfw.zsh" install | log::file "Installing zim"
 else
   output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"
@@ -359,12 +365,6 @@ then
   output::empty_line
 fi
 
-if ! ${ignore_loader}; then
-  # Adding .Sloth loader to bashrc and zshrc
-  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
-fi
-
 if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
   output::answer "Executing custom restoration scripts"
   install_scripts_path="${DOTFILES_PATH}/restoration_scripts"
@@ -387,7 +387,7 @@ output::answer '🥳 🎉 .Sloth installed sucessfully'
 output::empty_line
 
 output::answer "Trying to load .Sloth"
-if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
+if [[ -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
   . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error loading .Sloth"
