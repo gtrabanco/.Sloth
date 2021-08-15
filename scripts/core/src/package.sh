@@ -3,18 +3,18 @@
 if [[ -n "${PACKAGE_MANAGERS_SRC[*]:-}" ]]; then
   if
     ! array::exists_value "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
-      ! array::exists_value "${DOTFILES_PATH:-}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
+      ! array::exists_value "${DOTFILES_PATH:-/dev/null}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
   then
     export PACKAGE_MANAGERS_SRC=(
       "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-      "${DOTFILES_PATH:-}/package/managers"
+      "${DOTFILES_PATH:-/dev/null}/package/managers"
       "${PACKAGE_MANAGERS_SRC[@]}"
     )
   fi
 else
   export PACKAGE_MANAGERS_SRC=(
     "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-    "${DOTFILES_PATH:-}/package/managers"
+    "${DOTFILES_PATH:-/dev/null}/package/managers"
   )
 fi
 

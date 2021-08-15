@@ -21,6 +21,7 @@ set -euo pipefail
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
+#? v1.0.0
 docs::parse "$@"
 
 output::h1_without_margin "🧹 Performing a cleanup in all available package managers"

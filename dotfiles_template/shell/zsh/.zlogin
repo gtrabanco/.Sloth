@@ -1,1 +1,1 @@
-. "$ZIM_HOME/login_init.zsh" -q &!
+. "${ZIM_HOME}/login_init.zsh" -q &!

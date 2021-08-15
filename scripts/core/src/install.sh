@@ -54,7 +54,7 @@ install_macos_custom() {
     custom::install gnutls gnu-tar gnu-which gawk grep
 
     output::answer "Installing other needed packages"
-    custom::install make bash zsh bash-completion@2 zsh-completions python3-pip
+    custom::install make bash zsh bash-completion@2 zsh-completions python3-pip python-yq docpars
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"

@@ -15,7 +15,7 @@ gem::is_available() {
 }
 
 gem::install() {
-  [[ -n "${1:-}" ]] && gem::is_available && gem install "$@"
+  [[ -n "${1:-}" ]] && gem::is_available && gem install --user-install "$@"
 }
 
 gem::is_installed() {
@@ -36,7 +36,9 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  gem::is_available && gem update --system | log::file "Updating ${gem_title}"
+  if command -p sudo -v -n 2> /dev/null; then
+    gem::is_available && gem update --system 2>&1 | log::file "Updating ${gem_title}"
+  fi
 }
 
 gem::update_apps() {

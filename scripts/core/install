@@ -3,11 +3,18 @@
 
 set -euo pipefail
 
+if
+  command -v brew &> /dev/null &&
+    brew --prefix gtrabanco/tools/dot &> /dev/null
+then
+  SLOTH_PATH="$(command brew --prefix gtrabanco/tools/dot)"
+else
+  SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/scripts\/core\/install/}}}"
+fi
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
-dot::load_library "git_extended.sh"
-dot::load_library "sloth_update.sh"
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
@@ -34,48 +41,65 @@ has_sudo() {
   command -p sudo -n -v &> /dev/null
 }
 
+initilize_sloth_if_necessary() {
+  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" &> /dev/null; then
+    output::answer "Initilizing .Sloth as repository"
+    sloth_update::sloth_repository_set_ready 2>&1 | log::file "Initilizing .Sloth as repository" || true
+    output::empty_line
+  else
+    output::answer ".Sloth is already a repository"
+  fi
+
+  output::answer "Updating .Sloth submodules"
+  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
+  output::empty_line
+}
+
 ##? Install dotly and setup dotfiles. By default use a interactive backup (backups are not done for core symlinks).
 ##?
 ##? Usage:
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-restoration]
+##?    install [-v | --version]
+##?    install [-h | --help]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
 ##?    -n --never-backup        Never do a backup of user symlinks without prompt
 ##?    -b --always-backup       Always do a backup of user symlinks without prompt
-##?    -i --interactive-backup  Interactive backup of user symlinks asking for every existing symlink before to be applied (default)
-##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom installations
+##?    -i --interactive-backup  Interactive backup of user symlinks asking for
+##?                             every existing symlink before to be applied (default).
+##?    --ignore-symlinks        Ignore apply symlinks. Useful for very custom
+##?                             installations.
+##?    --ignore-loader          Ignore the modification of .bashrc, .zshrc and .zshenv
+##?                             (see \`dot core loader --help\` for non default
+##?                             locations of these files)
 ##?    --ignore-restoration     Ignore user restoration scripts
+##?    --only-git-init-sloth    Executes only the .Sloth initilization if necessary
+##?    --ignore-link            Does not install \`dot\` for all users in /usr/local/bin
+##?                             This option is applied always if .Sloth was installed
+##?                             with Brew Package Manager.
 ##?
-##? SCRIPT_VERSION "3.0.0"
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+##?
+#? v3.2.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
 else
-  version=false
-  help=false
   backup=false
   interactive_backup=false
   ignore_backup=false
   ignore_symlinks=false
+  ignore_loader=false
   ignore_restoration=false
+  only_git_init_sloth=false
+  ignore_link=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      --version | -v)
-        version=true
-        shift
-        ;;
-      --help | -h)
-        help=true
-        shift
-        ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;
@@ -88,8 +112,20 @@ else
         ignore_symlinks=true
         shift
         ;;
+      --ignore-loader)
+        ignore_loader=true
+        shift
+        ;;
       --ignore-restoration)
         ignore_restoration=true
+        shift
+        ;;
+      --only-git-init-sloth)
+        only_git_init_sloth=true
+        shift
+        ;;
+      --ignore-link)
+        ignore_link=true
         shift
         ;;
       *)
@@ -99,56 +135,65 @@ else
   done
 fi
 
-SCRIPT_NAME="dot core install"
+if ${only_git_init_sloth:-false}; then
+  if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+    initilize_sloth_if_necessary
+  else
+    output::answer "Skiping init .Sloth installation as repository because you have used a package manager to install it"
+  fi
+  exit
+fi
 
-# Print name and version
-if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
-  exit
-elif ${help:-false}; then
-  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
-  exit
+# Default values in CI env
+if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
+  export SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  export IGNORE_APPLY_SYMLINKS=false
+  export SYMLINKS_ARGS=(--ignore-backup)
+  export SETUP_ZSH_AS_DEFAULT_SHELL=false
+  export DOTFILES_PATH="${HOME}/.dotfiles"
+  ignore_loader=true
+  ignore_restoration=true
+  IGNORE_UPDATE_PACKAGES=true
+  DOTFILES_PATH="${HOME}/.dotfiles"
 fi
 
 #### Prompt user all the staff we want to know ####
 #### All questions at the very beginning
-# Setup Zsh and Bash this step is done on both systems but this step that requires elevation with sudo only affects macOS users
+# Adds zsh and bash in /etc/shells (only in macos, in linux is done by the package manager)
 if
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    platform::is_macos &&
+  platform::is_macos &&
     [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
-    output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)"
+    output::yesno "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (elevation required; sudo)"
   then
     start_sudo
 
-    sudo -n -v && SETUP_ZSH_AND_BASH_IN_SHELLS=true
-
+    has_sudo && SETUP_ZSH_AND_BASH_IN_SHELLS=true
     ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
-# We need to cache sudo to avoid asking for password later and every time
+# If defined the variable, we need to cache the sudo password
 elif
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    platform::is_macos &&
-    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+  platform::is_macos &&
+    ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
 then
   start_sudo
-  ! has_sudo && output::error "It can not be done without elevation, aborting this options (should be done later manually)"
-  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+
+  ! has_sudo &&
+    output::error "It can not be done without elevation, aborting this options (should be done later manually)" &&
+    SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
 
 # Backups
 if
-  { ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; } &&
-    [[ -z "${SYMLINKS_ARGS[*]:-}" ]] &&
-    ! { ${ignore_symlinks:-false} || ${IGNORE_APPLY_SYMLINKS:-false}; }
+  ! ${IGNORE_APPLY_SYMLINKS:-false} &&
+    [[ -z "${SYMLINKS_ARGS[*]:-}" ]]
 then
   SYMLINKS_ARGS=(--interactive-backup)
-  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+  if ${never_backup:-}; then
     SYMLINKS_ARGS=(--ignore-backup)
   elif ${always_backup:-}; then
     SYMLINKS_ARGS=(--backup)
@@ -159,30 +204,32 @@ then
     ! $bk && SYMLINKS_ARGS=(--ignore-backup)
   fi
 fi
+export SYMLINKS_ARGS
 
 # ZSH as default Shell
 zsh_shell_path="$(command -v zsh || true)"
 if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
   if
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-      ! str::contains zsh "$SHELL" &&
+    [[ "$SHELL" == *"zsh"* ]] &&
       platform::command_exists chsh &&
       [[ -x "$zsh_shell_path" ]] &&
       [[ -f "/etc/shells" ]] &&
       ! grep -q "^${zsh_shell_path}$" "/etc/shells"
   then
-    output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" && SETUP_ZSH_AS_DEFAULT_SHELL=true
+    output::yesno "Do you want to setup the zsh \`$zsh_shell_path\` as default shell" &&
+      SETUP_ZSH_AS_DEFAULT_SHELL=true
+
     output::answer "This will need a sudo authentication to add it to \`/etc/shells\` file"
+    start_sudo
     if ! has_sudo; then
       output::error "Without sudo authentication this can not be done. You should do this later manually"
       SETUP_ZSH_AS_DEFAULT_SHELL=false
     fi
   fi
 elif
-  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    ! str::contains zsh "$SHELL" &&
+  ${SETUP_ZSH_AS_DEFAULT_SHELL:-false} &&
+    [[ "$SHELL" == *"zsh"* ]] &&
     platform::command_exists chsh &&
     [[ -x "$zsh_shell_path" ]] &&
     [[ -f "/etc/shells" ]] &&
@@ -193,23 +240,18 @@ then
     output::error "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
 else
-  if
-    [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
-      [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
-      ! platform::command_exists chsh ||
-      [[ ! -x "$zsh_shell_path" ]] ||
-      [[ ! -f "/etc/shells" ]] ||
-      grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-      ! has_sudo
-  then
-    SETUP_ZSH_AS_DEFAULT_SHELL=false
-  fi
+  SETUP_ZSH_AS_DEFAULT_SHELL=${SETUP_ZSH_AS_DEFAULT_SHELL:-false}
 fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
 export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
+
+if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+  # Initilize .Sloth only if necessary
+  initilize_sloth_if_necessary
+fi
 
 # OS specific packages
 output::answer "Installing specific OS packages if not installed"
@@ -222,27 +264,14 @@ elif platform::is_linux; then
 fi
 output::empty_line
 
-# Mandatory packages
-script::depends_on docpars
-
 # Packages that are necessary but not in CI env
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on fzf python-yq jq cargo-update
+  script::depends_on docpars fzf python-yq jq cargo-update
 fi
-
-if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  output::answer "Initilizing .Sloth as repository"
-  sloth_update::sloth_repository_set_ready | log::file "Initilizing .Sloth as repository" || true
-  output::empty_line
-fi
-
-output::answer "Updating .Sloth submodules"
-git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
-output::empty_line
 
 if [[ -n "$DOTFILES_PATH" ]]; then
   output::answer "Creating dotfiles structure"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create | log::file "Creating dotfiles structure" || exit 1
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create "$DOTFILES_PATH" | log::file "Creating dotfiles structure" || exit 1
   output::empty_line
 else
   output::answer "Skipping dotfiles creation"
@@ -254,7 +283,7 @@ fi
 if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
   output::answer "Setting up symlinks"
   SYMLINKS_ARGS=(--interactive-backup)
-  if [[ -n "${DOTFILES_PATH:-}" ]]; then
+  if [[ -z "${DOTFILES_PATH:-}" ]]; then
     if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
       output::solution "Symlinks applied"
     else
@@ -267,12 +296,43 @@ if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
       output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
     fi
   fi
+
+  if [[ ! -L "${HOME}/.bashrc" ]]; then
+    output::error "Failed to symlink .bashrc"
+  fi
+
+  if [[ ! -L "${HOME}/.bash_profile" ]]; then
+    output::error "Failed to symlink .bash_profile"
+  fi
+
+  if [[ ! -L "${HOME}/.zshrc" ]]; then
+    output::error "Failed to symlink .zshrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zshenv" ]]; then
+    output::error "Failed to symlink .zshenv"
+  fi
+
+  if [[ ! -L "${HOME}/.zimrc" ]]; then
+    output::error "Failed to symlink .zimrc"
+  fi
+
+  if [[ ! -L "${HOME}/.zlogin" ]]; then
+    output::error "Failed to symlink .zlogin"
+  fi
+
   output::empty_line
 else
   output::answer "Skipping the symlinks apply"
 fi
 touch "$HOME/.z"
 unset SYMLINKS_ARGS bk
+
+if ! ${ignore_loader}; then
+  # Adding .Sloth loader to bashrc and zshrc
+  output::answer "Adding .Sloth loader to .bashrc and .zshrc"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+fi
 
 # ZSH as default shell if we are using zsh
 zsh_shell_path="$(command -v zsh || true)"
@@ -295,7 +355,7 @@ unset zsh_shell_path
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
 if platform::command_exists zsh; then
-  zsh "$ZIM_HOME/zimfw.zsh" install | log::file "Installing zim"
+  zsh "${ZIM_HOME}/zimfw.zsh" install | log::file "Installing zim"
 else
   output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"
@@ -315,10 +375,15 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::empty_line
 fi
 
-output::answer "Linking dot command for all users in \`/usr/local/bin\`"
-ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
-[[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
-output::empty_line
+if
+  platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null ||
+    ! ${ignore_link:-false}
+then
+  output::answer "Linking dot command for all users in \`/usr/local/bin\`"
+  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
+  [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+  output::empty_line
+fi
 
 if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
   output::answer "Executing custom restoration scripts"
@@ -338,14 +403,14 @@ if ! ${ignore_restoration:-false} && ! ${IGNORE_RESTORATION:-false}; then
 fi
 
 output::empty_line
-output::answer '🥳 🎉 SLOTH installed sucessfully'
+output::answer '🥳 🎉 .Sloth installed sucessfully'
 output::empty_line
 
 output::answer "Trying to load .Sloth"
-if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
+if [[ -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || exit 1
+  source "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error while loading .Sloth"
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file ".Sloth PATH's for Debugging"
@@ -362,7 +427,7 @@ else
 fi
 output::empty_line
 
-if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && ! ${IGNORE_UPDATE_PACKAGES:-false}; then
+if ! ${IGNORE_UPDATE_PACKAGES:-false}; then
   output::answer "Updating all system packages"
   if platform::is_macos; then
     output::empty_line

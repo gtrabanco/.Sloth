@@ -19,6 +19,8 @@ fi
 ##? Options:
 ##?   --silent -s  If you use this option you won't prompted for custom file name,
 ##?                the file name will be the hostname
+##?
+#? v3.0.0
 docs::parse "$@"
 
 HOSTNAME="$(hostname -s)"
