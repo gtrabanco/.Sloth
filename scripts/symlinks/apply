@@ -25,6 +25,8 @@ dotbot_yaml_file_backup() {
 
   [[ $mode == "ignore" ]] && return
 
+  script::depends_on python-yq
+
   for link in $(symlinks::get_all_links "$(dotbot::yaml_file_path "$yaml_file")"); do
     link="$(dotbot::realpath "$link")"
 
@@ -88,9 +90,6 @@ select_yaml_files_in_path() {
 if ! ${DOTLY_INSTALLER:-false} || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
   docs::parse "$@"
 
-  if ${backup:-} || ${interactive_backup:-}; then
-    script::depends_on python-yq
-  fi
 else
   quiet=false
   super_quiet=false
