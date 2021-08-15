@@ -45,6 +45,36 @@ dot::list_scripts_path() {
   printf "%s\n%s\n" "${core_contexts[@]}" "${dotfiles_contexts[@]}" | command -p sort -u
 }
 
+dot::fzf_view_doc() {
+  case $# in
+    2)
+      local -r context="${1:-}"
+      local -r script="${2:-}"
+      ;;
+    1)
+      if [[ -x "$1" ]]; then
+        local -r context="$(basename "$(dirname "${1:-}")")"
+        local -r script="$(basename "$1")"
+      else
+        local -r context="$(echo "$1" | awk '{print $1}')"
+        local -r script="$(echo "$1" | awk '{print $2}')"
+      fi
+      ;;
+    *)
+      return
+      ;;
+  esac
+
+  if
+    [[
+      -x "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/${context}/${script}" ||
+      -x "${DOTFILES_PATH:-/dev/null}/scripts/${context}/${script}"
+    ]]
+  then
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$context" "$script" --help
+  fi
+}
+
 dot::get_script_path() {
   [[ -n "${script_full_path:-}" ]] && command -p dirname "$script_full_path" && return
   #shellcheck disable=SC2164

@@ -44,7 +44,7 @@ files::fzf() {
   preview=false
   multiple=false
   preview_args=()
-  preview_path="$DOTBOT_BASE_PATH/"
+  preview_path=""
   arguments=()
 
   while [ ${#:-0} -gt 0 ]; do
@@ -74,14 +74,23 @@ files::fzf() {
         fi
         ;;
       -c | --sloth-core | --dotly-core)
+        # Load core .Sloth libraries
         preview=true
-        preview_args=(
-          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh\";"
-          "${preview_args[@]};"
-        )
+
+        if [[ ${#preview_args[@]} -gt 0 ]]; then 
+          preview_args=(
+            ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
+            "${preview_args[@]};"
+          )
+        else
+          preview_args=(
+            ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
+          )
+        fi
         shift
         ;;
       --script-libs)
+        # Load the same libraries that are currently loaded when call fzf
         preview=true
         libraries_to_load=()
         for dot_lib in "${SCRIPT_LOADED_LIBS[@]}"; do
@@ -92,7 +101,7 @@ files::fzf() {
         done
 
         preview_args=(
-          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh\";"
+          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
           "${libraries_to_load[@]}"
           "${preview_args[@]}"
         )

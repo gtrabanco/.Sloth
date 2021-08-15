@@ -105,21 +105,29 @@ elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
 fi
 
 fzf_prompt() {
+  local fzf_scripts fzf_context fzf_script full_script script
   ! command -v fzf &> /dev/null && return 1
 
+  for full_script in $(printf "%s\n" "$@"); do
+    [[ ! -x "$full_script" ]] && continue
+    fzf_context="$(basename "$(dirname "$full_script")")"
+    fzf_script="$(basename "$full_script")"
+    fzf_scripts+=( "${fzf_context} ${fzf_script}" )
+  done
+
   script="$(
-    printf "%s\n" "$@" |
-      command -p xargs -I % sh -c 'echo "$(command -p basename $(command -p dirname %)) $(command -p basename %)"' |
-      fzf \
+    printf "%s\n" "${fzf_scripts[@]}" |
+      files::fzf \
+        --sloth-core \
+        --preview 'dot::fzf_view_doc {}' \
         --height 100% \
-        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$(echo {} | command -p cut -d " " -f 1)" "$(echo {} | command -p cut -d " " -f 2)" --help'
-    # --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$(echo {} | command -p cut -d " " -f 1)" "$(echo {} | command -p cut -d " " -f 2)" --help'
+        --print0
   )"
 
   printf "%s" "$script"
   read -r args
 
-  "${DOTLY_PATH}/bin/dot" "${script}" "${args}"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "${script}" "${args}"
 }
 
 script_exist() {
@@ -143,7 +151,7 @@ else
   [[ -n "${DOTFILES_PATH:-}" ]] && script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
   script_exist "${SLOTH_PATH:-${DOTLY_PATH:-}}" "$context" "$script" && script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
-  if [ -z "$script_path" ]; then
+  if [[ -z "$script_path" ]]; then
     output::error "The script <$context / $script> doesn't exist"
     exit 1
   fi
