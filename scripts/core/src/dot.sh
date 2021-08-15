@@ -13,20 +13,21 @@ dot::list_contexts() {
 }
 
 dot::list_context_scripts() {
-  context="${1:-}"
+  local scripts
+  local -r context="${1:-}"
 
   if [[ -n "$context" ]]; then
-    dotly_scripts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
+    scripts=($(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _))
     [[ -n "${DOTFILES_PATH:-}" ]] &&
-      dotfiles_scripts=$(command -p find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
+      scripts+=($(command -p find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _))
 
-    echo "$dotly_scripts" "$dotfiles_scripts" | command -p grep -v "^_" | command -p sort -u
+    echo "${scripts[@]}" | command -p grep -v "^_" | command -p sort -u
   fi
 }
 
 dot::list_scripts() {
   _list_scripts() {
-    scripts=$(dot::list_context_scripts "${1:-}" | command -p xargs -I_ echo "dot ${1:-} _")
+    local -r scripts=$(dot::list_context_scripts "${1:-}" | command -p xargs -I_ echo "dot ${1:-} _")
 
     echo "$scripts"
   }
@@ -35,9 +36,10 @@ dot::list_scripts() {
 }
 
 dot::list_scripts_path() {
-  dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 2 -perm /+111 -type f | command -p grep -v "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/self")
+  local dotly_contexts dotfiles_contexts
+  dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 2 | command -p grep -v "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/self")
   [[ -n "${DOTFILES_PATH:-}" ]] &&
-    dotfiles_contexts=$(command -p find "${DOTFILES_PATH}/scripts" -maxdepth 2 -perm /+111 -type f)
+    dotfiles_contexts=$(command -p find "${DOTFILES_PATH}/scripts" -maxdepth 2)
 
   printf "%s\n%s" "$dotly_contexts" "$dotfiles_contexts" | command -p sort -u
 }

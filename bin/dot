@@ -105,9 +105,9 @@ elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
 fi
 
 fzf_prompt() {
-  local fzf_paths="$1"
+  local fzf_paths="${1:-}"
 
-  script::depends_on fzf
+  ! command -v fzf &> /dev/null && return 1
 
   script="$(
     echo "$fzf_paths" |
