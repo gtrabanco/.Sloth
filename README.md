@@ -16,20 +16,17 @@
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
 
-- [About this](#about-this)
-- [Features](#features)
-- [INSTALLATION](#installation)
-  - [Linux, macOS, FreeBSD](#linux-macos-freebsd)
-  - [Migration from Dotly](#migration-from-dotly)
 - [Getting Started](#getting-started)
-  - [After installing](#after-installing)
+  - [After installing using installer](#after-installing-using-installer)
   - [Configuration](#configuration)
   - [Creating a custom script](#creating-a-custom-script)
+    - [.Sloth Scripts](#sloth-scripts)
   - [Fully automated restoration with restoration scripts](#fully-automated-restoration-with-restoration-scripts)
   - [Creating your own package manager wrapper](#creating-your-own-package-manager-wrapper)
   - [Creating your own recipe](#creating-your-own-recipe)
   - [Creating your own theme](#creating-your-own-theme)
   - [Init scripts](#init-scripts)
+    - [NVM](#nvm)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
 
@@ -110,28 +107,88 @@ bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
 ```
 -->
 
-## Getting Started
+# Getting Started
 
-### After installing
+## After installing using installer
 
-### Configuration
+The first thing you must do is restart your terminal.
 
-### Creating a custom script
+You can check installation steps that have be done and check those which fail by using `dot self core`
 
-### Fully automated restoration with restoration scripts
+## Configuration
 
-### Creating your own package manager wrapper
+Next thing you have to do is personalize the configuration. How .Sloth is updated and theme, do that by customize files in `DOTFILES_PATH` variable.
 
-### Creating your own recipe
+If you use VSCode (for example), you can view all files and customize with:
 
-### Creating your own theme
+```bash
+code "$DOTFILES_PATH"
+```
 
-### Init scripts
+Pay attention to those files that are in `${DOTFILES_PATH}/shell`. To be more precise the configuration is in `exports.sh`.
+
+Add any additional PATH where to find binaries in the array in `paths.sh`. **IMPORTANT** There are PATHs that are configured in the .Sloth initialiser like gnu stuff in macOS, brew PATH, macports PATH (if you have it installed) or Nix Package Manager PATH.
+
+Other PATHs that are loaded are:
+* `JAVA_HOME`
+* Python
+* Ruby
+* Go
+
+For other envs use init scripts or make a PR.
+
+## Creating a custom script
+
+The main idea of these framework is try to avoid loading bash functions so you can create your own scripts directly from command line, for that use the themplates. View the help:
+
+```bash
+dot script create --help
+```
+
+There are two kind of scripts that can be created, Dotly compatible scripts and .Sloth scripts. By default these ones are created which are for a simple `echo` around 10ms faster.
+
+You can create also core scripts which are created in `SLOTH_PATH`. Use only these feature if you have developing a core script that you will send to as with a PR please.
+
+### .Sloth Scripts
+* The parse of the help and version are ignored because is done automatically with .Sloth.
+* .Sloth scripts are included and not executed so the source of core Dotly/.Sloth scripts can be omited.
+
+## Fully automated restoration with restoration scripts
+
+In your `DOTFILES_PATH` you will have a folder called `restoration_scripts` you can add scripts there that will be executed automatically when using `dot core install`. This useful to automate post installation steps that we want to execute when we restore our dotfiles. See examples in [my dotfiles repository](https://github.com/gtrabanco/dotfiles).
+
+## Creating your own package manager wrapper
+
+If you use a package manager that is not in the core or you want to replace how any work, you can by simply add the library in `${DOTFILES_PATH}/package/managers/mypackage_manager_name.sh`. See `brew` wrapper as the better example. It can dump and make a backup of all installed packages, update apps, install new apps and little stuff more.
+
+## Creating your own recipe
+
+If you want to create your own recipe to install any package or add it as custom dependency for any reason (for example compilation and postcompilation configuration) you can create your custom recipes in `${DOTFILES_PATH}/package/recipes`. Recipes can be autoupdated, see `deno.sh` as good example of recipe that can be installed by using a package manager or installed from source, updated and show information of the package.
+
+## Creating your own theme
+
+Themes are in `${DOTFILES_PATH}/shell/{zsh,bash}/themes`, see `dotly` theme as good example but you can have other installed like [Spaceship Prompt](https://spaceship-prompt.sh/)
+
+## Init scripts
+
+Init scripts can be enabled or disabled and check their status by using `dot init` context. Init scripts are initialized at the end of sloth initilizer and can reduce a lot the performance. There is a notificator for .Sloth updater and nvm init script by default.
+
+Init scripts should be stored in `${DOTFILES_PATH}/shell/init.scripts` and can be enabled by using `dot init enable`. You will see fzf and you can select multiple with `Shift + Tab`. You will only see those that are disabled.
+
+To check which init scripts are enabled or disables use `dot init status`.
+
+### NVM
+
+There is a recipe for NVM and NVM and default LTS node, npm & npx are installed by executing `dot package add nvm`. You will need to enable init script for NVM by using `dot init enable nvm`
 
 <hr>
 
-## Contributing
+# Contributing
 
-## Roadmap
+You can contribute to the project by making a PR, reporting an issue, suggesting a feature, writting about the project or by applying any idea you have. All contributions that respect our [Code of Conduct](https://github.com/gtrabanco/.Sloth/blob/master/.github/code-of-conduct.md) are very welcoming.
+
+# Roadmap
 
 View [Wiki](https://github.com/gtrabanco/sloth/wiki#roadmap) if you want to contribute and you do not know what to do or maybe is already a WIP (Work in Progress).
+
+You can contribute also by using PR to any working branch (Drafted PRs).
