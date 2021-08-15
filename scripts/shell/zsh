@@ -56,7 +56,7 @@ case $1 in
   "test_performance")
     PATH="${HOME}/.cargo/bin:${PATH}"
     script::depends_on hyperfine
-    
+
     if platform::command_exists brew; then
       HOMBREW_PREFIX="${HOMBREW_PREFIX:-$(brew --prefix)}"
     fi
