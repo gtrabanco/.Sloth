@@ -23,6 +23,8 @@ function recent_dirs() {
   cd "$(echo "$selected" | sed "s/\~/$escaped_home/")" || echo "Invalid directory"
 }
 
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer started"
+
 # Advise no vars defines
 if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
   if [[ -d "$HOME/.dotfiles" && -d "${HOME}/.dotfiles/modules/dotly" ]]; then
@@ -57,6 +59,8 @@ alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
 # Paths
 [[ -r "$DOTFILES_PATH/shell/paths.sh" ]] && . "$DOTFILES_PATH/shell/paths.sh"
+
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: PATHs loaded"
 
 # Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
 user_paths=("${path[@]}")
@@ -100,6 +104,7 @@ elif [[ -x "/opt/local/bin/port" ]]; then
   )
   export MANPATH="/opt/local/share/man:$MANPATH"
 fi
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: End macports"
 ###### End of Macports support ######
 
 ###### Brew Package manager support ######
@@ -171,6 +176,7 @@ else
     "${user_paths[@]}"
   )
 fi
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: End brew"
 ###### End of Brew Package manager support ######
 
 ###### PATHS ######
@@ -194,6 +200,7 @@ fi
 # System paths
 #shellcheck disable=SC2207
 path+=($(command -p getconf PATH | command -p tr ':' '\n'))
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: End PATHs"
 ###### END OF PATHS ######
 
 ###### Load dotly core for your current BASH ######
@@ -215,6 +222,7 @@ elif [[ -r "/etc/profile.d/nix.sh" ]]; then
   #shellcheck disable=SC1091
   . "/etc/profile.d/nix.sh"
 fi
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: End Nix"
 ###### End of load nix package manager if available ######
 
 ###### .Sloth bin path first & Remove duplicated PATHs ######
@@ -224,12 +232,14 @@ PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH"
 #shellcheck disable=SC2016
 PATH=$(printf %s "$PATH" | command -p awk -v RS=':' -v ORS='' '!a[$0]++ {if (NR>1) printf(":"); printf("%s", $0) }')
 export PATH
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: Removed duplicated PATHs"
 ###### End of .Sloth bin path first & Remove duplicated PATHs ######
 
 ###### User aliases & functions ######
 [[ -r "${DOTFILES_PATH}/shell/aliases.sh" ]] && . "${DOTFILES_PATH}/shell/aliases.sh"
 
 [[ -r "${DOTFILES_PATH}/shell/functions.sh" ]] && . "${DOTFILES_PATH}/shell/functions.sh"
+[[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: User aliases and functions loaded"
 ###### End of User aliases & functions ######
 
 ###### User init scripts ######
