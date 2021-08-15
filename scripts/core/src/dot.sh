@@ -13,15 +13,15 @@ dot::list_contexts() {
 }
 
 dot::list_context_scripts() {
-  local scripts
+  local core_contexts dotfiles_contexts
   local -r context="${1:-}"
 
   if [[ -n "$context" ]]; then
-    scripts=($(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _))
+    readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
     [[ -n "${DOTFILES_PATH:-}" ]] &&
-      scripts+=($(command -p find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _))
+      readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
 
-    echo "${scripts[@]}" | command -p grep -v "^_" | command -p sort -u
+    printf "%s\n%s\n" "${core_contexts[@]}" "${dotfiles_contexts[@]}" | command -p sort -u
   fi
 }
 
@@ -36,12 +36,13 @@ dot::list_scripts() {
 }
 
 dot::list_scripts_path() {
-  local dotly_contexts dotfiles_contexts
-  dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 2 | command -p grep -v "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/self")
-  [[ -n "${DOTFILES_PATH:-}" ]] &&
-    dotfiles_contexts=$(command -p find "${DOTFILES_PATH}/scripts" -maxdepth 2)
+  local core_contexts dotfiles_contexts
 
-  printf "%s\n%s" "$dotly_contexts" "$dotfiles_contexts" | command -p sort -u
+  readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+  [[ -n "${DOTFILES_PATH:-}" ]] &&
+    readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+
+  printf "%s\n%s\n" "${core_contexts[@]}" "${dotfiles_contexts[@]}" | command -p sort -u
 }
 
 dot::get_script_path() {

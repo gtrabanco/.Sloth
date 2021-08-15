@@ -105,16 +105,15 @@ elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
 fi
 
 fzf_prompt() {
-  local fzf_paths="${1:-}"
-
   ! command -v fzf &> /dev/null && return 1
 
   script="$(
-    echo "$fzf_paths" |
+    printf "%s\n" "$@" |
       command -p xargs -I % sh -c 'echo "$(command -p basename $(command -p dirname %)) $(command -p basename %)"' |
       fzf \
         --height 100% \
-        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" $(echo {} | command -p cut -d" " -f 1) $(echo {} | command -p cut -d" " -f 2) -h'
+        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$(echo {} | command -p cut -d " " -f 1)" "$(echo {} | command -p cut -d " " -f 2)" --help'
+    # --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$(echo {} | command -p cut -d " " -f 1)" "$(echo {} | command -p cut -d " " -f 2)" --help'
   )"
 
   printf "%s" "$script"
@@ -130,7 +129,7 @@ script_exist() {
 if args::has_no_args "$@"; then
   fzf_prompt "$(dot::list_scripts_path)"
 elif args::total_is 1 "$@"; then
-  fzf_prompt "$(dot::list_scripts_path | grep "/$1/")"
+  fzf_prompt "$(dot::list_context_scripts "${1:-}")"
 else
   context="${1:-}"
   script="${2:-}"
@@ -153,7 +152,9 @@ else
   script_full_path="${script_path}/scripts/${context}/${script}"
 
   # Automatic --help and --version
-  if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+  if [[ ! -x "$script_full_path" ]]; then
+    output::error "The script \`$script_full_path\` does not exists"
+  elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
     docs::parse_script "${script_full_path}" "--help"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
