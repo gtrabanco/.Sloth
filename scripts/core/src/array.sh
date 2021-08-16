@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Usage: array::* "${arr1[@]}" "${arr2[@]}"
-array::union() { echo "${@}" | tr ' ' '\n' | sort | uniq; }
-array::disjunction() { echo "${@}" | tr ' ' '\n' | sort | uniq -u; }
-array::difference() { echo "${@}" | tr ' ' '\n' | sort | uniq -d; }
+array::union() { echo "${@}" | command -p tr ' ' '\n' | command -p sort | command -p uniq; }
+array::disjunction() { echo "${@}" | command -p tr ' ' '\n' | command -p sort | command -p uniq -u; }
+array::difference() { echo "${@}" | command -p tr ' ' '\n' | command -p sort | command -p uniq -d; }
 array::exists_value() {
   local array_value
   [[ $# -lt 2 ]] && return 1

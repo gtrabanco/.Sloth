@@ -81,10 +81,24 @@ docs::parse_docopt_section() {
 }
 
 docs::parse_docopt_argument() {
+  local script_args show_args _arg grep_args=()
   local -r SCRIPT_FULL_PATH="${1:-}"
   [[ -n "${SCRIPT_FULL_PATH:-}" && ! -r "${SCRIPT_FULL_PATH:-}" ]] && return 1
   shift
-  local -r ARGUMENT="${1:-}"
 
-  docs::parse_docopt_section "$SCRIPT_FULL_PATH" | command -p awk '{$1="";gsub(/^ |\|/, "", $0); gsub(/[\[]?<[^>]+>[\.]{0,3}[\]]?/,"", $0);} !/^ *$/ {print " "$0" "}' | command -p grep " ${ARGUMENT//\-/\\-}"
+  if [[ $# -gt 0 ]]; then
+    for _arg in "$@"; do
+      [[ -z "$_arg" ]] && continue
+      grep_args+=(-e " ${_arg//\-/\\-}")
+    done
+  fi
+
+  if [[ ${#grep_args[@]} -gt 0 ]]; then
+    readarray -t script_args < <(docs::parse_docopt_section "$SCRIPT_FULL_PATH" | command -p awk '{$1="";gsub(/[\[|\]|\|]/,"",$0); gsub(/[\[]?<[^>]+>[\.]{0,3}[\]]?/,"", $0);} !/^ *$/ {print " "$0" "}' | grep "${grep_args[@]}")
+  else
+    readarray -t script_args < <(docs::parse_docopt_section "$SCRIPT_FULL_PATH" | command -p awk '{$1="";gsub(/[\[|\]|\|]/,"",$0); gsub(/[\[]?<[^>]+>[\.]{0,3}[\]]?/,"", $0);} !/^ *$/ {print " "$0" "}')
+  fi
+  show_args="${script_args[*]:-}"
+
+  echo "$show_args"
 }
