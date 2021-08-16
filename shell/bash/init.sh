@@ -50,7 +50,7 @@ done
 PROMPT_COMMAND="__right_prompt"
 export THEME_COMMAND PROMPT_COMMAND
 
-find {"${SLOTH_PATH:-${DOTLY_PATH:-}}","$DOTFILES_PATH"}"/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _ | while read -r completion; do
+for completion in $(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/bash/completions/" "$DOTFILES_PATH/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _); do
   [[ -z "$completion" ]] && continue
   #shellcheck source=/dev/null
   . "$completion" || echo -e "\033[0;31mBASH completion '$completion' could not be loaded\033[0m"
