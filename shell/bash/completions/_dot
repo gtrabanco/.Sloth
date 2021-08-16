@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+#shellcheck disable=SC1091,SC2207
 
 _dot() {
   local script_path suggestions=""
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/dot.sh"
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/documentation.sh"
 
   [[ -n "${BASH_COMP_DEBUG_FILE:-}" ]] && echo "${#COMP_WORDS[@]}" >> "$BASH_COMP_DEBUG_FILE"
   [[ -n "${BASH_COMP_DEBUG_FILE:-}" ]] && echo "${COMP_WORDS[1]}" >> "$BASH_COMP_DEBUG_FILE"
@@ -21,7 +22,6 @@ _dot() {
       ;;
   esac
 
-  #shellcheck disable=SC2207
   COMPREPLY=($(compgen -W "${suggestions//\-/\\-}" "${COMP_WORDS[$COMP_CWORD]}"))
 }
 
