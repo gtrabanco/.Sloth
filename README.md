@@ -57,7 +57,7 @@ This need a very big improvement
 * Improved package managers and the way they are executed. You can also create your own wrappers for your package manager.
 * Improved registry (recipes) and how recipes can be updated as if they were packages.
 
-**About autocompletion** Is a known issue that current autocompletion for `dot` command does not work as good as supposed and currently only autocomplete the first argument (option). This will be fixed in the future but suppossed a gain in complexity for autocompletion that I am not interested in develop now.
+**About autocompletion** Is a known issue that current autocompletion for `dot` command does not work as good as supposed and currently only autocomplete the first argument (option). This will be fixed in the future but suppossed a gain in complexity for autocompletion that I am not interested in develop now. [See PR #146 for more information](https://github.com/gtrabanco/.Sloth/pull/146)
 
 ## INSTALLATION
 
