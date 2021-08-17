@@ -2,7 +2,14 @@
 
 os=$(uname)
 if [[ "$os" == "Linux" ]]; then
-  xclip -selection clipboard
+  if command -v xclip &> /dev/null; then
+    xclip -selection clipboard
+  else
+    echo "No xclip found"
+    exit 1
+  fi
 elif [[ "$os" == "Darwin" ]]; then
   /usr/bin/pbcopy
+else
+  echo "Unsupported OS"
 fi
