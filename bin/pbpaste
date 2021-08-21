@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
-os=$(uname)
-if [[ "$os" == "Linux" ]]; then
-  if command -v xclip &> /dev/null; then
-    xclip -selection clipboard -o
-  else
-    echo "No xclip found"
-    exit 1
-  fi
-elif [[ "$os" == "Darwin" ]]; then
-  /usr/bin/pbpaste
+if command -v xclip &> /dev/null; then
+  xclip -selection clipboard -o
+
+elif command -vp pbpaste; then
+  command -p pbpaste
+
 else
-  echo "Unsupported OS"
+  echo "Unsupported feature"
 fi
