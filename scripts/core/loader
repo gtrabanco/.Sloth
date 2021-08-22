@@ -316,7 +316,7 @@ else
         action="bashrc"
         shift
         ;;
-      zsh|zshrc)
+      zsh | zshrc)
         $bashrc && output::error "\`zshrc\` subcommand is not compatible with \`bashrc\` subcommand" && exit 1
         zshrc=true
         action="zshrc"
@@ -370,7 +370,7 @@ case "${action:-${1:-}}" in
     fi
     ;;
   shellenv)
-    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" &>/dev/null
+    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" &> /dev/null
 
     case "${SHELL##*/}" in
       bash)

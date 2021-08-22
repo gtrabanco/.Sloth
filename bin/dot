@@ -104,6 +104,11 @@ elif [[ "${1:-}" == "async-update" ]] && args::total_is 1 "$@"; then
 elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
   echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   exit
+
+# Get Loader ready to use with
+elif [[ "${1:-}" == "shellenv" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader shellenv
+  exit
 fi
 
 fzf_prompt() {
