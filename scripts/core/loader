@@ -130,7 +130,7 @@ zimrc_load() {
     return
   fi
 
-  cat <<EOF
+  cat << EOF
 # If you modify this execute \`zimfw uninstall & zimfw install\`
 zmodule zimfw/environment
 zmodule zimfw/git-info
@@ -243,7 +243,7 @@ setup_zsh() {
   fi
 
   if [[ ! -f "${HOME}/.zimrc" ]]; then
-    zimrc_load >> "${HOME}/.zimrc"
+    zimrc_load | tee "${HOME}/.zimrc"
   fi
 
   if check_has_loader "$zshrcfile" && check_file_has_var_defined "$zshenvfile" "DOTFILES_PATH" && check_file_has_var_defined "$zshenvfile" "SLOTH_PATH"; then
