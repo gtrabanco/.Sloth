@@ -3,6 +3,11 @@
 
 set -euo pipefail
 
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
 [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
 
 #shellcheck disable=SC1091
@@ -21,12 +26,6 @@ if [[ -n "${SLOTH_PATH:-}" && -d "${SLOTH_PATH}" ]]; then
   else
     SLOTH_PATH_VALUE="${SLOTH_PATH//$HOME/\${HOME\}}"
   fi
-elif
-  command -v brew &> /dev/null &&
-    brew list gtrabanco/tools/dot 2> /dev/null &&
-    [[ -d "$(brew --prefix gtrabanco/tools/dot 2> /dev/null)" ]]
-then
-  SLOTH_PATH_VALUE="$(brew --prefix gtrabanco/tools/dot 2> /dev/null)"
 # Regular install as git repository in DOTFILES_PATH or standalone install from source
 elif [[ -d "${DOTFILES_PATH}/modules/sloth" ]]; then
   SLOTH_PATH_VALUE="\${DOTFILES_PATH}/modules/sloth"
@@ -123,6 +122,25 @@ bashrc_load() {
       bashrc_load "loader"
       ;;
   esac
+}
+
+zimrc_load() {
+  if [[ -r "${SLOTH_PATH:-/dev/null}/dotfiles_template/shell/zsh/.zimrc" ]]; then
+    cat "${SLOTH_PATH:-/dev/null}/dotfiles_template/shell/zsh/.zimrc"
+    return
+  fi
+
+  cat <<EOF
+# If you modify this execute \`zimfw uninstall & zimfw install\`
+zmodule zimfw/environment
+zmodule zimfw/git-info
+zmodule zimfw/input
+zmodule zsh-users/zsh-autosuggestions
+zmodule zsh-users/zsh-syntax-highlighting
+zmodule zimfw/completion
+
+zhighlighters=(main brackets)
+EOF
 }
 
 check_has_loader() {
@@ -222,6 +240,10 @@ setup_zsh() {
   then
     _log "Appending login_init.zsh in \`${HOME}/.zlogin\`"
     echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >> "${HOME}/.zlogin"
+  fi
+
+  if [[ ! -f "${HOME}/.zimrc" ]]; then
+    zimrc_load >> "${HOME}/.zimrc"
   fi
 
   if check_has_loader "$zshrcfile" && check_file_has_var_defined "$zshenvfile" "DOTFILES_PATH" && check_file_has_var_defined "$zshenvfile" "SLOTH_PATH"; then

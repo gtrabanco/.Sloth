@@ -3,6 +3,11 @@
 
 set -euo pipefail
 
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
   if ! command -vp realpath &> /dev/null; then
@@ -17,14 +22,11 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
     }
   fi
 
-  if command -v brew &> /dev/null && brew list gtrabanco/tools/dot &> /dev/null; then
-    dot_path="$(brew --prefix gtrabanco/tools/dot)"
-  else
-    dot_path="${BASH_SOURCE}"
-    until [[ ! -L $dot_path ]]; do
-      dot_path="$(readlink "$dot_path")"
-    done
-  fi
+  dot_path="${BASH_SOURCE}"
+  until [[ ! -L $dot_path ]]; do
+    dot_path="$(readlink "$dot_path")"
+  done
+
   SLOTH_PATH="$(realpath "${dot_path//\/bin\/dot/}")"
   DOTLY_PATH="$SLOTH_PATH"
 

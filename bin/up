@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-if
-  [[ -z "${SLOTH_PATH:-}" ]] &&
-    command -v brew &> /dev/null &&
-    brew --prefix gtrabanco/tools/dot &> /dev/null
-then
-  SLOTH_PATH="$(brew --prefix gtrabanco/tools/dot)"
-elif [[ -z "${SLOTH_PATH:-}" ]]; then
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
+if [[ -z "${SLOTH_PATH:-}" ]]; then
   SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/bin\/up/}}}"
 elif command -v up &> /dev/null; then
   SLOTH_PATH="$(dirname "$(dirname "$(command -v up)")")"
