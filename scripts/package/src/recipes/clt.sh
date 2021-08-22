@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2016
 
 # Command Line Tools
 # Useful for dependencies of CLT
@@ -16,23 +17,27 @@ clt::install() {
     return 1
   fi
 
-  local -r placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  command -p touch "$placeholder" # Force softwareupdate to list CLT
-
-  local -r clt_label="$(command -p softwareupdate -l | grep -B 1 -E 'Command Line Tools' | awk -F '*' '/^ *\\*/ {print $2}' | sed -e 's/^ *Label: //' -e 's/^ *//' | sort -V -r |
-    head -n1)"
-
   if ! command -p sudo -v -B; then
     output::error "Can not be installed without sudo authentication first"
     return 1
   fi
 
+  local -r placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+  command -p touch "$placeholder" # Force softwareupdate to list CLT
+
+  local -r clt_label="$(command -p softwareupdate -l |
+    command -p grep -B 1 -E 'Command Line Tools' |
+    command -p awk -F '*' '/^ *\\*/ {print $2}' |
+    command -p sed -e 's/^ *Label: //' -e 's/^ *//' |
+    command -p sort -V -r |
+    command -p head -n1)"
+
   if [[ -n "$clt_label" ]]; then
-    command -p sudo "$(command -vp softwareupdate)" -i "$clt_label"
+    command -p sudo "$(command -vp softwareupdate)" --install --agree-to-license "$clt_label"
     command -p sudo "$(command -vp xcode-select)" --switch "/Library/Developer/CommandLineTools"
   fi
   # Remove the placeholder always
-  /bin/rm -f "$placeholder"
+  command -p rm -f "$placeholder"
 
   # Something was terriby wrong with the CLT installation, so we need to try with another method
   if ! clt::is_installed && command -p sudo -v -B; then
