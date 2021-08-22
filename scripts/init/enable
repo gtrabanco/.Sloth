@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || -z "${DOTFILES_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
