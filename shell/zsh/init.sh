@@ -57,14 +57,19 @@ if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
   fpath+=("${HOMEBREW_PREFIX}/share/zsh/site-functions")
 fi
 
-
-SLOTH_THEME="${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
 autoload -Uz promptinit && promptinit
-prompt "$SLOTH_THEME"
+prompt "${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
 
-#shellcheck source=/dev/null
-. "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
-#shellcheck source=/dev/null
-. "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
-#shellcheck source=/dev/null
-. "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh"
+if
+  [[
+    -r "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh" &&
+    -r "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
+  ]]
+then
+  . "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
+  . "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
+fi
+
+if [[ -r "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh" ]]; then
+  . "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh"
+fi
