@@ -212,6 +212,7 @@ if [[ -n "$SLOTH_SHELL" && -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHEL
 else
   printf "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`%s\`\033[0m\n" "${SLOTH_SHELL}"
 fi
+{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End .Sloth initializer for \`$SLOTH_SHELL\`"; } || true
 ###### End of load dotly core for your current BASH ######
 
 ###### Load nix package manager if available ######
