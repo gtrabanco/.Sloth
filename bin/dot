@@ -75,20 +75,15 @@ fi
 ##?    update              Same as self-update
 ##?    async-update        Same as self-update but asynchronously
 ##?
-#? v2.2.0
 
 # This script help
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  docs::parse_script "$BASH_SOURCE"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  docs::parse_script "$BASH_SOURCE" "$@"
   exit
 
 # This script version
 elif [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
-    brew list gtrabanco/tools/dot --version | cut -d ' ' -f 2
-  else
-    docs::parse_script_version "$BASH_SOURCE"
-  fi
+  echo ".Sloth $(sloth_update::get_current_version)"
   exit
 # Self-update of .Sloth
 elif [[ "${1:-}" == "self-update" || "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
