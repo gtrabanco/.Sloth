@@ -15,7 +15,7 @@ set -euo pipefail
 ##?
 
 # Script variables
-SCRIPT_NAME="sloth dotfiles recovery"
+SCRIPT_NAME="dot dotfiles recovery"
 SCRIPT_VERSION="v1.0.0"
 
 # Default values
@@ -157,28 +157,35 @@ is_clt_installed() {
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  has_sudo && return 0
-  sudo -v -B
-  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
-    (while true; do
-      sudo -v
-      sleep 30
-    done) &
-    SUDO_PID="$!"
-    trap stop_sudo SIGINT SIGTERM
+  if ! has_sudo; then
+    command -p sudo -v -B
+    if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
+      (while true; do
+        command -p sudo -v
+        command -p sleep 30
+      done) &
+      SUDO_PID="$!"
+      builtin trap stop_sudo SIGINT SIGTERM
+    fi
   fi
 }
 
 stop_sudo() {
-  kill "$SUDO_PID" &> /dev/null
-  trap - SIGINT SIGTERM
-  sudo -k
+  builtin kill "$SUDO_PID" &> /dev/null
+  builtin trap - SIGINT SIGTERM
+  command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
   command -p sudo -n -v &> /dev/null
 }
+
+if command -v brew &> /dev/null; then
+  eval "$(command brew shellenv)"
+else
+  PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"
+fi
 
 _w "  ┌────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth${normal} restorer!  │ ~"
@@ -190,7 +197,7 @@ if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
   _w "We will need to use user elevation with sudo to install Command Line Tools"
   start_sudo
 
-  if ! sudo -v -B; then
+  if ! has_sudo; then
     _e "Elevation error: wrong or not provided password"
     _a "Yow will be asked later for the password again"
   fi

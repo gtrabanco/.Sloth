@@ -136,28 +136,35 @@ install_clt() {
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  has_sudo && return 0
-  sudo -v -B
-  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
-    (while true; do
-      sudo -v
-      sleep 30
-    done) &
-    SUDO_PID="$!"
-    trap stop_sudo SIGINT SIGTERM
+  if ! has_sudo; then
+    command -p sudo -v -B
+    if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
+      (while true; do
+        command -p sudo -v
+        command -p sleep 30
+      done) &
+      SUDO_PID="$!"
+      builtin trap stop_sudo SIGINT SIGTERM
+    fi
   fi
 }
 
 stop_sudo() {
-  kill "$SUDO_PID" &> /dev/null
-  trap - SIGINT SIGTERM
-  sudo -k
+  builtin kill "$SUDO_PID" &> /dev/null
+  builtin trap - SIGINT SIGTERM
+  command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
   command -p sudo -n -v &> /dev/null
 }
+
+if command -v brew &> /dev/null; then
+  eval "$(command brew shellenv)"
+else
+  PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"
+fi
 
 # Default values in CI env
 if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
