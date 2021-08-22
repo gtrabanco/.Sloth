@@ -160,6 +160,12 @@ has_sudo() {
   command -p sudo -n -v &> /dev/null
 }
 
+if command -v brew &> /dev/null; then
+  eval "$(command brew shellenv)"
+else
+  PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"
+fi
+
 # Default values in CI env
 if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
   export SETUP_ZSH_AND_BASH_IN_SHELLS=false
