@@ -48,7 +48,7 @@ zshrc_load() {
         echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
       else
         echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
-        echo '# export DOTFILES_PATH="\${HOME}/.dotfiles"'
+        echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
       fi
       echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
       echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
@@ -98,7 +98,7 @@ bashrc_load() {
         echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
       else
         echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
-        echo '# export DOTFILES_PATH="\${HOME}/.dotfiles"'
+        echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
       fi
       echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
       echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
