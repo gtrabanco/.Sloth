@@ -68,6 +68,9 @@ zshrc_load() {
       echo '###### End of .Sloth loader ######'
       echo
       ;;
+    "zimrc")
+      zimrc_load
+      ;;
     *)
       echo 'You need to create or modify two different files'
       echo '--------------- BEGIN .zshenv file ---------------'
@@ -272,12 +275,16 @@ setup_zsh() {
 ##?   loader (-h | --help)
 ##?   loader (-v | --version)
 ##?   loader bashrc [--modify]
-##?   loader zshrc [--modify]
+##?   loader (zsh | zshrc) [--modify]
+##?   loader shellenv
 ##?   loader --modify
 ##?
 ##? Arguments:
 ##?   bashrc        Show or modify .bashrc content for .Sloth loading
-##?   zshrc         Show or modify .zshrc and .zshenv content for .Sloth loading
+##?   zsh           Show or modify .zshrc and .zshenv content for .Sloth loading
+##?   zshrc         Alias of zsh
+##?   shellenv      Print loader for given shell or autodetect which is the
+##?                 current shell and prints the loader ready to use with eval.
 ##?
 ##? Options:
 ##?   -h --help     Show this help
@@ -293,20 +300,32 @@ setup_zsh() {
 #? v2.1.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
+  action="${1:-}"
 else
   bashrc=false
   zshrc=false
   modify=false
+  #shellcheck disable=SC2034
+  shellenv=false
+  action="$1"
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       bashrc)
         $zshrc && output::error "\`bashrc\` subcommand is not compatible with \`zshrc\` subcommand" && exit 1
         bashrc=true
+        action="bashrc"
         shift
         ;;
-      zshrc)
+      zsh|zshrc)
         $bashrc && output::error "\`zshrc\` subcommand is not compatible with \`bashrc\` subcommand" && exit 1
         zshrc=true
+        action="zshrc"
+        shift
+        ;;
+      shellenv)
+        #shellcheck disable=SC2034
+        shellenv=true
+        action="shellenv"
         shift
         ;;
       --modify)
@@ -326,7 +345,7 @@ else
   done
 fi
 
-case ${1-} in
+case "${action:-${1:-}}" in
   # Any subcommand should be here
   bashrc)
     if ${modify:-false}; then
@@ -349,6 +368,21 @@ case ${1-} in
     else
       zshrc_load
     fi
+    ;;
+  shellenv)
+    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" &>/dev/null
+
+    case "${SHELL##*/}" in
+      bash)
+        bashrc_load
+        ;;
+      *)
+        zshrc_load zshenv
+        output::empty_line
+        zshrc_load zshrc
+        ;;
+    esac
+    exit
     ;;
   *)
     if ${modify:-false}; then
