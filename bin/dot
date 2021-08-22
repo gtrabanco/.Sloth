@@ -10,27 +10,17 @@ set -euo pipefail
 
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
-  if ! command -vp realpath &> /dev/null; then
-    # https://unix.stackexchange.com/a/558360
-    realpath() {
-      local -r file_path="${1:-}"
-      if [[ -d "${1:-}" ]]; then
-        cd -P -- "${file_path}" && builtin pwd
-      else
-        cd -P -- "${file_path%/*}" && printf "%s/%s\n" "$PWD" "${file_path##*/}"
-      fi
-    }
+  if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && ! command -vp realpath &> /dev/null; then
+    dot_path="${BASH_SOURCE}"
+    until [[ ! -L $dot_path ]]; do
+      dot_path="$(readlink "$dot_path")"
+    done
+
+    SLOTH_PATH="$(realpath "${dot_path//\/bin\/dot/}")"
+    DOTLY_PATH="$SLOTH_PATH"
   fi
 
-  dot_path="${BASH_SOURCE}"
-  until [[ ! -L $dot_path ]]; do
-    dot_path="$(readlink "$dot_path")"
-  done
-
-  SLOTH_PATH="$(realpath "${dot_path//\/bin\/dot/}")"
-  DOTLY_PATH="$SLOTH_PATH"
-
-  if [[ ! -d "$SLOTH_PATH" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
+  if [[ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
     echo "Error: Could not find the .Sloth source code."
     exit 1
   fi
