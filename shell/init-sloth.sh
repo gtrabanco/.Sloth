@@ -53,13 +53,16 @@ alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
-. "${DOTFILES_PATH}/shell/exports.sh" || echo ".Sloth initializer: Error loading user exports"
+if [[ -n "${DOTFILES_PATH:-}" && -d "${DOTFILES_PATH:-}" ]]; then
+  #User variables & configuration
+  [[ -r "${DOTFILES_PATH}/shell/exports.sh" ]] && . "${DOTFILES_PATH}/shell/exports.sh" || echo ".Sloth initializer: Error loading user exports"
 
-# Paths
-. "${DOTFILES_PATH}/shell/paths.sh" || echo ".Sloth initializer: Error loading user paths"
+  # Paths
+  [[ -r "${DOTFILES_PATH}/shell/paths.sh" ]] && . "${DOTFILES_PATH}/shell/paths.sh" || echo ".Sloth initializer: Error loading user paths"
+fi
 
 # Temporary store user path in paths (this is done to avoid do a breaking change and keep compatibility with dotly)
-user_paths=("${path[@]}")
+[[ -n "${path[*]:-}" ]] && user_paths=("${path[@]:-}")
 # Temporary PATH to the system paths
 PATH="${PATH:+${PATH}:}$(command -p getconf PATH)"
 
@@ -228,8 +231,10 @@ export PATH
 ###### End of .Sloth bin path first & Remove duplicated PATHs ######
 
 ###### User aliases & functions ######
-. "${DOTFILES_PATH}/shell/aliases.sh" || echo ".Sloth initializer: Error loading user aliases"
-. "${DOTFILES_PATH}/shell/functions.sh" || echo ".Sloth initializer: Error loading user functions"
+if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
+  . "${DOTFILES_PATH}/shell/aliases.sh" || echo ".Sloth initializer: Error loading user aliases"
+  . "${DOTFILES_PATH}/shell/functions.sh" || echo ".Sloth initializer: Error loading user functions"
+fi
 ###### End of User aliases & functions ######
 
 ###### User init scripts ######
@@ -244,7 +249,7 @@ then
   for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
-    { [[ -f "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
+    { [[ -r "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
 ###### End of User init scripts ######

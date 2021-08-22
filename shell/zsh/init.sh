@@ -26,8 +26,10 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-#shellcheck disable=SC1091
-. "${ZIM_HOME}/init.zsh"
+if [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
+  #shellcheck disable=SC1091
+  . "${ZIM_HOME}/init.zsh"
+fi
 
 # Async mode for autocompletion
 # shellcheck disable=SC2034
@@ -35,9 +37,15 @@ ZSH_AUTOSUGGEST_USE_ASYNC=true
 # shellcheck disable=SC2034
 ZSH_HIGHLIGHT_MAXLENGTH=300
 
-fpath=(
-  "${DOTFILES_PATH}/shell/zsh/themes"
-  "${DOTFILES_PATH}/shell/zsh/autocompletions"
+fpath=()
+if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
+  fpath+=(
+    "${DOTFILES_PATH}/shell/zsh/themes"
+    "${DOTFILES_PATH}/shell/zsh/autocompletions"
+  )
+fi
+
+fpath+=(
   "${SLOTH_PATH}/shell/zsh/themes"
   "${SLOTH_PATH}/shell/zsh/completions"
   "${fpath[@]}"
