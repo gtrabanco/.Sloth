@@ -53,7 +53,7 @@ sloth_update::sloth_repository_set_ready() {
   )
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     return
   fi
 
@@ -85,9 +85,9 @@ sloth_update::get_current_version() {
   )
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     #shellcheck disable=SC2016
-    brew list gtrabanco/tools/dot --versions | awk '{print $NF}'
+    brew list gtrabanco/tools/dot --versions | awk '{print "v"$NF}'
     return
   fi
 
@@ -108,7 +108,7 @@ sloth_update::get_latest_stable_version() {
   url="${url//git+ssh:\/\//}"
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     #shellcheck disable=SC2016
     brew info gtrabanco/tools/dot 2>&1 | command -p head -n1 | command -p sed 's/[,|HEAD]//g' | command -p awk '{print $NF}' | command -p xargs
     exit
@@ -133,7 +133,7 @@ sloth_update::local_sloth_repository_can_be_updated() {
   fi
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     return
   fi
 
@@ -171,7 +171,7 @@ sloth_update::should_be_updated() {
   fi
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
     if brew outdated dot &> /dev/null; then
       return 1
@@ -247,7 +247,7 @@ sloth_update::sloth_update() {
   )
 
   # .Sloth were installed using a package manager
-  if platform::command_exists brew && brew list gtrabanco/tools/dot &> /dev/null; then
+  if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
     if brew outdated dot &> /dev/null; then
       return
