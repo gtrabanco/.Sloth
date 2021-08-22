@@ -23,6 +23,11 @@ function recent_dirs() {
   cd "$(echo "$selected" | sed "s/\~/$escaped_home/")" || echo "Invalid directory"
 }
 
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
 # Advise no vars defines
 if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
   if [[ -d "$HOME/.dotfiles" && -d "${HOME}/.dotfiles/modules/dotly" ]]; then
@@ -33,7 +38,7 @@ if [[ -z "${DOTFILES_PATH:-}" || ! -d "${DOTFILES_PATH:-}" || -z "${SLOTH_PATH:-
     DOTFILES_PATH="${HOME}/.dotfiles"
     SLOTH_PATH="${DOTFILES_PATH}/modules/sloth"
     DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
-  else
+  elif ! ${HOMBREW_SLOTH:-false}; then
     echo -e "\033[0;31m\033[1mDOTFILES_PATH or SLOTH_PATH is not defined or is wrong, .Sloth will fail\033[0m"
   fi
 fi
@@ -212,6 +217,7 @@ if [[ -n "$SLOTH_SHELL" && -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHEL
 else
   printf "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`%s\`\033[0m\n" "${SLOTH_SHELL}"
 fi
+{ [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "End .Sloth initializer for \`$SLOTH_SHELL\`"; } || true
 ###### End of load dotly core for your current BASH ######
 
 ###### Load nix package manager if available ######

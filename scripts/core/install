@@ -3,12 +3,12 @@
 
 set -euo pipefail
 
-if
-  command -v brew &> /dev/null &&
-    brew --prefix gtrabanco/tools/dot &> /dev/null
-then
-  SLOTH_PATH="$(command brew --prefix gtrabanco/tools/dot)"
-else
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
+if [[ -z "${SLOTH_PATH:-}" ]]; then
   SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/scripts\/core\/install/}}}"
 fi
 
@@ -61,7 +61,7 @@ initilize_sloth_if_necessary() {
 ##? Usage:
 ##?    install [-v | --version]
 ##?    install [-h | --help]
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth] [--link-prefix <link_prefix>]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
@@ -79,11 +79,13 @@ initilize_sloth_if_necessary() {
 ##?    --ignore-link            Does not install \`dot\` for all users in /usr/local/bin
 ##?                             This option is applied always if .Sloth was installed
 ##?                             with Brew Package Manager.
-##?
+##?    --link-prefix            Link prefix for where to link the \`dot\` it will be \`${LINK_PREFIX}/bin\`
 ##?
 #? v3.2.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
+
+  [[ -z "${link_prefix}" ]] && link_prefix="/usr/local"
 else
   backup=false
   interactive_backup=false
@@ -93,6 +95,7 @@ else
   ignore_restoration=false
   only_git_init_sloth=false
   ignore_link=false
+  link_prefix=/usr/local
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --backup)
@@ -128,6 +131,11 @@ else
       --ignore-link)
         ignore_link=true
         shift
+        ;;
+      --link-prefix)
+        [[ -z "${2:-}" ]] && output::error "Wrong usage of \`--link-prefix\` option, it should include a second param with the prefix where to link \`dot\` command." && exit 4
+        link_prefix=$2
+        shift 2
         ;;
       *)
         break 2

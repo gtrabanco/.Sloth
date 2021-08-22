@@ -21,7 +21,16 @@ script::depends_on() {
 }
 
 script::list_functions() {
-  [[ -f "${1:-}" ]] && bash -c ". \"${1:-}\"; typeset -F" | awk '{print $3}'
+  local -r file="${1:-}"
+  if [[ ! -r "$file" ]]; then
+    return
+  fi
+
+  if head -n1 "$file" | grep -q 'bash'; then
+    bash -c ". \"$file\"; typeset -F" | awk '{print $3}'
+  elif head -n1 "$file" | grep -q 'zsh'; then
+    zsh -c ". \"$file\"; print -l ${(ok)functions}"
+  fi
 }
 
 script::function_exists() {

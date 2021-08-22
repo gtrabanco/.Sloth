@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+# export DOTFILES_PATH="${DOTFILES_PATH:-${SLOTH_PATH}/dotfiles_template}"
+##### End of Hombrew Installation Patch #####
+
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "dotbot.sh"
