@@ -258,7 +258,7 @@ if
       -d "$init_scripts_path" ]]
 then
 
-  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -type f,l -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
+  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
     { [[ -r "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
