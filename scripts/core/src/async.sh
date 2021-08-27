@@ -3,10 +3,11 @@
 # This was literally copied from: https://github.com/zombieleet/async-bash
 # check the README.md for information on how to use this script
 
-# set +eu
-
 declare -a JOB_IDS
 declare -i JOBS=1
+
+# trap "exit" INT TERM
+# trap "kill 0" EXIT
 
 killJob() {
   local jobToKill signal __al__signals isSig
