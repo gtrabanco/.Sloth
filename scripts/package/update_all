@@ -27,10 +27,8 @@ if ${split:-false}; then
   script::depends_on tmux
   SESSION_NAME="${SESSION_NAME:-$(date +%s)}"
   #shellcheck disable=SC2016
-  tmux \
-    new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all $*" \; \
-    split-window -h 'tail -f ${HOME}/dotly.log' \;
-  exit
+  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
+  exit 0
 fi
 
 output::h1_without_margin "♻️  Updating all the apps on your system"
@@ -52,6 +50,10 @@ for package_manager in "${package_managers[@]}"; do
     package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
   fi
 done
+
+if command -v tmux &> /dev/null; then
+  pkill -f tmux || true
+fi
 
 output::empty_line
 log::success '👌 All your packages have been successfully updated'
