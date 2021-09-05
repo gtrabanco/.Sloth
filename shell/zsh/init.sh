@@ -56,7 +56,7 @@ if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
 fi
 
 autoload -Uz promptinit && promptinit
-prompt "${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
+prompt "${SLOTH_ZSH_THEME:-${SLOTH_THEME:-${DOTLY_THEME:-codely}}}"
 
 if
   [[
