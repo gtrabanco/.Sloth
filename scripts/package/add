@@ -8,16 +8,17 @@
 ##? Usage:
 ##?    add -v | --version
 ##?    add -h | --help
-##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] <packages_names>...
+##?    add [-s | --skip-recipe] [--pkgmgr <package_manager>] [--force] <packages_names>...
 ##?
 ##? Options:
 ##?    -h --help         Show script help
 ##?    -v --version      Show script version
 ##?    -s --skip-recipe  Skip the receipe and force to use a package manager, this omit any recipe
 ##?    --pkgmgr          Force to use a package manager, for example: cargo
+##?    --force           Force to install the package
 ##?
-##? SCRIPT_VERSION 3.1.0
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
+#? v3.2.0
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
   _all_args=("$@")
 
@@ -32,8 +33,6 @@ if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars"; then
 else
   _all_args=("$@")
   package_name=""
-  version=false
-  help=false
   skip_recipe=false
   package_manager=""
   while [[ $# -gt 0 ]]; do
@@ -46,12 +45,8 @@ else
         package_manager="$2"
         shift 2
         ;;
-      --version | -v)
-        version=true
-        shift
-        ;;
-      --help | -h)
-        help=true
+      --force | -f)
+        force=true
         shift
         ;;
       *)
@@ -93,19 +88,13 @@ if [[ -n "${package_manager:-}" ]]; then
   skip_recipe=true
 fi
 
-if ${version:-}; then
-  output::write "${SCRIPT_NAME} v${SCRIPT_VERSION}"
-  exit 0
-elif ${help:-}; then
-  grep '^##?' "$0" | tr '##? ' ' '
-  exit 0
-elif [[ -z "${package_name:-}" ]]; then
+if [[ -z "${package_name:-}" ]]; then
   output::error "No package name provided"
   exit 1
 fi
 
 # If the package is not docpars and docpars is not installed
-if [[ "$package_name" != "docpars" && "$package_name" != "cargo" ]] && ! package::is_installed "docpars"; then
+if [[ "$package_name" != "docpars" && "$package_name" != "cargo" ]] && ! package::is_installed "docpars" && ! ${DOTLY_INSTALLER:-false}; then
   script::depends_on docpars
 fi
 
@@ -115,17 +104,27 @@ if [[ -f "$HOME/.cargo/env" ]]; then
 fi
 
 # Check if package is installed
-package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+! $force && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
-  if registry::install "$package_name"; then
+  if $force; then
+    registry::install "$package_name" --force || true
+  else
+    registry::install "$package_name" || true
+  fi
+
+  if registry::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"
     exit 0
   fi
 else
-  package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
+  if $force; then
+    package::install "$package_name" "${FORCED_PKGMGR:-auto}" --force 2>&1 || true
+  else
+    package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
+  fi
 
   if package::is_installed "$package_name"; then
     output::write "✅ \`$package_name\` installed"

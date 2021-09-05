@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-os=$(uname)
-if [[ "$os" == "Linux" ]]; then
+if command -v xclip &> /dev/null; then
   xclip -selection clipboard
-elif [[ "$os" == "Darwin" ]]; then
-  /usr/bin/pbcopy
+
+elif command -vp pbcopy; then
+  command -p pbcopy
+
+else
+  echo "Unsupported feature"
 fi

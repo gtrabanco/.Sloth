@@ -1,119 +1,125 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2128,SC2016
 
-set -o pipefail
+set -euo pipefail
+
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
 
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
-  dot_path="$BASH_SOURCE"
-  until [[ ! -L $dot_path ]]; do
-    dot_path="$(readlink "$dot_path")"
-  done
-  SLOTH_PATH="$(dirname "$(dirname "$dot_path")")"
-  DOTLY_PATH="$SLOTH_PATH"
+  if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && ! command -vp realpath &> /dev/null; then
+    dot_path="${BASH_SOURCE}"
+    until [[ ! -L $dot_path ]]; do
+      dot_path="$(readlink "$dot_path")"
+    done
 
-  if [[ ! -d "$SLOTH_PATH" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
-    echo "Error: Could not find the SLOTH source code."
+    SLOTH_PATH="$(realpath "${dot_path//\/bin\/dot/}")"
+    DOTLY_PATH="$SLOTH_PATH"
+  fi
+
+  if [[ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
+    echo "Error: Could not find the .Sloth source code."
     exit 1
   fi
 
   if [[ -z "${DOTFILES_PATH:-}" && -d "${HOME}/.dotfiles/scripts" ]]; then
-    DOTFILES_PATH="$HOME/.dotfiles"
+    export DOTFILES_PATH="$HOME/.dotfiles"
   fi
   unset dot_path
-  export SLOTH_PATH DOTLY_PATH DOTFILES_PATH
+  export SLOTH_PATH DOTLY_PATH
 fi
+
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && echo "Error: Could not find where the .Sloth is installed." && exit 1
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
-
-# Define variables for this script
-SLOTH_LAZY_SCRIPT_NAME="sloth_lazy_script"
-SLOTH_LAZY_SCRIPT_CONTEXT="core"
-SLOTH_LAZY_SCRIPT="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${SLOTH_LAZY_SCRIPT_CONTEXT}/${SLOTH_LAZY_SCRIPT_NAME}"
-SLOTH_SCRIPT_BASE_NAME="sloth"
 
 ##? Execute lazy scripts in your dotfiles
 ##?
 ##? Usage:
 ##?    dot self-update
 ##?    dot autoupdate
+##?    dot async-update
 ##?    dot -h | --help
 ##?    dot -v | --version
+##?    dot --prefix
 ##?    dot <context> <script> [<args>...]
 ##?    dot <context>
 ##?    dot
 ##?
 ##? Arguments:
-##?    context  Is the subfolder in "\${DOTFILES_PATH}/scripts/" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts"
-##?    script   Is the script in "\${DOTFILES_PATH}/scripts/<context>" or "\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>"
+##?    context  Is the subfolder in "\`\${DOTFILES_PATH}/scripts\`" or
+##?             "\`\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts\`"
+##?    script   Is the script in "\`\${DOTFILES_PATH}/scripts/<context>\`" or
+##?             "\`\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>\`"
 ##?
 ##? Options:
-##?    -h --help     Gives help to the user
-##?    -v --version  Show the dot command version
+##?    -h --help           Gives help to the user
+##?    -v --version        Show the dot command version
+##?    --prefix            Prints the path to .Sloth
+##?    self-update         Autoupdate .Sloth. If brew was used to install use brew
+##?                        to update.
+##?    update              Same as self-update
+##?    async-update        Same as self-update but asynchronously
 ##?
-##?    self-update
-##?
-##? SCRIPT_VERSION 2.1.0
 
 # This script help
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  grep "^##?" "$BASH_SOURCE" | cut -c 5-
-fi
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  docs::parse_script "$BASH_SOURCE" "$@"
+  exit
 
 # This script version
-if [[ "$1" == "-v" || "$1" == "--version" ]]; then
-  SCRIPT_VERSION="$(dot::parse_script_version "$BASH_SOURCE")"
-  SCRIPT_NAME="$(basename "$BASH_SOURCE")"
-  if [[ -n "${SCRIPT_VERSION}" ]]; then
-    output::write "${SCRIPT_NAME}"
-    output::write "\t\`v${SCRIPT_VERSION}\`"
-  else
-    output::write "${SCRIPT_NAME}"
-    output::error "\t no version provided"
-  fi
+elif [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+  echo ".Sloth $(sloth_update::get_current_version)"
   exit
-fi
-
-if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"; then
-  output::error "Error: .Sloth needs to execute \`dot core install --ignore-symlinks\` previously to be used."
-  output::answer "This will install some tools in your system and also init current .Sloth folder as repository"
-  exit 1
-fi
-
-# Self-update (Why not in dot directly?)
-if [[ "$1" == "self-update" ]] && args::total_is 1 "$@"; then
+# Self-update of .Sloth
+elif [[ "${1:-}" == "self-update" || "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
   exit
-fi
-
-# Self-update
-if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
-  exit
-fi
 
 # Autoupdate (Async update)
-if [[ "$1" == "update" ]] && args::total_is 1 "$@"; then
+elif [[ "${1:-}" == "async-update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
+  exit
+
+# Get PATH to .Sloth
+elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
+  echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  exit
+
+# Get Loader ready to use with
+elif [[ "${1:-}" == "shellenv" ]] && args::total_is 1 "$@"; then
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader shellenv
   exit
 fi
 
 fzf_prompt() {
-  local paths="$1"
+  local fzf_scripts fzf_context fzf_script full_script script
+  ! command -v fzf &> /dev/null && return 1
+
+  for full_script in $(printf "%s\n" "$@"); do
+    [[ ! -x "$full_script" ]] && continue
+    fzf_context="$(basename "$(dirname "$full_script")")"
+    fzf_script="$(basename "$full_script")"
+    fzf_scripts+=("${fzf_context} ${fzf_script}")
+  done
 
   script="$(
-    echo "$paths" |
-      xargs -I % sh -c 'echo "$(basename $(dirname %)) $(basename %)"' |
-      fzf \
+    printf "%s\n" "${fzf_scripts[@]}" |
+      files::fzf \
+        --sloth-core \
+        --preview 'dot::fzf_view_doc {}' \
         --height 100% \
-        --preview '"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" $(echo {} | cut -d" " -f 1) $(echo {} | cut -d" " -f 2) -h'
+        --print0
   )"
 
   printf "%s" "$script"
   read -r args
 
-  "${DOTLY_PATH}/bin/dot" "${script}" "${args}"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "${script}" "${args}"
 }
 
 script_exist() {
@@ -123,19 +129,21 @@ script_exist() {
 if args::has_no_args "$@"; then
   fzf_prompt "$(dot::list_scripts_path)"
 elif args::total_is 1 "$@"; then
-  fzf_prompt "$(dot::list_scripts_path | grep "/$1/")"
+  fzf_prompt "$(dot::list_context_scripts "${1:-}")"
 else
-  context="$1"
-  script="$2"
+  context="${1:-}"
+  script="${2:-}"
   firstarg="${3:-}"
+  #shellcheck disable=SC2034
+  SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
 
-  shift 2
+  [[ $# -ge 2 ]] && shift 2
 
   script_path=""
-  script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
+  [[ -n "${DOTFILES_PATH:-}" ]] && script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
   script_exist "${SLOTH_PATH:-${DOTLY_PATH:-}}" "$context" "$script" && script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
-  if [ -z "$script_path" ]; then
+  if [[ -z "$script_path" ]]; then
     output::error "The script <$context / $script> doesn't exist"
     exit 1
   fi
@@ -144,22 +152,14 @@ else
   script_full_path="${script_path}/scripts/${context}/${script}"
 
   # Automatic --help and --version
-  if [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+  if [[ ! -x "$script_full_path" ]]; then
+    output::error "The script \`$script_full_path\` does not exists"
+  elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
     docs::parse_script "${script_full_path}" "--help"
+    exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    if [[ "$context" == "$SLOTH_LAZY_SCRIPT_CONTEXT" && "$script" == "$SLOTH_LAZY_SCRIPT_NAME" ]]; then
-      "${SLOTH_LAZY_SCRIPT}" --version
-    else
-      SCRIPT_VERSION="$(dot::parse_script_version "$script_full_path")"
-      SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} ${context} ${script}"
-      if [[ -n "${SCRIPT_VERSION}" ]]; then
-        output::write "${SCRIPT_NAME}"
-        output::write "\t\`v${SCRIPT_VERSION}\`"
-      else
-        output::write "${SCRIPT_NAME}"
-        output::error "\t no version provided"
-      fi
-    fi
+    docs::parse_script "${script_full_path}" "--version"
+    exit
   fi
 
   # If old version call the script, else source it
@@ -167,9 +167,12 @@ else
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
       grep -q "^docs::parse" "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
-      grep -q "/scripts/core/src/_main.sh" "${script_full_path}"
+      grep -q "/scripts/core/src/_main.sh" "${script_full_path}" ||
+      grep -q "/scripts/self/_main.sh" "${script_full_path}" ||
+      grep -q "/scripts/self/src/_main.sh" "${script_full_path}"
   then
-    "${script_full_path}" "$@"
+    #shellcheck disable=SC2098,SC2097
+    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "${script_full_path}" "$@"
   else
     #shellcheck disable=SC1090
     . "${script_full_path}"

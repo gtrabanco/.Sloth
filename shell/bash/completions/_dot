@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
-
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+#shellcheck disable=SC1091,SC2207
 
 _dot() {
-  local suggestions=""
+  local script_path suggestions=""
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/dot.sh"
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/documentation.sh"
+
+  [[ -n "${BASH_COMP_DEBUG_FILE:-}" ]] && echo "${#COMP_WORDS[@]}" >> "$BASH_COMP_DEBUG_FILE"
+  [[ -n "${BASH_COMP_DEBUG_FILE:-}" ]] && echo "${COMP_WORDS[1]}" >> "$BASH_COMP_DEBUG_FILE"
+  [[ -n "${BASH_COMP_DEBUG_FILE:-}" ]] && echo "${*}" >> "$BASH_COMP_DEBUG_FILE"
 
   case "${#COMP_WORDS[@]}" in
     2) suggestions=$(compgen -W "$(dot::list_contexts | tr '\n' ' ')") ;;
-    3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}")" ;;
-    *) suggestions="" ;;
+    3) suggestions="$(dot::list_context_scripts "${COMP_WORDS[1]}" | command -p xargs -I _ command -p basename _)" ;;
+    *)
+      script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${COMP_WORDS[1]}/${COMP_WORDS[2]}"
+
+      if [[ -r "$script_path" ]]; then
+        suggestions="$(docs::parse_docopt_argument "$script_path" "${COMP_WORDS[@]:${#COMP_WORDS[@]}}")"
+      fi
+      ;;
   esac
 
-  readarray -t COMPREPLY < <(compgen -W "$suggestions" "${COMP_WORDS[$COMP_CWORD]}")
+  COMPREPLY=($(compgen -W "${suggestions//\-/\\-}" "${COMP_WORDS[$COMP_CWORD]}"))
 }
 
 complete -F _dot dot

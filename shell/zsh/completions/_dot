@@ -3,8 +3,8 @@
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
 _dot() {
-  local curcontext="$curcontext" state line
-  typeset -A opt_args
+  #setopt local_options xtrace
+  local curcontext="$curcontext" state script_path
 
   _arguments \
     '1: :->context' \
@@ -17,8 +17,21 @@ _dot() {
     _arguments "1:Context:($existing_contexts)"
     ;;
   script)
-    existing_scripts=$(dot::list_context_scripts $words[2])
+    existing_scripts=$(dot::list_context_scripts "${words[2]}" | xargs -I _ basename _)
     _arguments "2:Script:($existing_scripts)"
+    ;;
+  args)
+    script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${words[2]}/${words[3]}"
+    if [[ -r "$script_path" ]]; then
+      existing_args="$(docs::parse_docopt_argument "$script_path" "${words[@]:4}")"
+      if [[ -n "$existing_args" ]]; then
+        _arguments "3:Args:($existing_args)"
+      else
+        _files
+      fi
+    else
+      _files
+    fi
     ;;
   *)
     _files

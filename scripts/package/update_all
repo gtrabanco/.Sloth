@@ -12,16 +12,27 @@ update_all_error() {
 ##? Update all packages
 ##?
 ##? Usage:
-##?   update_all [<package_managers>...]
+##?   update_all [--split] [<package_managers>...]
+##?
+##? Options:
+##?   --split  Split terminal to show log and progress if tmux is installed or can be installed
 ##?
 ##? Arguments:
 ##?   package_manager  Package manager to use for updating (could be registry, cargo, apt, yum, etc.)
 ##?
-##? SCRIPT_VERSION "3.1.0"
+#? v3.1.0
 docs::parse "$@"
 
+if ${split:-false}; then
+  script::depends_on tmux
+  SESSION_NAME="${SESSION_NAME:-$(date +%s)}"
+  #shellcheck disable=SC2016
+  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
+  exit 0
+fi
+
 output::h1_without_margin "♻️  Updating all the apps on your system"
-output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
+! ${split:-false} && output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
 output::empty_line
 
 if [[ -z "${package_managers[*]:-}" ]]; then
@@ -40,5 +51,9 @@ for package_manager in "${package_managers[@]}"; do
   fi
 done
 
+if command -v tmux &> /dev/null; then
+  pkill -f tmux || true
+fi
+
 output::empty_line
-output::solution '👌 All your packages have been successfully updated'
+log::success '👌 All your packages have been successfully updated'

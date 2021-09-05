@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 cargo::install() {
-  if ! platform::is_macos; then
-    package::install build-essential auto
+  if ! platform::is_macos && platform::command_exists apt-get; then
+    script::depends_on build-essential
+  elif ! platform::is_macos; then
+    script::depends_on cmake
   fi
 
   curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path 2>&1 | log::file "Installing rust from sources"

@@ -9,34 +9,29 @@ dot::load_library "templating.sh" "core"
 ##? Create the dotfiles structure
 ##?
 ##? Usage:
-##?    create [<dotfiles_path>]
+##?    create -h | --help
+##?    create -v | --version
+##?    create <dotfiles_path>]
 ##?
-if ! ${DOTLY_INSTALLER:-false}; then
+##? Options:
+##?    -h --help        Show this screen.
+##?    -v --version     Show version.
+##?
+#? v2.0.2
+if [[ $1 == "-v" || $1 == "--version" || $1 == "-h" || $1 == "--help" ]]; then
   docs::parse "$@"
-elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  grep '^##?' "$0" | tr '##? ' ' '
 fi
 
-DOTFILES_PATH="${2:-${DOTFILES_PATH:-}}"
+DOTFILES_PATH="${1:-${DOTFILES_PATH:-}}"
 
 [[ -z "$DOTFILES_PATH" ]] && output::error "DOTFILES_PATH not found" && exit 1
 
-dotfiles::apply_templating() {
-  local tpl_files=(
-    "$DOTFILES_PATH/bin/sdot"
-    "$DOTFILES_PATH/shell/bash/.bashrc"
-    "$DOTFILES_PATH/shell/zsh/.zshenv"
-  )
+if ! mkdir -p "$DOTFILES_PATH" 2> /dev/null; then
+  output::error "Could not create \`${DOTFILES_PATH}\`" && exit 1
+fi
 
-  for file in "${tpl_files[@]}"; do
-    templating::replace "$file" --dotfiles-path="${DOTFILES_PATH//$HOME/\$HOME}"
-  done
-}
-
-if [ ! -d "$DOTFILES_PATH/shell" ]; then
-  cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "$DOTFILES_PATH/"
-
-  dotfiles::apply_templating
+if [ ! -d "${DOTFILES_PATH}/shell" ]; then
+  cp -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/dotfiles_template/"* "${DOTFILES_PATH}/"
 
   log::success "Done!"
 else

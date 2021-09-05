@@ -16,7 +16,7 @@ _output::parse_code() {
 
   local -r text="${*:-}"
 
-  with_code_parsed=$(echo "$text" | awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | awk "{ORS=NR%1==0?\"${style}\":RS}1" RS="\`" | tr -d '\n')
+  with_code_parsed=$(echo "$text" | command -p awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | command -p awk "{ORS=NR%1==0?\"${style}\":RS}1" RS="\`" | command -p tr -d '\n')
 
   echo -e "${with_code_parsed}${normal}"
 }

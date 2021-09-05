@@ -4,24 +4,30 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
-  dotfiles_contexts=$(find "${DOTFILES_PATH}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
 
-  echo "$dotly_contexts" "$dotfiles_contexts" | grep -v "^_" | sort -u
+  [[ -n "${DOTFILES_PATH:-}" ]] &&
+    dotfiles_contexts=$(command -p find "${DOTFILES_PATH:-}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
+
+  echo "$dotly_contexts" "${dotfiles_contexts:-}" | grep -v "^_" | sort -u
 }
 
 dot::list_context_scripts() {
-  context="$1"
+  local core_contexts dotfiles_contexts
+  local -r context="${1:-}"
 
-  dotly_scripts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
-  dotfiles_scripts=$(find "${DOTFILES_PATH}/scripts/$context" -maxdepth 1 -not -iname "_*" -not -iname ".*" -perm /u=x -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _)
+  if [[ -n "$context" ]]; then
+    readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+    [[ -n "${DOTFILES_PATH:-}" ]] &&
+      readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
 
-  echo "$dotly_scripts" "$dotfiles_scripts" | grep -v "^_" | sort -u
+    printf "%s\n%s\n" "${core_contexts[@]}" "${dotfiles_contexts[@]}" | command -p sort -u
+  fi
 }
 
 dot::list_scripts() {
   _list_scripts() {
-    scripts=$(dot::list_context_scripts "$1" | xargs -I_ echo "dot $1 _")
+    local -r scripts=$(dot::list_context_scripts "${1:-}" | command -p xargs -I_ echo "dot ${1:-} _")
 
     echo "$scripts"
   }
@@ -30,17 +36,50 @@ dot::list_scripts() {
 }
 
 dot::list_scripts_path() {
-  dotly_contexts=$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 2 -perm /+111 -type f | grep -v "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core")
-  dotfiles_contexts=$(find "$DOTFILES_PATH/scripts" -maxdepth 2 -perm /+111 -type f)
+  local core_contexts dotfiles_contexts
 
-  printf "%s\n%s" "$dotly_contexts" "$dotfiles_contexts" | sort -u
+  readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+  [[ -n "${DOTFILES_PATH:-}" ]] &&
+    readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+
+  printf "%s\n%s\n" "${core_contexts[@]}" "${dotfiles_contexts[@]}" | command -p sort -u
+}
+
+dot::fzf_view_doc() {
+  case $# in
+    2)
+      local -r context="${1:-}"
+      local -r script="${2:-}"
+      ;;
+    1)
+      if [[ -x "$1" ]]; then
+        local -r context="$(basename "$(dirname "${1:-}")")"
+        local -r script="$(basename "$1")"
+      else
+        local -r context="$(echo "$1" | awk '{print $1}')"
+        local -r script="$(echo "$1" | awk '{print $2}')"
+      fi
+      ;;
+    *)
+      return
+      ;;
+  esac
+
+  if
+    [[ 
+      -x "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/${context}/${script}" ||
+      -x "${DOTFILES_PATH:-/dev/null}/scripts/${context}/${script}" ]]
+  then
+
+    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$context" "$script" --help
+  fi
 }
 
 dot::get_script_path() {
-  [[ -n "${script_full_path:-}" ]] && dirname "$script_full_path" && return
+  [[ -n "${script_full_path:-}" ]] && command -p dirname "$script_full_path" && return
   #shellcheck disable=SC2164
   echo "$(
-    cd -- "$(dirname "$0")" > /dev/null 2>&1
+    cd -- "$(command -p dirname "$0")" > /dev/null 2>&1
     pwd -P
   )"
 }
@@ -50,9 +89,9 @@ dot::get_full_script_path() {
 
   #shellcheck disable=SC2164
   echo "$(
-    cd -- "$(dirname "$0")" > /dev/null 2>&1
+    cd -- "$(command -p dirname "$0")" > /dev/null 2>&1
     pwd -P
-  )/$(basename "$0")"
+  )/$(command -p basename "$0")"
 }
 
 # Old name: dot::get_script_src_path
@@ -71,7 +110,7 @@ dot::load_library() {
     if [[ -n "${2:-}" ]]; then
       # Context
       lib_paths+=(
-        "$DOTFILES_PATH/scripts/$2/src"
+        "${DOTFILES_PATH:-/dev/null}/scripts/$2/src"
         "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$2/src"
       )
 
@@ -123,25 +162,4 @@ dot::load_library() {
 
   # No arguments
   return 1
-}
-
-dot::parse_script_version() {
-  local SCRIPT_FULL_PATH SCRIPT_VERSION versions v
-  SCRIPT_FULL_PATH="${1:-}"
-
-  [[ ! -f "$SCRIPT_FULL_PATH" ]] && return 1
-  readarray -t versions < <(sed -n 's/.*SCRIPT_VERSION[=| ]"\?\(.[^";]*\)"\?;\?.*/\1/p' "$SCRIPT_FULL_PATH")
-
-  if [[ "${#versions[@]}" -gt 1 ]]; then
-    for v in "${versions[@]}"; do
-      v="$(echo "$v" | xargs)"
-      if [[ -z "${SCRIPT_VERSION:-}" || "$(platform::semver_compare "$SCRIPT_VERSION" "$v" 2> /dev/null)" -lt 0 ]]; then
-        SCRIPT_VERSION="$v"
-      fi
-    done
-  elif [[ "${#versions[@]}" -gt 0 ]]; then
-    SCRIPT_VERSION="${versions[0]}"
-  fi
-
-  echo "$SCRIPT_VERSION" | xargs
 }

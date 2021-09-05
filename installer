@@ -136,28 +136,45 @@ install_clt() {
 
 start_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  has_sudo && return 0
-  sudo -v -B
-  if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
-    (while true; do
-      sudo -v
-      sleep 30
-    done) &
-    SUDO_PID="$!"
-    trap stop_sudo SIGINT SIGTERM
+  if ! has_sudo; then
+    command -p sudo -v -B
+    if has_sudo && [[ -z "${SUDO_PID:-}" ]]; then
+      (while true; do
+        command -p sudo -v
+        command -p sleep 30
+      done) &
+      SUDO_PID="$!"
+      builtin trap stop_sudo SIGINT SIGTERM
+    fi
   fi
 }
 
 stop_sudo() {
-  kill "$SUDO_PID" &> /dev/null
-  trap - SIGINT SIGTERM
-  sudo -k
+  builtin kill "$SUDO_PID" &> /dev/null
+  builtin trap - SIGINT SIGTERM
+  command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
   command -p sudo -n -v &> /dev/null
 }
+
+if command -v brew &> /dev/null; then
+  eval "$(command brew shellenv)"
+else
+  PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"
+fi
+
+# Default values in CI env
+if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
+  export SETUP_ZSH_AND_BASH_IN_SHELLS=false
+  export IGNORE_APPLY_SYMLINKS=false
+  export SYMLINKS_ARGS=(--ignore-backup)
+  export SETUP_ZSH_AS_DEFAULT_SHELL=false
+  export IS_ICLOUD_DOTFILES=false
+  export DOTFILES_PATH="${HOME}/.dotfiles"
+fi
 
 _w "  ┌──────────────────────────────────────────┐"
 _w "~ │ 🚀 Welcome to the ${green}sloth/dotly${normal} installer! │ ~"
@@ -174,14 +191,14 @@ if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
   fi
 fi
 
+# Adds zsh and bash in /etc/shells (only in macos, in linux is done by the package manager)
 if
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    is_macos &&
+  is_macos &&
     [[ -z "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
 then
   SETUP_ZSH_AND_BASH_IN_SHELLS=false
   if
-    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (require elevation)? [Y/n]" "PROMPT_REPLY" &&
+    _q "Do you want to setup more modern \`zsh\` & \`bash\` as valid shells in \`/etc/shells\` (elevation required; sudo)? [Y/n]" "PROMPT_REPLY" &&
       [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]]
   then
     start_sudo
@@ -190,15 +207,16 @@ then
     ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)" && SETUP_ZSH_AND_BASH_IN_SHELLS=false
   fi
 
-# We need to cache sudo to avoid asking for password later and every time
+# If defined the variable, we need to cache the sudo password
 elif
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-    is_macos &&
-    [[ -n "${SETUP_ZSH_AND_BASH_IN_SHELLS:-}" ]]
+  is_macos &&
+    ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false}
 then
   start_sudo
-  ! has_sudo && _e "It can not be done without elevation, aborting this options (should be done later manually)"
-  SETUP_ZSH_AND_BASH_IN_SHELLS=false
+
+  ! has_sudo &&
+    _e "It can not be done without elevation, aborting this options (should be done later manually)" &&
+    SETUP_ZSH_AND_BASH_IN_SHELLS=false
 fi
 export SETUP_ZSH_AND_BASH_IN_SHELLS
 
@@ -208,7 +226,7 @@ if
     [[ -z "${SYMLINKS_ARGS[*]:-}" ]]
 then
   SYMLINKS_ARGS=(--interactive-backup)
-  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || ${never_backup:-}; then
+  if ${never_backup:-}; then
     SYMLINKS_ARGS=(--ignore-backup)
   elif ${always_backup:-}; then
     SYMLINKS_ARGS=(--backup)
@@ -226,8 +244,7 @@ zsh_shell_path="$(command -v zsh || true)"
 if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
   SETUP_ZSH_AS_DEFAULT_SHELL=false
   if
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
-      [[ "$SHELL" == *"zsh"* ]] &&
+    [[ "$SHELL" == *"zsh"* ]] &&
       command_exists chsh &&
       [[ -x "$zsh_shell_path" ]] &&
       [[ -f "/etc/shells" ]] &&
@@ -236,6 +253,7 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
     _q "Do you want to setup the zsh \`$zsh_shell_path\` as default shell? [Y/n]" "PROMPT_REPLY" &&
       [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] &&
       SETUP_ZSH_AS_DEFAULT_SHELL=true
+
     _a "This will need a sudo authentication to add it to \`/etc/shells\` file"
     start_sudo
     if ! has_sudo; then
@@ -244,8 +262,7 @@ if [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]]; then
     fi
   fi
 elif
-  [[ -n "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] &&
-    [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+  ${SETUP_ZSH_AS_DEFAULT_SHELL:-false} &&
     [[ "$SHELL" == *"zsh"* ]] &&
     command_exists chsh &&
     [[ -x "$zsh_shell_path" ]] &&
@@ -256,39 +273,36 @@ then
   ! has_sudo &&
     _e "\`SETUP_ZSH_AS_DEFAULT_SHELL\` should be aborted because sudo elevation password is not set." &&
     SETUP_ZSH_AS_DEFAULT_SHELL=false
-elif
-  [[ -z "${SETUP_ZSH_AS_DEFAULT_SHELL:-}" ]] ||
-    [[ "${DOTLY_ENV:-PROD}" == "CI" ]] ||
-    ! command_exists chsh ||
-    [[ ! -x "$zsh_shell_path" ]] ||
-    [[ ! -f "/etc/shells" ]] ||
-    grep -q "^${zsh_shell_path}$" "/etc/shells" ||
-    ! has_sudo
-then
-  SETUP_ZSH_AS_DEFAULT_SHELL=false
+else
+  SETUP_ZSH_AS_DEFAULT_SHELL=${SETUP_ZSH_AS_DEFAULT_SHELL:-false}
 fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 
 if
-  [[ "${DOTLY_ENV:-PROD}" != "CI" ]] &&
+  [[ -z "${IS_ICLOUD_DOTFILES:-}" ]] &&
     is_macos &&
-    [[ -d "$ICLOUD_PATH" ]]
+    [[ -d "$ICLOUD_PATH" ]] ||
+    ${IS_ICLOUD_DOTFILES:-false} &&
+    [[ -z "${DOTFILES_PATH:-}" ]]
 then
   _yq "Do you want to place your dotfiles in your iCloud storage" "ICLOUD_REPLY"
   if _is_y "${ICLOUD_REPLY:-Y}"; then
     IS_ICLOUD_DOTFILES=true
     _q "What name do you want for your dotfiles folder? [.dotfiles]" "DOTFILES_PATH"
-    DOTFILES_PATH="$ICLOUD_PATH/${DOTFILES_PATH:-.dotfiles}"
-    DOTFILES_LINK_PATH="$HOME/$(basename "$ICLOUD_DOTFILES")"
+    DOTFILES_PATH="${ICLOUD_PATH}/${DOTFILES_PATH:-.dotfiles}"
+    DOTFILES_LINK_PATH="${HOME}/$(basename "$ICLOUD_DOTFILES")"
   fi
 fi
 
-if [[ ${IS_ICLOUD_DOTFILES:-false} == false ]]; then
+if
+  ! ${IS_ICLOUD_DOTFILES:-false} &&
+    [[ -z "${DOTFILES_PATH:-}" ]]
+then
   _q "Where do you want your dotfiles to be located? [~/.dotfiles]" "DOTFILES_PATH"
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
-    DOTFILES_PATH="$HOME/.dotfiles"
+    DOTFILES_PATH="${HOME}/.dotfiles"
   else
-    DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+    DOTFILES_PATH="${DOTFILES_PATH:-${HOME}/.dotfiles}"
   fi
   DOTFILES_PATH="$(eval echo "$DOTFILES_PATH")"
 fi
@@ -296,7 +310,7 @@ export DOTFILES_PATH="$DOTFILES_PATH"
 #### End user prompts ####
 
 dotly_inner_path="modules/sloth"
-export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
+export DOTLY_PATH="${DOTFILES_PATH}/${dotly_inner_path}"
 export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 create_dotfiles_dir "$DOTFILES_PATH"
@@ -364,13 +378,13 @@ fi
 _a "Initializing your dotfiles git repository"
 git init 2>&1 | _log "Initializing repository"
 
-_a "Cloning sloth/dotly"
+_a "Cloning .Sloth"
 git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
 
-_a "Installing sloth/dotly dependencies"
+_a "Installing .Sloth dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
 
-cd "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+cd "${SLOTH_PATH:-${DOTLY_PATH:-}}" || true
 
 if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
   if [[ -d "$DOTFILES_LINK_PATH" ]]; then
@@ -381,7 +395,8 @@ if [[ ${IS_ICLOUD_DOTFILES:-true} == true ]]; then
   fi
 fi
 
-"$PWD/bin/dot" core install
+_a "Installing .Sloth"
+"${PWD}/bin/dot" core install 2>&1 | _log "Installing .Sloth"
 
-_a "🎉 sloth/dotly installed correctly! 🎉"
+_a "🎉 .Sloth was sucessfully installed! 🎉"
 _a "Please, restart your terminal to see the changes"

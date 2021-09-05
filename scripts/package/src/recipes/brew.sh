@@ -67,6 +67,10 @@ brew::is_installed() {
     BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
   elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+  elif [[ -d "${HOME}/.homebrew" && -x "${HOME}/.homebrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.homebrew/bin/brew"
+  elif [[ -d "${HOME}/.brew" && -x "${HOME}/.brew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.brew/bin/brew"
   elif [[ -x "/opt/homebrew/bin/brew" ]]; then
     BREW_BIN="/opt/homebrew/bin/brew"
   elif [[ -x "/usr/local/bin/brew" ]]; then

@@ -3,7 +3,7 @@
 # First added paths prevails over lasts
 export SLOTH_RECIPE_PATHS=(
   "${SLOTH_RECIPES_PATH[@]:-}"
-  "${DOTFILES_PATH:-}/package/recipes"
+  "${DOTFILES_PATH:-/dev/null}/package/recipes"
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/recipes"
 )
 
