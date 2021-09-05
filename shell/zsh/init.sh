@@ -26,7 +26,7 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-if [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
+if ! ${SLOTH_DISABLE_ZIMFW:-false} && [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
   #shellcheck disable=SC1091
   . "${ZIM_HOME}/init.zsh" || echo "Error loading ZimFW"
   { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loaded ZimFW"; } || true
@@ -51,8 +51,10 @@ fpath+=("${tmp_fpath[@]}")
 
 # Brew ZSH Completions
 if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh-completions")
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh/site-functions")
+  fpath+=(
+    "${HOMEBREW_PREFIX}/share/zsh-completions"
+    "${HOMEBREW_PREFIX}/share/zsh/site-functions"
+  )
 fi
 
 autoload -Uz promptinit && promptinit

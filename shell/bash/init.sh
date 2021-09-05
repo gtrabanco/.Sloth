@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 # Rigth prompt for bash definition
 __right_prompt() {
+  local LAST_CODE="$?"
+  return_code() {
+    return "${1:-0}"
+  }
+
   RIGHT_PROMPT=""
   [[ -n $RPS1 ]] && RIGHT_PROMPT=$RPS1 || RIGHT_PROMPT=$RPROMPT
   if [[ -n $RIGHT_PROMPT ]]; then
-    n=$((COLUMNS - ${#RIGHT_PROMPT}))
+    n=$((COLUMNS - ${#RIGHT_PROMPT} + (${#RIGHT_PROMPT} / 3)))
     printf "%${n}s$RIGHT_PROMPT\\r"
   fi
 
-  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "${THEME_COMMAND:-}" &> /dev/null; then
-    "${THEME_COMMAND:-}"
+  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "$THEME_COMMAND" &> /dev/null; then
+    return_code "$LAST_CODE"
+    "$THEME_COMMAND"
   fi
 }
 
