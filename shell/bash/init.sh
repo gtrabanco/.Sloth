@@ -51,7 +51,7 @@ fi
 
 #shellcheck disable=SC2068
 for THEME_PATH in ${themes_paths[@]}; do
-  THEME_PATH="${THEME_PATH}/${SLOTH_THEME:-${DOTLY_THEME:-codely}}.sh"
+  THEME_PATH="${THEME_PATH}/${SLOTH_BASH_THEME:-${SLOTH_THEME:-${DOTLY_THEME:-codely}}}.sh"
   THEME_COMMAND=""
   #shellcheck source=/dev/null
   [ -f "$THEME_PATH" ] && . "$THEME_PATH" && THEME_COMMAND="${PROMPT_COMMAND:-}" && break

@@ -45,6 +45,7 @@ fi
 ##?    dot async-update
 ##?    dot -h | --help
 ##?    dot -v | --version
+##?    dot -l | --latest
 ##?    dot --prefix
 ##?    dot <context> <script> [<args>...]
 ##?    dot <context>
@@ -57,13 +58,15 @@ fi
 ##?             "\`\${SLOTH_PATH:-\${DOTLY_PATH:-}}/scripts/<context>\`"
 ##?
 ##? Options:
-##?    -h --help           Gives help to the user
-##?    -v --version        Show the dot command version
-##?    --prefix            Prints the path to .Sloth
+##?    -h --help           Gives help to the user.
+##?    -v --version        Show the .Sloth version.
+##?    -l --latest         Show the latest .Sloth version available from .Sloth releases
+##?                        in the GitHub repository.
+##?    --prefix            Prints the path to .Sloth.
 ##?    self-update         Autoupdate .Sloth. If brew was used to install use brew
 ##?                        to update.
-##?    update              Same as self-update
-##?    async-update        Same as self-update but asynchronously
+##?    update              Same as self-update.
+##?    async-update        Same as self-update but asynchronously.
 ##?
 
 # This script help
@@ -75,6 +78,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 elif [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   echo ".Sloth $(sloth_update::get_current_version)"
   exit
+
+# Latest available version of .Sloth
+elif [[ "${1:-}" == "-l" || "${1:-}" == "--latest" ]]; then
+  echo ".Sloth v$(sloth_update::get_latest_stable_version)"
+  exit
+
 # Self-update of .Sloth
 elif [[ "${1:-}" == "self-update" || "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
