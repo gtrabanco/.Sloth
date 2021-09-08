@@ -35,7 +35,7 @@ docs::parse_script_version() {
   fi
 
   [[ -n "${SCRIPT_NAME:-}" ]] && builtin echo -n "${SCRIPT_NAME} "
-  builtin echo "${version:-0.0.0}"
+  builtin echo "${version:-v0.0.0}"
 }
 
 docs::parse() {
