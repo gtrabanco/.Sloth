@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Hombrew Installation Patch #####
+
+[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && echo "Error: Could not find where the .Sloth is installed." && exit 1
+
+#shellcheck disable=SC1091
+. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+
+if args::has_no_args "$@"; then
+  fzf_prompt "$(dot::list_scripts_path)"
+elif args::total_is 1 "$@" && [[ ! -x "${1:-}" ]]; then
+  fzf_prompt "$(dot::list_context_scripts "${1:-}")"
+else
+
+  #shellcheck disable=SC2034
+  SCRIPT_NAME="$(basename "$1")"
+  script_full_path="$1"
+  firstarg="${2:-}"
+
+  # Automatic --help and --version
+  if [[ ! -x "$script_full_path" ]]; then
+    output::error "The script \`$script_full_path\` does not exists or not executable"
+    exit 1
+  elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
+    docs::parse_script "${script_full_path}" "--help"
+    exit
+  elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
+    docs::parse_script "${script_full_path}" "--version"
+    exit
+  fi
+
+  #shellcheck disable=SC1090
+  . "${script_full_path}"
+fi
