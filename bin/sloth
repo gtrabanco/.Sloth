@@ -25,14 +25,23 @@ else
 
   # Automatic --help and --version
   if [[ ! -x "$script_full_path" ]]; then
-    output::error "The script \`$script_full_path\` does not exists or not executable"
-    exit 1
+    #shellcheck disable=SC2097,SC2098
+    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "${SLOTH_PATH}/bin/dot" "$@"
+    exit $?
   elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
-    docs::parse_script "${script_full_path}" "--help"
+    doc="$(docs::parse_script "${script_full_path}" "--help")"
+    [[ -n "$doc" ]] && echo -en "$doc"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
     docs::parse_script "${script_full_path}" "--version"
     exit
+  fi
+
+  # Remove script itself to be the first argument
+  shift
+
+  if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
+    docs::parse_script "$script_full_path" "$@"
   fi
 
   #shellcheck disable=SC1090
