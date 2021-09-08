@@ -163,6 +163,7 @@ else
   # Automatic --help and --version
   if [[ ! -x "$script_full_path" ]]; then
     output::error "The script \`$script_full_path\` does not exists"
+    exit 1
   elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
     docs::parse_script "${script_full_path}" "--help"
     exit
