@@ -54,7 +54,6 @@ DOTLY_PATH="${DOTLY_PATH:-${SLOTH_PATH:-}}"
 
 # Sloth aliases and functions
 alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
-alias sloth='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 
