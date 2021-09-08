@@ -1,4 +1,4 @@
-#compdef dot lazy=dot s=lazy
+#compdef dot lazy=dot s=lazy sloth=dot
 
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
