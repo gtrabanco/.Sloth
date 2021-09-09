@@ -19,7 +19,6 @@
 ##?   clean_cache
 ##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
 ##?
-##?
 #? v2.2.0
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
   docs::parse "$@"

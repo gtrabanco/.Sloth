@@ -14,7 +14,7 @@ docs::parse_docopt() {
     command -p awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" |
     command -p awk "{ORS=NR%1==0?\"${normal}\":RS}1" RS="\`")"
 
-  echo -e "$doc"
+  echo -e "${doc//\$0/${SCRIPT_NAME:-${BASH_SOURCE[0]:-}}}"
 }
 
 docs::parse_script_version() {
@@ -35,7 +35,7 @@ docs::parse_script_version() {
   fi
 
   [[ -n "${SCRIPT_NAME:-}" ]] && builtin echo -n "${SCRIPT_NAME} "
-  builtin echo "${version:-0.0.0}"
+  builtin echo "${version:-v0.0.0}"
 }
 
 docs::parse() {
