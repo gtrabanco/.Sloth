@@ -3,7 +3,7 @@
 if command -v xclip &> /dev/null; then
   xclip -selection clipboard -o
 
-elif command -vp pbpaste; then
+elif command -vp pbpaste &> /dev/null; then
   command -p pbpaste
 
 else
