@@ -63,20 +63,24 @@ brew::uninstall() {
 }
 
 brew::is_installed() {
-  if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+  local BREW_BIN=""
+  
+  if command -v brew &> /dev/null; then
+    BREW_BIN="$(command -v brew)"
+  elif command -vp brew &> /dev/null; then
+    BREW_BIN="$(command -vp brew)"
+  elif [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
     BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
-  elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+  elif [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.linuxbrew/bin/brew"
-  elif [[ -d "${HOME}/.homebrew" && -x "${HOME}/.homebrew/bin/brew" ]]; then
+  elif [[ -x "${HOME}/.homebrew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.homebrew/bin/brew"
-  elif [[ -d "${HOME}/.brew" && -x "${HOME}/.brew/bin/brew" ]]; then
+  elif [[ -x "${HOME}/.brew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.brew/bin/brew"
   elif [[ -x "/opt/homebrew/bin/brew" ]]; then
     BREW_BIN="/opt/homebrew/bin/brew"
   elif [[ -x "/usr/local/bin/brew" ]]; then
     BREW_BIN="/usr/local/bin/brew"
-  elif command -v brew &> /dev/null; then
-    BREW_BIN="$(command -v brew)"
   fi
 
   [[ -n "$BREW_BIN" ]]
