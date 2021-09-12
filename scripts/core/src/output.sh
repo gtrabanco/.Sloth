@@ -62,7 +62,8 @@ output::question() {
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" = true ]]; then
     answer="y"
   else
-    read -rp "🤔 $with_code_parsed: " "answer"
+    echo -n "🤔 $with_code_parsed: "
+    read -r "answer"
   fi
 
   echo "$answer"
@@ -97,7 +98,8 @@ output::question_default() {
     echo "🤔 ${with_code_parsed} ? [${default_value}]: ${default_value}"
     PROMPT_REPLY="$default_value"
   else
-    read -rp "🤔 $with_code_parsed ? [$default_value]: " PROMPT_REPLY
+    echo -n "🤔 $with_code_parsed ? [$default_value]: "
+    read -r PROMPT_REPLY
   fi
 
   eval "$var_name=\"${PROMPT_REPLY:-$default_value}\""
