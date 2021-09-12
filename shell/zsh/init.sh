@@ -42,7 +42,7 @@ tmp_fpath=("${fpath[@]}")
 fpath=()
 if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
   fpath+=("${DOTFILES_PATH}/shell/zsh/themes")
-  fpath+=("${DOTFILES_PATH}/shell/zsh/autocompletions")
+  fpath+=("${DOTFILES_PATH}/shell/zsh/completions")
 fi
 
 fpath+=("${SLOTH_PATH}/shell/zsh/themes")
