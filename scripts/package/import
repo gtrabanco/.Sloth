@@ -4,6 +4,8 @@
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 dot::load_library "dump.sh"
 
+script::depends_on docpars
+
 ##? Import previously dumped packages from:
 ##?  * Brew
 ##?  * Python
@@ -13,7 +15,7 @@ dot::load_library "dump.sh"
 ##? if there is no file with the same name as the current hostname.
 ##?
 ##? Usage:
-##?   import [--prompt|-p|--never-prompt|-n]
+##?   import [--prompt|-p|--never-prompt|-n] [<package_managers>...]
 ##?
 ##? Options:
 ##?   --prompt -p        You will be asked always for a file to restore in every package manager or lang
@@ -26,7 +28,9 @@ docs::parse "$@"
 
 output::write "🎩 Let's import your packages (this could take a while)" && output::empty_line
 
-for package_manager in $(package::get_available_package_managers); do
+[[ -z "${package_managers[*]:-}" ]] && readarray -t package_managers< <(package::get_available_package_managers)
+
+for package_manager in "${package_managers[@]}"; do
   # Reset
   file_path=""
   directory_file_path=""
@@ -34,6 +38,12 @@ for package_manager in $(package::get_available_package_managers); do
   # Setting variables
   file_path="$(dump::file_path "$package_manager" "$(hostname -s)")"
   directory_file_path="$(dirname "$file_path")"
+
+  if package::command_exists "$package_manager" "title"; then
+    pkgmgr_title="$(package::command "$package_manager" "title")"
+  else
+    pkgmgr_title="$package_manager"
+  fi
 
   # Continue if is npm and volta is isntalled
   if
@@ -53,10 +63,10 @@ for package_manager in $(package::get_available_package_managers); do
   } && file_path="$(package::which_file "$directory_file_path" "Select $(eval echo "\$${package_manager}_title") file to import")"
 
   output::empty_line
-  output::h2 "🚀 Importing $(eval echo "\$${package_manager}_title") apps"
+  output::h2 "🚀 Importing ${pkgmgr_title} apps"
 
   [[ -z "$file_path" ]] &&
-    output::answer "Ignoring $(eval echo "\$${package_manager}_title") import" &&
+    output::answer "Ignoring ${pkgmgr_title} import" &&
     output::empty_line &&
     continue
 
