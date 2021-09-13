@@ -2,6 +2,10 @@
 
 cargo_title='📦 Cargo'
 
+cargo::title() {
+  echo -n "📦 Cargo"
+}
+
 cargo::is_available() {
   platform::command_exists cargo
 }

@@ -3,6 +3,10 @@
 
 macos_title='🍎 System MacOS'
 
+macos::title() {
+  echo -n "🍎 System MacOS"
+}
+
 macos::is_available() {
   platform::is_macos && command -vp softwareupdate &> /dev/null
 }

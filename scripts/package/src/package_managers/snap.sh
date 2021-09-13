@@ -3,6 +3,10 @@
 snap_title='🦜 Snap'
 SNAP_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/snap/$(hostname -s).txt"
 
+snap::title() {
+  echo -n "🦜 Snap"
+}
+
 snap::is_available() {
   platform::command_exists snap
 }

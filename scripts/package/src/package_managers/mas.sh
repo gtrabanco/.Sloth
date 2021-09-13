@@ -2,6 +2,10 @@
 
 mas_title='🍎 App Store'
 
+mas::title() {
+  echo -n "🍎 App Store"
+}
+
 mas::is_available() {
   platform::command_exists mas
 }

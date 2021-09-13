@@ -3,6 +3,10 @@
 pip_title='🐍 pip'
 PYTHON_DUMP_FILE_PATH="$DOTFILES_PATH/langs/python/$(hostname -s).txt"
 
+pip::title() {
+  echo -n "🐍 pip"
+}
+
 # Just a wrapper to change it anytime that would be neccesary
 pip::pip() {
   python3 -m pip "$@"

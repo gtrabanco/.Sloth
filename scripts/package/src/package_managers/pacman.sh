@@ -3,6 +3,10 @@
 #shellcheck disable=2034
 pacman_title='PACMAN'
 
+pacman::title() {
+  echo -n "PACMAN"
+}
+
 pacman::is_available() {
   platform::command_exists pacman
 }

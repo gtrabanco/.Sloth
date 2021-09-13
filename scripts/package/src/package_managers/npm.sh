@@ -3,6 +3,10 @@
 npm_title='🌈 npm'
 NPM_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/npm/$(hostname -s).txt"
 
+npm::title() {
+  echo -n "🌈 npm"
+}
+
 npm::is_available() {
   platform::command_exists npm
 }

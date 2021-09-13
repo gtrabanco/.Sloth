@@ -2,6 +2,10 @@
 
 brew_title='🍺 Brew'
 
+brew::title() {
+  echo -n "🍺 Brew"
+}
+
 brew::is_available() {
   platform::command_exists brew
 }

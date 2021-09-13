@@ -3,6 +3,10 @@
 volta_title='⚡︎⚔️ volta'
 VOLTA_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/volta/$(hostname -s).txt"
 
+volta::title() {
+  echo -n "⚡︎⚔️ volta"
+}
+
 volta::is_available() {
   platform::command_exists volta
 }
