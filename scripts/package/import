@@ -28,7 +28,7 @@ docs::parse "$@"
 
 output::write "🎩 Let's import your packages (this could take a while)" && output::empty_line
 
-[[ -z "${package_managers[*]:-}" ]] && readarray -t package_managers< <(package::get_available_package_managers)
+[[ -z "${package_managers[*]:-}" ]] && readarray -t package_managers < <(package::get_available_package_managers)
 
 for package_manager in "${package_managers[@]}"; do
   # Reset
