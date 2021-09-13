@@ -2,6 +2,10 @@
 
 composer_title='🐘 Composer'
 
+composer::title() {
+  echo -n "🐘 Composer"
+}
+
 composer::is_available() {
   platform::command_exists composer
 }

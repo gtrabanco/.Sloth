@@ -3,6 +3,10 @@
 #shellcheck disable=SC2034
 registry_title='📃 Registry'
 
+registry::title() {
+  echo -n "📃 Registry"
+}
+
 #;
 # registry::is_available()
 # In order to use package managers way to update all registry this is required

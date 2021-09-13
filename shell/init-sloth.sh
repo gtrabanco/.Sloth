@@ -210,6 +210,11 @@ if command -v python3 &> /dev/null; then
   [[ -d "$python_path" ]] && path+=("$(command python3 -c 'import site; print(site.USER_BASE)' | command -p xargs)/bin")
 fi
 
+path+=(
+  "/usr/local/bin"
+  "/usr/local/sbin"
+)
+
 # System paths
 #shellcheck disable=SC2207
 path+=($(command -p getconf PATH | command -p tr ':' '\n'))
@@ -263,7 +268,7 @@ if
       -d "$init_scripts_path" ]]
 then
 
-  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2> /dev/null | command -p xargs -0 -I _ realpath --quiet --logical _); do
+  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2> /dev/null | command -p xargs -0 -I _ command realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
     { [[ -r "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"

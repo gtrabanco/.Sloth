@@ -3,6 +3,10 @@
 #shellcheck disable=SC2034
 dnf_title='▣ DNF'
 
+dnf::title() {
+  echo -n "▣ DNF"
+}
+
 dnf::is_available() {
   platform::command_exists dnf
 }

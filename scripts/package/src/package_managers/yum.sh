@@ -3,6 +3,10 @@
 #shellcheck disable=2034
 yum_title='YUM'
 
+yum::title() {
+  echo -n "YUM"
+}
+
 yum::is_available() {
   platform::command_exists yum
 }
