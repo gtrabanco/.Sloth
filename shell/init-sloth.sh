@@ -144,9 +144,10 @@ fi
 
 if [[ -n "$BREW_BIN" ]]; then
   HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$("$BREW_BIN" --prefix)}"
-  HOMEBREW_CELLAR="${HOMEBREW_CELLAR}/Cellar"
-  HOMEBREW_REPOSITORY="${HOMEBREW_REPOSITORY}/Homebrew"
+  HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   HOMEBREW_SHELLENV_PREFIX="$HOMEBREW_REPOSITORY"
+
   PATH="${HOMEBREW_PREFIX}/bin${PATH:+:${PATH}}"
   # Brew add gnutools in macos or bsd only and brew paths
   if [[ "$SLOTH_OS" == Darwin* ]]; then
