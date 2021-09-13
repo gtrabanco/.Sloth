@@ -6,9 +6,9 @@
       force: true
 
 - link:
-    ~/bin/bash: /usr/local/bin/bash
-    ~/bin/date: /usr/local/bin/gdate
-    ~/bin/find: /usr/local/opt/findutils/bin/gfind
-    ~/bin/make: /usr/local/opt/make/libexec/gnubin/make
-    ~/bin/sed: /usr/local/opt/gnu-sed/libexec/gnubin/sed
-    ~/bin/touch: /usr/local/bin/gtouch
+    ~/bin/bash: ${HOMEBREW_PREFIX}/bin/bash
+    ~/bin/date: ${HOMEBREW_PREFIX}/bin/gdate
+    ~/bin/find: ${HOMEBREW_PREFIX}/opt/findutils/bin/gfind
+    ~/bin/make: ${HOMEBREW_PREFIX}/opt/make/libexec/gnubin/make
+    ~/bin/sed: ${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin/sed
+    ~/bin/touch: ${HOMEBREW_PREFIX}/bin/gtouch
