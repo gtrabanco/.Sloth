@@ -114,18 +114,21 @@ fi
 # BREW_BIN is necessary because maybe is not set the path where it is brew installed
 if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
   # Locating brew binary
-  if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
-    HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-  elif [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+  if [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.linuxbrew/bin/brew"
     HOMEBREW_PREFIX="${HOME}/.linuxbrew"
   elif [[ -x "${HOME}/.homebrew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.homebrew/bin/brew"
     HOMEBREW_PREFIX="${HOME}/.homebrew"
+  elif [[ -x "${HOME}/homebrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/homebrew/bin/brew"
+    HOMEBREW_PREFIX="${HOME}/.homebrew"
   elif [[ -x "${HOME}/.brew/bin/brew" ]]; then
     BREW_BIN="${HOME}/.brew/bin/brew"
     HOMEBREW_PREFIX="${HOME}/.brew"
+  elif [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+    HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
   elif [[ -x "/opt/homebrew/bin/brew" ]]; then
     BREW_BIN="/opt/homebrew/bin/brew"
     HOMEBREW_PREFIX="/opt/homebrew"
