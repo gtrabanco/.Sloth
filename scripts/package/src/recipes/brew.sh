@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#shellcheck disable=SC2034
+#shellcheck disable=SC2034,SC2119,SC2120
 
 brew::execute_from_url() {
   [[ -z "${1:-}" ]] && return 1
@@ -18,9 +18,49 @@ brew::execute_from_url() {
   fi
 }
 
-brew::install() {
-  local -r brew_install_script="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+brew::custom_path_install() {
+  if platform::is_linux; then
+    local -r custom_path="${1:-${HOME}/.linuxbrew}"
+  elif platform::is_macos; then
+    local -r custom_path="${1:-${HOME}/.homebrew}"
+  else
+    local -r custom_path="${1:-${HOME}/.homebrew}"
+  fi
 
+  mkdir -p "$custom_path" &&
+    curl -fL https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$custom_path"
+}
+
+brew::custom_shellenv() {
+  if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+  elif [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.linuxbrew/bin/brew"
+  elif [[ -x "${HOME}/.homebrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.homebrew/bin/brew"
+  elif [[ -x "${HOME}/homebrew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/homebrew/bin/brew"
+  elif [[ -x "${HOME}/.brew/bin/brew" ]]; then
+    BREW_BIN="${HOME}/.brew/bin/brew"
+  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+    BREW_BIN="/opt/homebrew/bin/brew"
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    BREW_BIN="/usr/local/bin/brew"
+  elif command -v brew &> /dev/null; then
+    BREW_BIN="$(command -v brew)"
+  elif command -vp brew &> /dev/null; then
+    BREW_BIN="$(command -vp brew)"
+  fi
+
+  HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
+  HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+
+  PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:${PATH}"
+  export PATH HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
+}
+
+brew::install() {
   if platform::command_exists yum; then
     if sudo -v; then
       yes | sudo yum install group 'Development tools'
@@ -35,55 +75,33 @@ brew::install() {
     output::error "Brew is not supported"
     return 1
   fi
-  brew::execute_from_url "$brew_install_script"
 
-  if [[ -d "/home/linuxbrew/.linuxbrew" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
-  elif [[ -d "${HOME}/.linuxbrew" && -x "${HOME}/.linuxbrew/bin/brew" ]]; then
-    BREW_BIN="${HOME}/.linuxbrew/bin/brew"
-  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-    BREW_BIN="/opt/homebrew/bin/brew"
-  elif [[ -x "/usr/local/bin/brew" ]]; then
-    BREW_BIN="/usr/local/bin/brew"
-  elif command -v brew &> /dev/null; then
-    BREW_BIN="$(command -v brew)"
+  # On macOS we need clt
+  if platform::is_macos; then
+    script::depends_on clt
   fi
 
-  HOMEBREW_PREFIX="$("$BREW_BIN" --prefix)"
-  HOMEBREW_CELLAR="${HOMEBREW_PREFIX}/Cellar"
-  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+  # We need curl and tar always
+  script::depends_on tar curl
 
-  PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:${PATH}"
-  export PATH HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
+  # Install Homebrew
+  brew::custom_path_install
+  # End of install
+
+  brew::custom_shellenv
 }
 
 brew::uninstall() {
+  brew::custom_shellenv
+
   local -r brew_uninstall_script="https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh"
   brew::execute_from_url "$brew_uninstall_script"
 }
 
 brew::is_installed() {
-  local BREW_BIN=""
-  
-  if command -v brew &> /dev/null; then
-    BREW_BIN="$(command -v brew)"
-  elif command -vp brew &> /dev/null; then
-    BREW_BIN="$(command -vp brew)"
-  elif [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
-  elif [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
-    BREW_BIN="${HOME}/.linuxbrew/bin/brew"
-  elif [[ -x "${HOME}/.homebrew/bin/brew" ]]; then
-    BREW_BIN="${HOME}/.homebrew/bin/brew"
-  elif [[ -x "${HOME}/.brew/bin/brew" ]]; then
-    BREW_BIN="${HOME}/.brew/bin/brew"
-  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-    BREW_BIN="/opt/homebrew/bin/brew"
-  elif [[ -x "/usr/local/bin/brew" ]]; then
-    BREW_BIN="/usr/local/bin/brew"
-  fi
+  brew::custom_shellenv
 
-  [[ -n "$BREW_BIN" ]]
+  [[ -n "$HOMEBREW_PREFIX" ]]
 }
 
 # Brew update is done as package manager
