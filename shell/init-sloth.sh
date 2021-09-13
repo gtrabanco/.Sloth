@@ -207,6 +207,11 @@ if command -v python3 &> /dev/null; then
   [[ -d "$python_path" ]] && path+=("$(command python3 -c 'import site; print(site.USER_BASE)' | command -p xargs)/bin")
 fi
 
+path+=(
+  "/usr/local/bin"
+  "/usr/local/sbin"
+)
+
 # System paths
 #shellcheck disable=SC2207
 path+=($(command -p getconf PATH | command -p tr ':' '\n'))
