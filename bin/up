@@ -7,9 +7,9 @@
 
 if [[ -z "${SLOTH_PATH:-}" ]]; then
   SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/bin\/up/}}}"
-elif command -v up &> /dev/null; then
+elif [[ -z "${SLOTH_PATH:-}" ]] && command -v up &> /dev/null; then
   SLOTH_PATH="$(dirname "$(dirname "$(command -v up)")")"
-else
+elif [[ -z "${SLOTH_PATH:-}" ]]; then
   echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"
 fi
 
