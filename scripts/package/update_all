@@ -21,39 +21,5 @@ update_all_error() {
 ##?   package_manager  Package manager to use for updating (could be registry, cargo, apt, yum, etc.)
 ##?
 #? v3.1.0
-docs::parse "$@"
 
-if ${split:-false}; then
-  script::depends_on tmux
-  SESSION_NAME="${SESSION_NAME:-$(date +%s)}"
-  #shellcheck disable=SC2016
-  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
-  exit 0
-fi
-
-output::h1_without_margin "♻️  Updating all the apps on your system"
-! ${split:-false} && output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
-output::empty_line
-
-if [[ -z "${package_managers[*]:-}" ]]; then
-  readarray -t package_managers < <(package::get_all_package_managers "is_available" "update_all")
-fi
-
-for package_manager in "${package_managers[@]}"; do
-  package_title="${package_manager}_title"
-
-  if
-    package::command "$package_manager" "is_available" &&
-      package::command_exists "$package_manager" "update_all"
-  then
-    output::h2 "${!package_title}"
-    package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
-  fi
-done
-
-if command -v tmux &> /dev/null; then
-  pkill -f tmux || true
-fi
-
-output::empty_line
-log::success '👌 All your packages have been successfully updated'
+"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/up" "$@"

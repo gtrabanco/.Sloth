@@ -1,16 +1,60 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sloth
+#shellcheck disable=SC1091
 
 ##### Start of Homebrew Installation Patch #####
 # export HOMEBREW_SLOTH=true
 # export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
 ##### End of Hombrew Installation Patch #####
 
-if [[ -z "${SLOTH_PATH:-}" ]]; then
-  SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-${BASH_SOURCE[0]//\/bin\/up/}}}"
-elif command -v up &> /dev/null; then
-  SLOTH_PATH="$(dirname "$(dirname "$(command -v up)")")"
-else
-  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"
+update_all_error() {
+  [[ -n "${1:-}" ]] && output::write "Error updating ${1:-} apps. See \`dot self debug\` for view errors"
+}
+
+##? Update all packages
+##?
+##? Usage:
+##?   up [--split] [<package_managers>...]
+##?
+##? Options:
+##?   --split  Split terminal to show log and progress if tmux is installed or can be installed
+##?
+##? Arguments:
+##?   package_manager  Package manager to use for updating (could be registry, cargo, apt, yum, etc.)
+##?
+#? v3.1.0
+
+if ${split:-false}; then
+  script::depends_on tmux
+  SESSION_NAME="${SESSION_NAME:-$(date +%s)}"
+  #shellcheck disable=SC2016
+  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
+  exit 0
 fi
 
-"${SLOTH_PATH}/bin/dot" package update_all "$@"
+output::h1_without_margin "♻️  Updating all the apps on your system"
+! ${split:-false} && output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
+output::empty_line
+
+if [[ -z "${package_managers[*]:-}" ]]; then
+  readarray -t package_managers < <(package::get_all_package_managers "is_available" "update_all")
+fi
+
+for package_manager in "${package_managers[@]}"; do
+  package_title="${package_manager}_title"
+
+  if
+    package::command "$package_manager" "is_available" &&
+      package::command_exists "$package_manager" "update_all"
+  then
+    output::h2 "${!package_title}"
+    package::command "$package_manager" "update_all" || update_all_error "${!package_title}"
+  fi
+done
+
+if command -v tmux &> /dev/null; then
+  pkill -f tmux || true
+fi
+
+output::empty_line
+log::success '👌 All your packages have been successfully updated'
+
