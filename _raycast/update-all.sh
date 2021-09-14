@@ -3,7 +3,7 @@
 # Required parameters:
 # @raycast.schemaVersion 1
 # @raycast.title Update All System Packages
-# @raycast.mode inline
+# @raycast.mode fullOutput
 
 # Optional parameters:
 # @raycast.icon ♻️
