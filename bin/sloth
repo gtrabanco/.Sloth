@@ -14,8 +14,6 @@ set -euo pipefail
 
 [[ -z "$1" ]] && exit
 
-echo "${BASH_SOURCE[*]}"
-
 #shellcheck disable=SC2034
 SCRIPT_NAME="$(basename "$1")"
 script_full_path="$1"
@@ -38,7 +36,13 @@ fi
 # Remove script itself to be the first argument
 shift
 
-if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
+if
+  grep -q "##?" "$script_full_path" && 
+  {
+    ! grep -q "IGNORE_DOCOPT" "$script_full_path" ||
+      ! grep -q "IGNORE_DOCPARS" "$script_full_path"
+  } 
+then
   docs::parse_script "$script_full_path" "$@"
 fi
 
