@@ -37,11 +37,11 @@ fi
 shift
 
 if
-  grep -q "##?" "$script_full_path" && 
-  {
-    ! grep -q "IGNORE_DOCOPT" "$script_full_path" ||
-      ! grep -q "IGNORE_DOCPARS" "$script_full_path"
-  } 
+  grep -q "##?" "$script_full_path" &&
+    {
+      ! grep -q "IGNORE_DOCOPT" "$script_full_path" ||
+        ! grep -q "IGNORE_DOCPARS" "$script_full_path"
+    }
 then
   docs::parse_script "$script_full_path" "$@"
 fi
