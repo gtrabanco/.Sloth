@@ -236,7 +236,7 @@ git::remote_latest_tag_version() {
   local -r version_pattern="${2:-v*.*.*}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur | head -n1
+  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2> /dev/null | command awk '{gsub(/\\^\\{\\}/,"", $NF);gsub("refs/tags/v",""); print $NF}' | command sort -Vur | command head -n1
 }
 
 #;
