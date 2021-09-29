@@ -65,6 +65,6 @@ else
   output::answer "gem source -r https://rubygems.org/"
   output::answer "gem source -a http://rubygems.org/"
   output::empty_line
-
+  
   exit 1
 fi
