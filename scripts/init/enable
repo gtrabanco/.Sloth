@@ -63,7 +63,7 @@ fi
 for item in "${to_enable[@]}"; do
   [[ -z "$item" ]] && continue
 
-  init::enable "$item" || true
+  init::enable "$item"
 
   if init::status "$item"; then
     output::solution "Init script '$item'...  Enabled"
