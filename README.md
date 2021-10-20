@@ -12,6 +12,10 @@
   Dotfiles for laziness
 </p>
 
+<p align="center">
+<a href="https://twitter.com/intent/tweet?text=Be%20more%20productive%20by%20using%20.Sloth%20dotfiles%20framework%20%23dotSloth%20%23dotfiles%20%23productivityraptor&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2F.Sloth" title="Tweet about .Sloth"><img src="ic_twitter_share.svg" width="200" height="20" alt="Twitter share button" /></a>
+</p>
+
 <p align="right">
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
@@ -30,6 +34,7 @@
     - [NVM](#nvm)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
+- [Other credits](#other-credits)
 
 ## About this
 <!--
@@ -213,3 +218,8 @@ You can contribute to the project by making a PR, reporting an issue, suggesting
 View [Wiki](https://github.com/gtrabanco/sloth/wiki#roadmap) if you want to contribute and you do not know what to do or maybe is already a WIP (Work in Progress).
 
 You can contribute also by using PR to any working branch (Drafted PRs).
+
+
+# Other credits
+Tweet image got from this website:
+- https://bikeroll.net [image source](https://bikeroll.net/es/img/ic_twitter_share.svg)
