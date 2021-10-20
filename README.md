@@ -12,6 +12,10 @@
   Dotfiles for laziness
 </p>
 
+<p align="center">
+<a href="https://twitter.com/intent/tweet?text=Be%20more%20productive%20by%20using%20.Sloth%20dotfiles%20framework%20%23dotSloth%20%23dotfiles%20%23productivityraptor&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2F.Sloth" title="Tweet about .Sloth"><img src="ic_twitter_share.svg" width="200" height="20" alt="Twitter share button" /></a>
+</p>
+
 <p align="right">
   Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
 </p>
@@ -39,9 +43,6 @@ This section must be changed, Dotly was referenced in the top so no other refere
 [.Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
 
 Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea (supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
-
-<a href="https://twitter.com/intent/tweet?text=Be%20more%20productive%20by%20using%20.Sloth%20dotfiles%20framework%20%23dotSloth%20%23dotfiles%20%23productivityraptor&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2F.Sloth" class="twitter-share-button" data-size="large" data-show-count="false" title="Tweet about .Sloth"><img src="ic_twitter_share.svg" max-width="20%" height="auto" alt="Twitter share button" /></a>
-
 
 ## Features
 <!--
