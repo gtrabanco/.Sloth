@@ -39,6 +39,8 @@ This section must be changed, Dotly was referenced in the top so no other refere
 
 Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea (supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
 
+<a href="https://twitter.com/intent/tweet?text=Be%20%more%20%productive%20%by%20%using%20%.Sloth%20%as%20%your%20%dotfiles%20%framework%20%#dotfiles%20%#dotSloth&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2F.Sloth" class="twitter-share-button" data-size="large" data-show-count="false" title="Tweet about .Sloth">Tweet about .Sloth</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ## Features
 <!--
 This need a very big improvement
