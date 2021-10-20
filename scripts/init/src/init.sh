@@ -59,30 +59,47 @@ init::fzf() {
 }
 
 init::enable() {
-  local sloth_init_path dotfiles_init_path to item
+  local sloth_init_path dotfiles_init_path to item status=0
   sloth_init_path="$SLOTH_INIT_SCRIPTS_PATH"
   dotfiles_init_path="$DOTFILES_INIT_SCRIPTS_PATH"
   to="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$sloth_init_path/$item" ]] &&
-      [[ ! -e "$to/$item" ]] &&
+    if
+      [[ -e "$sloth_init_path/$item" ]] &&
+        [[ ! -e "$to/$item" ]]
+    then
       rm -f "$to/$item" &&
-      ln -s "$sloth_init_path/$item" "$to/"
+        ln -s "$sloth_init_path/$item" "$to/"
+      continue
+    fi
 
-    [[ -e "$dotfiles_init_path/$item" ]] &&
-      [[ ! -e "$to/$item" ]] &&
+    if
+      [[ -e "$dotfiles_init_path/$item" ]] &&
+        [[ ! -e "$to/$item" ]]
+    then
       rm -f "$to/$item" &&
-      ln -s "$dotfiles_init_path/$item" "$to/"
+        ln -s "$dotfiles_init_path/$item" "$to/"
+      continue
+    fi
+
+    status=1
   done
+
+  return $status
 }
 
 init::disable() {
-  local enabled_path item
+  local enabled_path item status=0
   enabled_path="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$enabled_path/$item" ]] &&
+    if [[ -e "$enabled_path/$item" ]]; then
       rm -f "$enabled_path/$item"
+    else
+      status=1
+    fi
   done
+
+  return $status
 }

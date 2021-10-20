@@ -98,7 +98,10 @@ jobs:
           echo "PATH=$PATH:$HOME/go/bin" >> $GITHUB_ENV
 
       - name: 📥 Install shfmt
-        run: go get mvdan.cc/sh/v3/cmd/shfmt
+        run: brew install shfmt
+        # There is a problem with io/fs in go version 1.15 which is current github actions versions, see: https://issueexplorer.com/issue/sensepost/gowitness/113
+        #run: go install mvdan.cc/sh/v3/cmd/shfmt@latest
+        #run: go get mvdan.cc/sh/v3/cmd/shfmt@latest
 
       - name: 💅 Lint bash files and apply linting patches
         run: |

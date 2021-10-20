@@ -23,4 +23,6 @@ if [[ $SHELL == *"bash"* || $SHELL == *"zsh"* ]]; then
 fi
 
 # Load only if installed
-[[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${NVM_DIR}/nvm.sh" # This loads nvm, node, npm & npx
+if [[ -r "${NVM_DIR}/nvm.sh" ]]; then
+  . "${NVM_DIR}/nvm.sh" # This loads nvm, node, npm & npx
+fi
