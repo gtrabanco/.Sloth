@@ -49,8 +49,10 @@ nvm::install() {
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
-    output::answer "You should add these lines to your \`.bashrc\` & \`.zshrc\` manully because your \`DOTFILES_PATH\` could not be detected"
-    output::write "    \`. \"${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm\"\`"
+    output::write "Check if \`nvm\` init script is enabled by executing:"
+    output::answer "\`dot init status nvm\`"
+    output::write "If not try to activate by using"
+    output::answer "\`dot init enable nvm\`"
     output::empty_line
   fi
 
