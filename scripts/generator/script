@@ -67,6 +67,10 @@ if ${core:-}; then
 
   script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context"
 else
+  if [[ $context == "core" ]] || [[ $context == "package" && $script_name == "add" ]]; then
+    output::error "\`$context\` or \`$script_name\` can not be used. Core & package contexts have restrictions when using the generator."
+    exit 5
+  fi
   script_path="$DOTFILES_PATH/scripts/$context"
 fi
 
@@ -104,7 +108,7 @@ email="${email:-$(git config --global --get user.email)}"
 description="${script_description[*]:-}"
 
 # Description can not be empty
-[[ -z "$description" ]] && description="$(output::question "Description can not be empty, describe your script")"
+[[ -z "$description" ]] && while [[ -z "$description" ]]; do read -rp "Description can not be empty, describe your script" "description"; done
 
 cp "${SCRIPT_TEMPLATE_PATH}" "$script_filepath"
 templating::replace "$script_filepath" --script-name="$script_name" --script-context="$context" --script-author="$author" --script-author-email="$email" --script-description="$description" > /dev/null
