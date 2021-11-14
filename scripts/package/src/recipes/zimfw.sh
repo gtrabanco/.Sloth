@@ -2,14 +2,18 @@
 
 zimfw::install() {
   script::depends_on curl
-  
+
   export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}/shell/zimfw}"
 
-  curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh 2>&1
+  curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh" 2>&1
   
   zsh "${ZIM_HOME}/zimfw.zsh" install 2>&1
 
-  zimfw::is_installed
+  if zimfw::is_installed; then
+    templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "\${DOTFILES_PATH}/shell/zimfw" || true
+  else
+    return 1
+  fi
 }
 
 zimfw::is_installed() {
