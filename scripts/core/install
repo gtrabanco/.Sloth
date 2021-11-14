@@ -254,7 +254,7 @@ fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
-export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
+export ZIM_HOME="${DOTFILES_PATH:-}/shell/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
