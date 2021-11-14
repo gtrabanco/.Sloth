@@ -27,6 +27,8 @@ setopt +o nomatch
 
 # Start zim
 if ! ${SLOTH_DISABLE_ZIMFW:-false} && [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
+  [[ -z "${ZSH_HIGHLIGHT_HIGHLIGHTERS:-}" ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+  
   #shellcheck disable=SC1091
   . "${ZIM_HOME}/init.zsh" || echo "Error loading ZimFW"
   { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loaded ZimFW"; } || true
@@ -34,9 +36,9 @@ fi
 
 # Async mode for autocompletion
 # shellcheck disable=SC2034
-ZSH_AUTOSUGGEST_USE_ASYNC=true
+[[ -z "${ZSH_AUTOSUGGEST_USE_ASYNC:-}" ]] && ZSH_AUTOSUGGEST_USE_ASYNC=true
 # shellcheck disable=SC2034
-ZSH_HIGHLIGHT_MAXLENGTH=300
+[[ -z "${ZSH_HIGHLIGHT_MAXLENGTH:-}" ]] && ZSH_HIGHLIGHT_MAXLENGTH=300
 
 tmp_fpath=("${fpath[@]}")
 fpath=()
