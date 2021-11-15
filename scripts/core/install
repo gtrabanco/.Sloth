@@ -254,7 +254,7 @@ fi
 export SETUP_ZSH_AS_DEFAULT_SHELL
 #### End of prompt user all the staff we want to know ####
 
-export ZIM_HOME="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw"
+export ZIM_HOME="${DOTFILES_PATH:-}/shell/zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
@@ -364,7 +364,7 @@ unset zsh_shell_path
 # If exists zsh install ZIMFW
 output::answer "Installing zim"
 if platform::command_exists zsh; then
-  zsh "${ZIM_HOME}/zimfw.zsh" install | log::file "Installing zim"
+  registry::install zimfw
 else
   output::answer "ZIM Framework not installed because zsh shell were not found"
   output::write "Use \`dot self debug\` to view what happened"

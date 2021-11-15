@@ -46,7 +46,7 @@ jobs:
           echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
           echo "DOTFILES_PATH=${HOME}/.dotfiles" >> $GITHUB_ENV
           echo "SLOTH_PATH=${HOME}/.dotfiles/modules/sloth" >> $GITHUB_ENV
-          echo "ZIM_HOME=${HOME}/.dotfiles/modules/sloth/modules/zimfw" >> $GITHUB_ENV
+          echo "ZIM_HOME=${HOME}/.dotfiles/shell/zimfw" >> $GITHUB_ENV
           echo "DOTLY_ENV=PROD" >> $GITHUB_ENV
 
       - name: ZSH Speed test

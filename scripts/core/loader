@@ -51,7 +51,7 @@ zshrc_load() {
       fi
       echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
       echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
-      echo "export ZIM_HOME=\"\${SLOTH_PATH:-\${DOTLY_PATH:-}}/modules/zimfw\""
+      echo "export ZIM_HOME=\"\${DOTFILES_PATH:-}/shell/zimfw\""
       echo '###### End of .Sloth Variables ######'
       echo
       ;;

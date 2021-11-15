@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
 
+zimfw::install() {
+  script::depends_on curl
+
+  export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}/shell/zimfw}"
+
+  curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh" 2>&1
+  
+  zsh "${ZIM_HOME}/zimfw.zsh" install 2>&1
+
+  if zimfw::is_installed; then
+    templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "\${DOTFILES_PATH}/shell/zimfw" || true
+  else
+    return 1
+  fi
+}
+
 zimfw::is_installed() {
-  [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/zimfw/" ]] && command -v git &> /dev/null
+  [[ -r "${ZIM_HOME}/zimfw.zsh" ]] && command -v git &> /dev/null
 }
 
 zimfw::is_outdated() {
@@ -9,7 +25,7 @@ zimfw::is_outdated() {
 }
 
 zimfw::upgrade() {
-  zsh -c ". \"${HOME}/.zshrc\"; zimfw clean; zimfw update; zimfw upgrade; zimfw compile"
+  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" clean; \"${ZIM_HOME}/zimfw.zsh\" update; \"${ZIM_HOME}/zimfw.zsh\" upgrade; \"${ZIM_HOME}/zimfw.zsh\" compile"
 }
 
 zimfw::description() {
@@ -21,7 +37,7 @@ zimfw::url() {
 }
 
 zimfw::version() {
-  zsh -c ". \"${HOME}/.zshrc\"; zimfw version"
+  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" version"
 }
 
 zimfw::latest() {
