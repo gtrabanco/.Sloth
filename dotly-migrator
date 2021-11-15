@@ -87,7 +87,7 @@ if $DOTLY_MIGRATION; then
     # Define new variables
     export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"
     export SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
-    export ZIM_HOME="${DOTFILES_PATH:-}/shell/zimfw"
+    export ZIM_HOME="${DOTFILES_PATH:-}/shell/zsh/.zimfw"
     # Reinstall zim
     zsh "$ZIM_HOME/zimfw.zsh" install
     "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
