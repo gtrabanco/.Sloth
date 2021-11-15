@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+##? Generate a custom packager manager implementation
+##?
+##?
+##? Usage:
+##?   package_manager [-h | --help]
+##?   package_manager [-v | --version]
+##?   package_manager [-c | --core] [--author <author>] [--email <email>] [-o | --open] <package_manager_name> [<package_manager_description>...]
+##?
+##? Options:
+##?   -h --help          Show this help
+##?   -v --version       Show the program version
+##?   -c --core          Create the package manager implementation in the valid
+##?                      path in SLOTH_PATH.
+##?   --author <author>  Provide who is the author, if none the default git author will
+##?                      be used
+##?   --email <email>    Provide author email, if none the default git author email will
+##?                      be used
+##?   -o --open          Open editor by using env var \$EDITOR to edit or view the script if not defined just use "cat"
+##?
+##? Author:
+##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
+##?
+#? v1.0.0
+
+case ${1:-} in
+  # Any subcommand should be here
+  *)
+    output::error "Exit with error: no content yet"
+    exit 1
+    ;;
+esac

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+##? XXX_SCRIPT_DESCRIPTION_XXX
+##?
+##?
+##? Usage:
+##?   XXX_SCRIPT_NAME_XXX [-h | --help]
+##?   XXX_SCRIPT_NAME_XXX [-v | --version]
+##?   XXX_SCRIPT_NAME_XXX -c | --custom-option
+##?   XXX_SCRIPT_NAME_XXX subcommand <example_variable> [<example_optional_variable>...]
+##?
+##? Arguments:
+##?   <example_variable>
+##?   <example_optional_variable>...
+##?
+##? Options:
+##?   -h --help                                                      Show this help
+##?   -v --version                                                   Show the program version
+##?   -c --custom-option                                             With two or more spaces you can add some help
+##?   subcomand <example_variable> [<example_optional_variable>...]  Also provide a help with subcommand
+##? This text will be printed as well when you call -h or --help option
+##?
+##? Author:
+##?   XXX_SCRIPT_AUTHOR_XXX <XXX_SCRIPT_AUTHOR_EMAIL_XXX>
+##?
+#? v1.0.0
+#? Copyright (c) 20XX XXX_SCRIPT_AUTHOR_XXX
+#? This script is licensed under the MIT license
+
+case "${1:-}" in
+  "subcommand")
+    output::write "This case is optional and only useful if you want to implement subcommands"
+    output::write "The example repeteable variable value is \`${example_variable[*]:-No value provided}\`"
+    output::write "The optional variable value is \`${example_optional_variable:-No value provided}\`"
+    ;;
+  *)
+    output::error "Exit with error: no content yet"
+    exit 1
+    ;;
+esac

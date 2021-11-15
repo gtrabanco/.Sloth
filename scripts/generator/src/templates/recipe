@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#? Author:
+#?   XXX_AUTHOR_XXX <XXX_AUTHOR_EMAIL_XXX>
+#? v1.0.0
+
+# REQUIRED FUNCTION
+XXX_RECIPE_NAME_XXX::install() {
+  local force=false
+  # Install using a package manager, in this case auto but you can choose brew, pip...
+  package::install XXX_RECIPE_NAME_XXX auto "${1:-}"
+  package::is_installed XXX_RECIPE_NAME_XXX auto &&
+    output::solution "XXX_RECIPE_NAME_XXX installed" &&
+    return 0
+
+  if [[ $* == *"--force"* ]]; then
+    force=true
+    output::answer "\`--force\` option is ignored with this recipe"
+  fi
+
+  XXX_RECIPE_NAME_XXX::is_installed && output::solution "XXX_RECIPE_NAME_XXX installed" && return
+
+  output::error "XXX_RECIPE_NAME_XXX could not be installed"
+  return 1
+}
+
+# REQUIRED FUNCTION
+XXX_RECIPE_NAME_XXX::is_installed() {
+  platform::command_exists XXX_RECIPE_NAME_XXX
+}
+
+# ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
+# Description, url and versions only be showed if defined
+XXX_RECIPE_NAME_XXX::is_outdated() {
+  # Check if current installed version is outdated, 0 means needs to be updated
+  return 1
+}
+
+XXX_RECIPE_NAME_XXX::upgrade() {
+  # Steps to upgrade
+  sleep 1s
+  XXX_RECIPE_NAME_XXX upgrade
+}
+
+XXX_RECIPE_NAME_XXX::description() {
+  echo "XXX_RECIPE_NAME_XXX description."
+}
+
+XXX_RECIPE_NAME_XXX::url() {
+  # Please modify
+  echo "https://XXX_RECIPE_NAME_XXX.org"
+}
+
+XXX_RECIPE_NAME_XXX::version() {
+  # Get the current installed version
+  XXX_RECIPE_NAME_XXX --version
+}
+
+XXX_RECIPE_NAME_XXX::latest() {
+  if XXX_RECIPE_NAME_XXX::is_outdated; then
+    # If it is outdated do whatever to get the current version
+    echo "1.0.1"
+  else
+    XXX_RECIPE_NAME_XXX::version
+  fi
+}
+
+XXX_RECIPE_NAME_XXX::title() {
+  echo -n "XXX_RECIPE_ICON_XXX XXX_RECIPE_NAME_XXX"
+}
