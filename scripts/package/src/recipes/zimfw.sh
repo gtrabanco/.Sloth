@@ -6,8 +6,12 @@ zimfw::install() {
   export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}/shell/zimfw}"
 
   curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh" 2>&1
-  
+
   zsh "${ZIM_HOME}/zimfw.zsh" install 2>&1
+
+  if ! grep -q "shell/zimfw" "${DOTFILES_PATH}/.gitignore"; then
+    echo "shell/zimfw" | tee -a "${DOTFILES_PATH}/.gitignore" &> /dev/null
+  fi
 
   if zimfw::is_installed; then
     templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "\${DOTFILES_PATH}/shell/zimfw" || true

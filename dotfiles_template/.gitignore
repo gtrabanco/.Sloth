@@ -2,4 +2,5 @@
 .sloth_force_current_version
 .sloth_update_available
 .sloth_updated
+shell/zimfw
 # END OF SLOTH GITIGNORE
