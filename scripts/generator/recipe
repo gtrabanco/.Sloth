@@ -23,7 +23,7 @@
 
 if [[ -z "$recipe_name" ]]; then
   recipe_name="$(output::question "What is the name of the package manager?")"
-  
+
   [[ -z "$recipe_name" ]] && output::error "A name for the package manager is mandatory" &&
     exit 1
 fi
