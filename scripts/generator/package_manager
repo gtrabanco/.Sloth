@@ -92,7 +92,7 @@ show_path="${package_manager_full_path//$DOTFILES_PATH/\$DOTFILES_PATH}"
 show_sloth_path="${SLOTH_PATH//$DOTFILES_PATH/\$DOTFILES_PATH}"
 show_path="${show_path//$show_sloth_path/\$SLOTH_PATH}"
 output::write "You can access and edit your new package manager implemetation by executing:"
-output::answer " \$EDITOR ${show_path}"
+output::write "    \"\$EDITOR\" \"${show_path}\""
 output::empty_line
 
 if ${open:-false}; then
