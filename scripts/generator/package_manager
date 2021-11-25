@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sloth
 ##? Generate a custom packager manager implementation
 ##?
 ##?
 ##? Usage:
 ##?   package_manager [-h | --help]
 ##?   package_manager [-v | --version]
-##?   package_manager [-c | --core] [--author <author>] [--email <email>] [-o | --open] <package_manager_name> [<package_manager_description>...]
+##?   package_manager [-c | --core] [--author <author>] [--email <email>] [-o | --open] <package_manager_name> [<package_manager_icon>]
 ##?
 ##? Options:
 ##?   -h --help          Show this help
@@ -23,10 +23,85 @@
 ##?
 #? v1.0.0
 
-case ${1:-} in
-  # Any subcommand should be here
-  *)
-    output::error "Exit with error: no content yet"
+# XXX_PACKAGE_MANAGER_NAME_XXX
+# XXX_PACKAGE_MANAGER_ICON_XXX
+# XXX_AUTHOR_NAME_XXX
+# XXX_AUTHOR_EMAIL_XXX
+
+if [[ -z "$package_manager_name" ]]; then
+  package_manager_name="$(output::question "What is the name of the package manager?")"
+  
+  [[ -z "$package_manager_name" ]] && output::error "A name for the package manager is mandatory" &&
     exit 1
-    ;;
-esac
+fi
+
+if [[ $package_manager_name == "registry" ]]; then
+  output::error "The name \`registry\` is reserved for the registry package manager (recipes). This is because it is a core functionality."
+  exit 1
+fi
+
+package_manager_icon="${package_manager_icon:-"$(str::to_upper "$package_manager_name")"}"
+editor="${EDITOR:-cat}"
+author="${author:-$(git config --global --get user.name)}"
+email="${email:-$(git config --global --get user.email)}"
+
+mkdir -p "$DOTFILES_PACKAGE_MANAGERS_PATH"
+
+if ${core:-false}; then
+  output::error "WARNING! You will create the package manager in .Sloth core path"
+  ! output::yesno "Are you sure you want to continue" && exit 1
+
+  [[ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers/" ]] &&
+    output::error "The package manager path for core .Sloth could not be found" &&
+    exit 1
+
+  package_manager_full_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers/${package_manager_name}.sh"
+else
+  package_manager_full_path="${DOTFILES_PACKAGE_MANAGERS_PATH}/${package_manager_name}.sh"
+fi
+package_manager_template="$(dot::get_script_path)/src/templates/package_manager"
+
+if [[ -z "$author" ]]; then
+  author="$(output::question "Write the author name")"
+  exit 1
+fi
+
+if [[ -z "$email" ]]; then
+  author="$(output::question "Write the author email")"
+  exit 1
+fi
+
+# Load templating engine
+dot::load_library "templating.sh"
+
+if [[ -r "$package_manager_full_path" ]]; then
+  output::error "The package manager \`${package_manager_name}\` already exists"
+
+  if output::yesno "Do you want to overwrite it?"; then
+    rm -f "$package_manager_full_path"
+  else
+    exit 1
+  fi
+fi
+
+output::answer "Creating package manager \`${package_manager_name}\`"
+cp -f "$package_manager_template" "$package_manager_full_path"
+
+output::answer "Editing package manager \`${package_manager_name}\`"
+templating::replace "$package_manager_full_path" --author-name="$author" --author-email="$email" --package-manager-name="$package_manager_name" --package-manager-icon="$package_manager_icon" > /dev/null
+
+output::solution "All was done sucessfully"
+output::empty_line
+
+show_path="${package_manager_full_path//$DOTFILES_PATH/\$DOTFILES_PATH}"
+show_sloth_path="${SLOTH_PATH//$DOTFILES_PATH/\$DOTFILES_PATH}"
+show_path="${show_path//$show_sloth_path/\$SLOTH_PATH}"
+output::write "You can access and edit your new package manager implemetation by executing:"
+output::answer " \$EDITOR ${show_path}"
+output::empty_line
+
+if ${open:-false}; then
+  output::write "Opening with \$EDITOR..."
+  output::empty_line
+  $editor "$package_manager_full_path"
+fi
