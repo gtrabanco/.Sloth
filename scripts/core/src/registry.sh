@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
+DOTFILES_RECIPES_PATH="${DOTFILES_RECIPES_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/package/recipes}"
+
 # First added paths prevails over lasts
 export SLOTH_RECIPE_PATHS=(
   "${SLOTH_RECIPES_PATH[@]:-}"
-  "${DOTFILES_PATH:-/dev/null}/package/recipes"
+  "${DOTFILES_PATH:-${HOME}/.dotfiles}/package/recipes"
   "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/recipes"
 )
 
@@ -21,7 +23,7 @@ registry::recipe_exists() {
 
   for recipe_path in "${SLOTH_RECIPE_PATHS[@]}"; do
     recipe_file_path=""
-    recipe_file_path="$recipe_path/$recipe.sh"
+    recipe_file_path="${recipe_path}/${recipe}.sh"
     if [[ -f "$recipe_file_path" ]]; then
       echo "$recipe_file_path"
       break
@@ -79,9 +81,9 @@ registry::command() {
       registry::load_recipe "$recipe"
   then
     if [[ "$command" == "install" ]]; then
-      "$recipe_command" "$@" 2>&1 | log::file "Installing package \`$recipe\` using registry"
+      "$recipe_command" "$@" 2>&1 | log::file "Installing package \`${recipe}\` using registry"
     elif [[ "$command" == "uninstall" ]]; then
-      "$recipe_command" "$@" 2>&1 | log::file "Uninstalling package \`$recipe\` using registry"
+      "$recipe_command" "$@" 2>&1 | log::file "Uninstalling package \`${recipe}\` using registry"
     else
       "$recipe_command" "$@"
     fi
