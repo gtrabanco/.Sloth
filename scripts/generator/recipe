@@ -81,7 +81,7 @@ output::answer "Creating package manager \`${recipe_name}\`"
 cp -f "$recipe_template" "$recipe_full_path"
 
 output::answer "Editing package manager \`${recipe_name}\`"
-templating::replace "$recipe_full_path" --author-name="$author" --author-email="$email" --package-manager-name="$recipe_name" --package-manager-icon="$recipe_icon" > /dev/null
+templating::replace "$recipe_full_path" --author-name="$author" --author-email="$email" --recipe-name="$recipe_name" --recipe-icon="$recipe_icon" > /dev/null
 
 output::solution "All was done sucessfully"
 output::empty_line
