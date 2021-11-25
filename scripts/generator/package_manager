@@ -23,11 +23,6 @@
 ##?
 #? v1.0.0
 
-# XXX_PACKAGE_MANAGER_NAME_XXX
-# XXX_PACKAGE_MANAGER_ICON_XXX
-# XXX_AUTHOR_NAME_XXX
-# XXX_AUTHOR_EMAIL_XXX
-
 if [[ -z "$package_manager_name" ]]; then
   package_manager_name="$(output::question "What is the name of the package manager?")"
   
