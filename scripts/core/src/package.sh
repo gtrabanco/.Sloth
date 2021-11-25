@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 
+DOTFILES_PACKAGE_MANAGERS_PATH="${DOTFILES_PACKAGE_MANAGERS_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/package/managers}"
+
 if [[ -n "${PACKAGE_MANAGERS_SRC[*]:-}" ]]; then
   if
-    ! array::exists_value "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
-      ! array::exists_value "${DOTFILES_PATH:-/dev/null}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
+    ! array::exists_value "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
+      ! array::exists_value "$DOTFILES_PACKAGE_MANAGERS_PATH" "${PACKAGE_MANAGERS_SRC[@]}"
   then
     export PACKAGE_MANAGERS_SRC=(
-      "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-      "${DOTFILES_PATH:-/dev/null}/package/managers"
+      "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/package/src/package_managers"
+      "$DOTFILES_PACKAGE_MANAGERS_PATH"
       "${PACKAGE_MANAGERS_SRC[@]}"
     )
   fi
 else
   export PACKAGE_MANAGERS_SRC=(
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-    "${DOTFILES_PATH:-/dev/null}/package/managers"
+    "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/package/src/package_managers"
+    "$DOTFILES_PACKAGE_MANAGERS_PATH"
   )
 fi
 

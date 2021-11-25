@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+#? Author:
+#?   XXX_AUTHOR_NAME_XXX <XXX_AUTHOR_EMAIL_XXX>
+#? v1.0.0
+
+# REQUIRED VARIABLE
+XXX_PACKAGE_MANAGER_NAME_XXX_title='XXX_PACKAGE_MANAGER_ICON_XXX XXX_PACKAGE_MANAGER_NAME_XXX'
+
+# REQUIRED FUNCTION
+XXX_PACKAGE_MANAGER_NAME_XXX::title() {
+  echo -n "XXX_PACKAGE_MANAGER_ICON_XXX XXX_PACKAGE_MANAGER_NAME_XXX"
+}
+
+# REQUIRED FUNCTION
+XXX_PACKAGE_MANAGER_NAME_XXX::is_available() {
+  platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX
+}
+
+# REQUIRED FUNCTION TO USE INSTALL
+XXX_PACKAGE_MANAGER_NAME_XXX::install() {
+  local force=false packages
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+
+  if [[ $* == *--force* ]]; then
+    force=true
+  fi
+
+  readarray -t packages < <(array::substract "--force" "$@")
+
+  if $force; then
+    XXX_PACKAGE_MANAGER_NAME_XXX install --force "${packages[@]}"
+  else
+    XXX_PACKAGE_MANAGER_NAME_XXX install "${packages[@]}"
+  fi
+
+  XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "${packages[@]}"
+}
+
+# REQUIRED FUNCTION TO UNINSTALL
+XXX_PACKAGE_MANAGER_NAME_XXX::uninstall() {
+  [[ $# -gt 0 ]] && XXX_PACKAGE_MANAGER_NAME_XXX::is_available && XXX_PACKAGE_MANAGER_NAME_XXX uninstall "$@"
+}
+
+# OPTIONAL FUNCTION BUT PLEASE INCLUDE IT IF THE AVAILABILITY OF PACKAGE CAN BE CHECKED
+XXX_PACKAGE_MANAGER_NAME_XXX::package_exists() {
+  [[ -n "${1:-}" ]] && XXX_PACKAGE_MANAGER_NAME_XXX::is_available && XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" &> /dev/null
+}
+
+# REQUIRED
+XXX_PACKAGE_MANAGER_NAME_XXX::is_installed() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+
+  platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX && XXX_PACKAGE_MANAGER_NAME_XXX is_installed "$@" &> /dev/null && return
+
+  return 1
+}
+
+# REQUIRED TO USE `up` or `up XXX_PACKAGE_MANAGER_NAME_XXX`
+XXX_PACKAGE_MANAGER_NAME_XXX::update_all() {
+  XXX_PACKAGE_MANAGER_NAME_XXX::self_update
+  XXX_PACKAGE_MANAGER_NAME_XXX::update_apps
+}
+
+# Internal function
+XXX_PACKAGE_MANAGER_NAME_XXX::self_update() {
+  XXX_PACKAGE_MANAGER_NAME_XXX::is_available && XXX_PACKAGE_MANAGER_NAME_XXX update 2>&1 | log::file "Updating ${XXX_PACKAGE_MANAGER_NAME_XXX_title}"
+}
+
+# Internal function
+XXX_PACKAGE_MANAGER_NAME_XXX::update_apps() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+  local outdated_apps outdated_app outdated_app_info app_new_version app_old_version app_info app_url
+  outdated_apps=($(XXX_PACKAGE_MANAGER_NAME_XXX outdated))
+
+  if [ -n "${outdated_apps[*]}" ]; then
+    for outdated_app in "${outdated_apps[@]}"; do
+      outdated_app_info=$(brew info "$outdated_app")
+
+      app_new_version=$(echo "do whatever to get new version")
+      app_old_version=$(echo "do whatever to get current version")
+      app_info=$(echo "Get the app description")
+      app_url=$(echo "Get the app official webpage")
+
+      output::write "XXX_PACKAGE_MANAGER_ICON_XXX $outdated_app"
+      output::write "├ $app_old_version -> $app_new_version"
+      output::write "├ $app_info"
+      output::write "└ $app_url"
+      output::empty_line
+
+      XXX_PACKAGE_MANAGER_NAME_XXX upgrade "$outdated_app" 2>&1 | log::file "Updating ${XXX_PACKAGE_MANAGER_NAME_XXX_title} app: $outdated_app"
+    done
+  else
+    output::answer "Already up-to-date"
+  fi
+}
+
+# Not required, only required if it can be done with the package manager
+XXX_PACKAGE_MANAGER_NAME_XXX::cleanup() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+
+  XXX_PACKAGE_MANAGER_NAME_XXX cleanup
+  output::answer "${XXX_PACKAGE_MANAGER_NAME_XXX_title} cleanup complete"
+}
+
+# Only require for backup your packages
+XXX_PACKAGE_MANAGER_NAME_XXX::dump() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH}"
+
+  if package::common_dump_check XXX_PACKAGE_MANAGER_NAME_XXX "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH"; then
+    XXX_PACKAGE_MANAGER_NAME_XXX dump | tee "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH" | log::file "Exporting $XXX_PACKAGE_MANAGER_NAME_XXX_title packages"
+
+    return 0
+  fi
+
+  return 1
+}
+
+# Only required for importing your packages from previous backup
+XXX_PACKAGE_MANAGER_NAME_XXX::import() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH}"
+
+  if package::common_import_check XXX_PACKAGE_MANAGER_NAME_XXX "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH"; then
+    XXX_PACKAGE_MANAGER_NAME_XXX import --file="$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH" | log::file "Importing $XXX_PACKAGE_MANAGER_NAME_XXX_title packages"
+
+    return 0
+  fi
+
+  return 1
+}

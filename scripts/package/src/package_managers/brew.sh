@@ -11,17 +11,25 @@ brew::is_available() {
 }
 
 brew::install() {
+  local force=false packages
   ! brew::is_available && return 1
-  # Some aliases
-  case "${1:-}" in
-    "docpars") package="denisidoro/tools/docpars" ;;
-    *) package="${1:-}" ;;
-  esac
 
   if [[ $* == *--force* ]]; then
-    brew install --force "$package"
+    force=true
+  fi
+
+  readarray -t packages < <(array::substract "--force" "$@")
+
+  if array::exists_value "docpars" "${packages[@]}"; then
+    readarray -t packages < <(array::substract "docpars" "${packages[@]}")
+    packages+=("denisidoro/tools/docpars")
+    brew tap "denisidoro/tools"
+  fi
+
+  if $force; then
+    brew install --force "${packages[@]}"
   else
-    brew install "$package"
+    brew install "${packages[@]}"
   fi
 }
 

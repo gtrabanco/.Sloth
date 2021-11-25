@@ -57,4 +57,3 @@ fi
 
 output::empty_line
 log::success '👌 All your packages have been successfully updated'
-
