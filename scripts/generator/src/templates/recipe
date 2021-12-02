@@ -27,7 +27,6 @@ XXX_RECIPE_NAME_XXX::install() {
   return 1
 }
 
-
 # OPTIONAL
 XXX_RECIPE_NAME_XXX::uninstall() {
   return
