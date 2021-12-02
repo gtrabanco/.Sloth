@@ -6,6 +6,15 @@
 # REQUIRED VARIABLE
 XXX_PACKAGE_MANAGER_NAME_XXX_title='XXX_PACKAGE_MANAGER_ICON_XXX XXX_PACKAGE_MANAGER_NAME_XXX'
 
+# REQUIRED
+XXX_PACKAGE_MANAGER_NAME_XXX::is_installed() {
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+
+  platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX && XXX_PACKAGE_MANAGER_NAME_XXX is_installed "$@" &> /dev/null && return
+
+  return 1
+}
+
 # REQUIRED FUNCTION
 XXX_PACKAGE_MANAGER_NAME_XXX::title() {
   echo -n "XXX_PACKAGE_MANAGER_ICON_XXX XXX_PACKAGE_MANAGER_NAME_XXX"
@@ -18,22 +27,36 @@ XXX_PACKAGE_MANAGER_NAME_XXX::is_available() {
 
 # REQUIRED FUNCTION TO USE INSTALL
 XXX_PACKAGE_MANAGER_NAME_XXX::install() {
-  local force=false packages
+  local _args
+  local force=false
   ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
 
   if [[ $* == *--force* ]]; then
-    force=true
-  fi
-
-  readarray -t packages < <(array::substract "--force" "$@")
-
-  if $force; then
-    XXX_PACKAGE_MANAGER_NAME_XXX install --force "${packages[@]}"
+    mapfile -t _args < <(array::substract "--force" "$@")
+    XXX_PACKAGE_MANAGER_NAME_XXX::force_install "${_args[@]}" && return
   else
-    XXX_PACKAGE_MANAGER_NAME_XXX install "${packages[@]}"
+    XXX_PACKAGE_MANAGER_NAME_XXX install "$@" &&
+      XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "$@" && return
   fi
 
-  XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "${packages[@]}"
+  # Not show an error if ::package_exists is not implemented because the
+  # installation will be try when using dot package add when that function
+  # is not implemented
+  return 1
+}
+
+# OPTIONAL FUNCTION TO USE FORCE INSTALL
+XXX_PACKAGE_MANAGER_NAME_XXX::force_install() {
+  local _args
+  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
+
+  readarray -t _args < <(array::substract "--force" "$@")
+
+  XXX_PACKAGE_MANAGER_NAME_XXX install --force "${_args[@]}"
+
+  XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "${_args[@]}" && return
+  
+  return 1
 }
 
 # REQUIRED FUNCTION TO UNINSTALL
@@ -44,15 +67,6 @@ XXX_PACKAGE_MANAGER_NAME_XXX::uninstall() {
 # OPTIONAL FUNCTION BUT PLEASE INCLUDE IT IF THE AVAILABILITY OF PACKAGE CAN BE CHECKED
 XXX_PACKAGE_MANAGER_NAME_XXX::package_exists() {
   [[ -n "${1:-}" ]] && XXX_PACKAGE_MANAGER_NAME_XXX::is_available && XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" &> /dev/null
-}
-
-# REQUIRED
-XXX_PACKAGE_MANAGER_NAME_XXX::is_installed() {
-  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
-
-  platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX && XXX_PACKAGE_MANAGER_NAME_XXX is_installed "$@" &> /dev/null && return
-
-  return 1
 }
 
 # REQUIRED TO USE `up` or `up XXX_PACKAGE_MANAGER_NAME_XXX`

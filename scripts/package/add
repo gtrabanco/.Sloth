@@ -110,7 +110,7 @@ fi
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
   if $force; then
-    registry::install "$package_name" --force || true
+    registry::force_install "$package_name" || true
   else
     registry::install "$package_name" || true
   fi
@@ -121,7 +121,7 @@ if ! ${skip_recipe:-false} &&
   fi
 else
   if $force; then
-    package::install "$package_name" "${FORCED_PKGMGR:-auto}" --force 2>&1 || true
+    package::force_install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
   else
     package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
   fi

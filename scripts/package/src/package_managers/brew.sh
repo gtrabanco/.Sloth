@@ -33,6 +33,13 @@ brew::install() {
   fi
 }
 
+brew::force_install() {
+  local _args
+  readarray -t _args < <(array::substract "--force" "$@")
+  brew unlink "${_args[@]}" &> /dev/null || true
+  brew reinstall "${_args[@]}"
+}
+
 brew::uninstall() {
   [[ $# -gt 0 ]] && brew::is_available && brew uninstall "$@"
 }
