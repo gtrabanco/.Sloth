@@ -330,11 +330,38 @@ package::_install() {
 # @return boolen
 #"
 package::install() {
-  local all_available_pkgmgrs uniq_values package_manager package
-  [[ -z "${1:-}" ]] && return 1
-  package="$1"
-  shift
-  package_manager="${1:-}"
+  local _args all_available_pkgmgrs uniq_values package_manager package
+
+  if [[ $* == *"--force"* ]]; then
+    mapfile -t _args < <(array::substract "--force" "$@")
+    package="${_args[0]:-}"
+    package_manager="${_args[1]:-}"
+    [[ -z "$package" ]] && return 1
+
+    if
+      [[ -n "$package_manager" ]] &&
+        package::command_exists "$package_manager" "force_install"
+    then
+      package::command "$package_manager" "force_install" "$package" "${_args[@]:2}" && return
+
+    elif
+      [[ -n "$package_manager" ]] &&
+        package::command_exists "$package_manager" "uninstall" &&
+        package::uninstall "$package" "$package_manager" "${_args[@]:2}" &&
+        package::command_exists "$package_manager" "install"
+    then
+      package::command "$package_manager" "install" "$package" "${_args[@]:2}" && return
+    fi
+
+    log::error "Unable to force install \`$package\` with \`$package_manager\`"
+    return 1
+  else
+    [[ -z "${1:-}" ]] && return 1
+    package="$1"
+    shift
+    package_manager="${1:-}"
+  fi
+
   if [[ -n "$package_manager" ]]; then
     shift
     # Allow to use recipe(s) instead of registry
@@ -391,7 +418,7 @@ package::install() {
 
 #;
 # package::uninstall()
-# Uninstall the given package, if second parameter is given it will try do it with package manager
+# Uninstall the given package, if second parameter is used as the package manager to be used or it will fail
 # @param string package_name
 # @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
 # @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
@@ -417,6 +444,66 @@ package::uninstall() {
         registry::command_exists "$package_name" "uninstall"
     then
       registry::uninstall "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
+    fi
+  else
+    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || echo -n)"
+    if
+      [[ 
+        -z "$package_manager" ||
+        -z "$(package::manager_exists "$package_manager")" ]]
+    then
+
+      echo "Package manager $package_manager"
+      # Could not determine which package manager to be used or package manager not exists
+      return 1
+    fi
+
+    if package::command_exists "$package_manager" "uninstall"; then
+      package::command "$package_manager" "uninstall" "$package_name" "$@" && ! package::is_installed "$package_name" && return 0
+    fi
+  fi
+
+  # Recipe or package not uninstalled or does not have uninstall wrapper (function) (can happen with both package managers and registry)
+  return 1
+}
+
+#;
+# package::remove()
+# Alias of package::uninstall
+#"
+package::remove() {
+  package::uninstall "$@"
+}
+
+#;
+# package::force_install()
+# Uninstall using forced method if implemented for the given package, if second parameter is used as the package manager to be used or it will fail
+# @param string package_name
+# @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
+# @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
+# @return boolean True if uninstalled and false if still installed
+#"
+package::force_install() {
+  [[ $# -lt 1 ]] && log::error "There is no package name" && return 1
+  local -r package_name="$1"
+  local -r package_manager="${2:-}"
+  shift 2
+
+  if [[ -n "$package_manager" ]]; then
+    shift
+    # Allow to use recipe(s) instead of registry
+    [[ $package_manager == "recipe"[s] ]] && package_manager="registry"
+    [[ $package_manager == "any" ]] && package_manager=""
+  fi
+
+  # TODO: Pending
+  if [[ -z "$package_manager" || $package_manager == "registry" ]]; then
+    local -r recipe_path="$(registry::recipe_exists "$package_name")"
+    if
+      [[ -n "$recipe_path" ]] &&
+        registry::command_exists "$package_name" "force_install"
+    then
+      registry::force_install "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
     fi
   else
     [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || echo -n)"
