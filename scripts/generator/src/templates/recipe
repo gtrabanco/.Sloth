@@ -14,13 +14,24 @@ XXX_RECIPE_NAME_XXX::install() {
 
   if [[ $* == *"--force"* ]]; then
     force=true
-    output::answer "\`--force\` option is ignored with this recipe"
+    # output::answer "\`--force\` option is ignored with this recipe"
+    XXX_RECIPE_NAME_XXX::force_install && return
+  else
+    XXX_RECIPE_NAME_XXX::is_installed && output::solution "XXX_RECIPE_NAME_XXX installed" && return
   fi
-
-  XXX_RECIPE_NAME_XXX::is_installed && output::solution "XXX_RECIPE_NAME_XXX installed" && return
 
   output::error "XXX_RECIPE_NAME_XXX could not be installed"
   return 1
+}
+
+XXX_RECIPE_NAME_XXX::force_install() {
+  local _args
+  mapfile -t _args < <(array::substract "--force" "$@")
+  
+  XXX_RECIPE_NAME_XXX::is_installed "${_args[@]}" &&
+    XXX_RECIPE_NAME_XXX::uninstall "${_args[@]}" &&
+    XXX_RECIPE_NAME_XXX::install "${_args[@]}" &&
+    XXX_RECIPE_NAME_XXX::is_installed "${_args[@]}"
 }
 
 # REQUIRED FUNCTION
