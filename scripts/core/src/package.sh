@@ -423,7 +423,7 @@ package::force_install() {
     package_manager=registry
     registry::force_install "$package_name" "${_args[@]:2}" &&
       return
-      
+
   elif
     [[ -n "$package_manager" ]] &&
       package::command_exists "$package_manager" "force_install"
