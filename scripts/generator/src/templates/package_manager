@@ -23,7 +23,6 @@ XXX_PACKAGE_MANAGER_NAME_XXX::install() {
   ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
 
   if [[ $* == *--force* ]]; then
-    force=true
     mapfile -t _args < <(array::substract "--force" "$@")
     XXX_PACKAGE_MANAGER_NAME_XXX::force_install "${_args[@]}" && return
   else
@@ -47,6 +46,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::force_install() {
   XXX_PACKAGE_MANAGER_NAME_XXX install --force "${_args[@]}"
 
   XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "${_args[@]}" && return
+  
   return 1
 }
 

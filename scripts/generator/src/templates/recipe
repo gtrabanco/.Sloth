@@ -15,7 +15,7 @@ XXX_RECIPE_NAME_XXX::install() {
   if [[ $* == *"--force"* ]]; then
     force=true
     # output::answer "\`--force\` option is ignored with this recipe"
-    XXX_RECIPE_NAME_XXX::force_install && return
+    XXX_RECIPE_NAME_XXX::force_install "$@" && return
   else
     XXX_RECIPE_NAME_XXX::is_installed && output::solution "XXX_RECIPE_NAME_XXX installed" && return
   fi

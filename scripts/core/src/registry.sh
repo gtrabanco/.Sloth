@@ -107,10 +107,14 @@ registry::install() {
 
   if [[ $* == *"--force"* ]]; then
     mapfile -t _args < <(array::substract "--force" "$@")
-    registry::command "$recipe" install "${_args[@]}"
+    registry::force_install "$recipe" "${_args[@]}" &&
+      return
   else
-    registry::command "$recipe" "install" "$@"
+    registry::command "$recipe" "install" "$@" &&
+      return
   fi
+
+  return 1
 }
 
 #;
@@ -138,19 +142,19 @@ registry::force_install() {
   mapfile -t _args < <(array::substract "--force" "$@")
 
   if registry::command_exists "$recipe" "force_install"; then
-    registry::command "$recipe" "force_install" "$@" &&
+    registry::command "$recipe" "force_install" "${_args[@]}" &&
       return
   elif
     registry::command_exists "$recipe" "uninstall" &&
       registry::command_exists "$recipe" "install" &&
-      registry::command "$recipe" "uninstall" "$@"
+      registry::command "$recipe" "uninstall" "${_args[@]}"
   then
     trytoinstall=true
   fi
 
   if $trytoinstall; then
     if registry::command_exists "$recipe" "install"; then
-      registry::command "$recipe" "install" "$@" &&
+      registry::command "$recipe" "install" "${_args[@]}" &&
         return
     else
       log::error "No install or add command found for recipe \`${recipe}\`, but was suceessfully uninstalled"
