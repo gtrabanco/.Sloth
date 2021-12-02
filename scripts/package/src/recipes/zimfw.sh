@@ -3,6 +3,8 @@
 zimfw::install() {
   script::depends_on curl
 
+  dot::load_library "templating.sh" "core"
+
   export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}/shell/zsh/.zimfw}"
 
   curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh" 2>&1
