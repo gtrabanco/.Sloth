@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 zimfw::fix_zim_home() {
-  if [[ *"$ZIM_HOME"* == *"modules/zimfw"* ]]; then
+  if [[ "$ZIM_HOME" == *"modules/zimfw"* ]]; then
     unset ZIM_HOME
   fi
 
