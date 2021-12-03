@@ -1,29 +1,45 @@
 #!/usr/bin/env bash
 
+zimfw::fix_zim_home() {
+  if [[ "$ZIM_HOME" == *"modules/zimfw"* ]]; then
+    unset ZIM_HOME
+  fi
+
+  export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}\/shell\/zsh\/.zimfw}"
+}
+
+zimfw::fix_zim_home
+
+zimfw::is_installed() {
+  [[ -r "${ZIM_HOME}/zimfw.zsh" ]]
+}
+
 zimfw::install() {
+  zimfw::fix_zim_home
+
   script::depends_on curl
 
   dot::load_library "templating.sh" "core"
-
-  export ZIM_HOME="${ZIM_HOME:-${DOTFILES_PATH}/shell/zsh/.zimfw}"
 
   curl -fsSL --create-dirs -o "${ZIM_HOME}/zimfw.zsh" "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh" 2>&1
 
   zsh "${ZIM_HOME}/zimfw.zsh" install 2>&1
 
-  if ! grep -q "shell/zsh/.zimfw" "${DOTFILES_PATH}/.gitignore"; then
-    echo "shell/zsh/.zimfw" | tee -a "${DOTFILES_PATH}/.gitignore" &> /dev/null
+  if ! grep -q "${ZIM_HOME//${DOTFILES_PATH}\//}" "${DOTFILES_PATH}/.gitignore"; then
+    echo "${ZIM_HOME//${DOTFILES_PATH}\//}" | tee -a "${DOTFILES_PATH}/.gitignore" &> /dev/null
   fi
 
   if zimfw::is_installed; then
-    templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "\${DOTFILES_PATH}/shell/zsh/.zimfw" || true
+    templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "${ZIM_HOME//$DOTFILES_PATH/\${DOTFILES_PATH\}}" || true
   else
     return 1
   fi
 }
 
-zimfw::is_installed() {
-  [[ -r "${ZIM_HOME}/zimfw.zsh" ]] && command -v git &> /dev/null
+zimfw::uninstall() {
+  zimfw::fix_zim_home
+
+  rm -rf "${ZIM_HOME}"
 }
 
 zimfw::is_outdated() {
