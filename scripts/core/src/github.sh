@@ -139,7 +139,7 @@ github::_curl() {
 }
 
 github::curl() {
-  local cached_request_file_path _command
+  local cached_request_file_path
 
   local cached=true
   local cache_period="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-3}"
