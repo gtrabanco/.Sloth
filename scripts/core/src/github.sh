@@ -4,7 +4,7 @@
 if [ -z "${GITHUB_API_URL:-}" ]; then
   readonly GITHUB_API_URL="https://api.github.com/repos"
   readonly GITHUB_RAW_FILES_URL="https://raw.githubusercontent.com"
-  readonly GITHUB_CACHE_PETITIONS="$DOTFILES_PATH/.cached_github_api_calls"
+  readonly GITHUB_CACHE_PETITIONS="${DOTFILES_PATH}/.cached_github_api_calls"
   readonly GITHUB_SLOTH_REPOSITORY="gtrabanco/dotSloth"
   GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-1}"
 

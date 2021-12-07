@@ -23,15 +23,15 @@ docs::parse_script_version() {
 
   [[ ! -r "$SCRIPT_FULL_PATH" ]] && return 1
   version="$(command -p awk '/SCRIPT_VERSION[=| ]"?(.[^";]*)"?;?$/ {gsub(/[=|"]/, " "); print $NF}' "$SCRIPT_FULL_PATH" | command -p sort -Vr | command -p head -n1)"
+  if [[ -z "$version" ]]; then
+    version="$(command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH")"
+    [[ -n "$version" ]] && echo "$version" && return
+  fi
 
   if [[ -z "${SCRIPT_NAME:-}" && "$SCRIPT_FULL_PATH" == *scripts/*/* ]]; then
     SCRIPT_NAME="${SLOTH_SCRIPT_BASE_NAME} $(command -p basename "$(dirname "$SCRIPT_FULL_PATH")") $(command -p basename "$SCRIPT_FULL_PATH")"
   elif [[ -z "${SCRIPT_NAME:-}" ]]; then
     SCRIPT_NAME="$(command -p basename "$SCRIPT_FULL_PATH")"
-  fi
-
-  if [[ -z "$version" ]]; then
-    version="$(command -p awk '/^#\?/ {sub(/^#\? ?/,"", $0); print $0}' "$SCRIPT_FULL_PATH")"
   fi
 
   [[ -n "${SCRIPT_NAME:-}" ]] && builtin echo -n "${SCRIPT_NAME} "
@@ -45,10 +45,10 @@ docs::parse() {
 docs::parse_script() {
   local -r script_path="${1:-}"
   shift
-  if ! platform::command_exists docpars; then
-    output::error "You need to have docpars installed in order to use dotly"
+  if ! platform::command_exists docopts; then
+    output::error "You need to have docopts installed to use \`.Sloth\`"
     output::solution "Run this command to install it:"
-    output::solution "DOTLY_INSTALLER=true dot package add docpars"
+    output::solution "DOTLY_INSTALLER=true dot package add docopts"
 
     exit 1
   elif [[ ! -f "${script_path}" ]]; then
@@ -63,9 +63,9 @@ docs::parse_script() {
     exit 0
   fi
 
-  script::depends_on docpars
+  script::depends_on docopts
 
-  eval "$(docpars -h "$(command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$script_path")" : "$@")"
+  eval "$(docopts -h "$(command -p awk '/^##\?/ {sub(/^##\? ?/,"", $0); print $0}' < "$script_path")" --version "$(docs::parse_script_version)" : "$@")"
 }
 
 docs::parse_docopt_section() {

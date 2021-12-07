@@ -298,7 +298,7 @@ setup_zsh() {
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
 #? v2.1.0
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
   action="${1:-}"
 else

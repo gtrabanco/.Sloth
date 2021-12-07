@@ -82,7 +82,7 @@ initilize_sloth_if_necessary() {
 ##?    --link-prefix            Link prefix for where to link the \`dot\` it will be \`${LINK_PREFIX}/bin\`
 ##?
 #? v3.2.0
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
 
   [[ -z "${link_prefix}" ]] && link_prefix="/usr/local"
@@ -275,7 +275,7 @@ output::empty_line
 
 # Packages that are necessary but not in CI env
 if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-  script::depends_on docpars fzf python-yq jq cargo-update
+  script::depends_on docopts fzf python-yq jq cargo-update
 fi
 
 if [[ -n "$DOTFILES_PATH" ]]; then
