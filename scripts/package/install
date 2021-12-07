@@ -23,7 +23,7 @@ if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}"
   _all_args=("$@")
 
   # There is an issue in all docopts implementations I have tested when using arrays
-  # 
+  #
   if ! ${pkgmgr:-false} && [[ -n "${package_manager}" ]]; then
     packages_names=(
       "$package_manager"
