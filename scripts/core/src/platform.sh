@@ -40,7 +40,7 @@ platform::get_arch() {
     x86_64)
       architecture="amd64"
       ;;
-    arm)
+    arm*)
       architecture="arm"
       ;;
     ppc64)
