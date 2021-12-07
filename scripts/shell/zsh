@@ -24,7 +24,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" =
   docs::parse "$@"
 fi
 
-case $1 in
+case "${1:-}" in
   "optimize")
     compaudit 2> /dev/null | xargs -I _ chmod -R go-w _
     output::header "Cleaning stuff"

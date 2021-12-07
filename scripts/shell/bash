@@ -27,7 +27,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" =
   docs::parse "$@"
 fi
 
-case $1 in
+case "${1:-}" in
   "test_performance")
     PATH="${HOME}/.cargo/bin:${PATH}"
     script::depends_on hyperfine
