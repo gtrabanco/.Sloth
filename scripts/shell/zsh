@@ -20,11 +20,11 @@
 ##?   fix_permissions      Fix error: "zsh compinit: insecure directories"
 ##?
 #? v2.2.0
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docopts; then
   docs::parse "$@"
 fi
 
-case $1 in
+case "${1:-}" in
   "optimize")
     compaudit 2> /dev/null | xargs -I _ chmod -R go-w _
     output::header "Cleaning stuff"

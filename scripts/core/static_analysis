@@ -20,7 +20,7 @@ files=()
 ##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
 ##?
 #? v2.1.0
-if [[ "${1:-}" == "-h" || "${1:-}" = "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed "docpars"; then
+if [[ "${1:-}" == "-h" || "${1:-}" = "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed "docopts"; then
   docs::parse "$@"
 elif [[ "${1:-}" = "--dotfiles" ]] || [[ "${1:-}" == "-d" ]]; then
   dotfiles=true

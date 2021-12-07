@@ -23,7 +23,7 @@ dot::load_library "dotly.sh"
 ##?    -n --names     Get only a list of files that needs to apply a patch (can not be used with --patch)
 ##?
 #? v3.3.0
-if [[ "${1:-}" == "-h" || "${1:-}" = "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed "docpars"; then
+if [[ "${1:-}" == "-h" || "${1:-}" = "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed "docopts"; then
   docs::parse "$@"
 else
   while [[ $# -gt 0 ]]; do

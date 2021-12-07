@@ -18,11 +18,12 @@
 ##?    --force           Force to install the package
 ##?
 #? v3.2.0
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docpars" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
   _all_args=("$@")
 
-  # There is an issue in docpars when using arrays
+  # There is an issue in all docopts implementations I have tested when using arrays
+  #
   if ! ${pkgmgr:-false} && [[ -n "${package_manager}" ]]; then
     packages_names=(
       "$package_manager"
@@ -93,9 +94,9 @@ if [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
-# If the package is not docpars and docpars is not installed
-if [[ "$package_name" != "docpars" && "$package_name" != "cargo" ]] && ! package::is_installed "docpars" && ! ${DOTLY_INSTALLER:-false}; then
-  script::depends_on docpars
+# If the package is not docopts and docopts is not installed
+if [[ "$package_name" != "docopts" ]] && ! ${DOTLY_INSTALLER:-false}; then
+  script::depends_on docopts
 fi
 
 # Load cargo PATH

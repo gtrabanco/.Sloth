@@ -99,7 +99,7 @@ fi
 ##?   -c --continue-on-error  If any symlinks fail, continue applying the next
 ##?
 #? v2.1.0
-if ! ${DOTLY_INSTALLER:-false} || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docpars; then
+if ! ${DOTLY_INSTALLER:-false} || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docopts; then
   docs::parse "$@"
 
 else
