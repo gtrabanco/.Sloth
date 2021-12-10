@@ -7,10 +7,6 @@ if [ -z "${GITHUB_API_URL:-}" ]; then
   readonly GITHUB_CACHE_PETITIONS="${DOTFILES_PATH}/.cached_github_api_calls"
   readonly GITHUB_SLOTH_REPOSITORY="gtrabanco/dotSloth"
   GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-1}"
-
-  [[ -z "${GITHUB_TOKEN:-}" ]] && {
-    _log "  If you do not have defined GITHUB_TOKEN variable you could receive not expected results when calling GITHUB API"
-  }
 fi
 
 github::get_api_url() {
@@ -182,6 +178,10 @@ github::curl() {
   then
     rm -f "$cached_request_file_path"
   fi
+
+  [[ -z "${GITHUB_TOKEN:-}" ]] && {
+    _log "  If you do not have defined GITHUB_TOKEN variable you could receive not expected results when calling GITHUB API"
+  }
 
   if $cached; then
     # Cache result if is not
