@@ -1,14 +1,50 @@
 #!/usr/bin/env bash
 
-# Api Url
+# Default variables
 if [ -z "${GITHUB_API_URL:-}" ]; then
-  readonly GITHUB_API_URL="https://api.github.com/repos"
-  readonly GITHUB_RAW_FILES_URL="https://raw.githubusercontent.com"
-  readonly GITHUB_CACHE_PETITIONS="${DOTFILES_PATH}/.cached_github_api_calls"
-  readonly GITHUB_SLOTH_REPOSITORY="gtrabanco/dotSloth"
-  GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-1}"
+  readonly GITHUB_API_URL="https://api.github.com/repos"                      # Base url for github api
+  readonly GITHUB_RAW_FILES_URL="https://raw.githubusercontent.com"           # Base url for raw files
+  readonly GITHUB_CACHE_PETITIONS="${DOTFILES_PATH}/.cached_github_api_calls" # Default cache directory
+  readonly GITHUB_SLOTH_REPOSITORY="gtrabanco/dotSloth"                       # Default repository if none is specified
 fi
 
+GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-3}" # Maximum days a cache petition is cached
+GITHUB_USE_CACHE=${GITHUB_USE_CACHE:-true}                                          # Default behaviour for use of cache
+
+# Non configurable variables (internal use only)
+JQ_CHECKED=false
+CURL_CHECKED=false
+TEE_CHECKED=false
+
+github::check_jq() {
+  if ! ${JQ_CHECKED:-false}; then
+    script::depends_on "jq"
+    JQ_CHECKED=true
+  fi
+}
+
+github::check_curl() {
+  if ! ${CURL_CHECKED:-false}; then
+    script::depends_on "curl"
+    CURL_CHECKED=true
+  fi
+}
+
+github::check_tee() {
+  if ! ${TEE_CHECKED:-false}; then
+    script::depends_on "tee"
+    TEE_CHECKED=true
+  fi
+}
+
+#;
+# github::get_api_url()
+# Get the api url of a github repository
+# @param string user/orgatization
+# @param string repository
+# @param string path
+# @return string
+#"
 github::get_api_url() {
   local user repository branch arguments user_repo_arg
 
@@ -50,7 +86,7 @@ github::get_api_url() {
 
   [[ $# -gt 0 ]] && arguments="$(str::join '/' "$@")"
 
-  echo "$GITHUB_API_URL/$user/$repository${branch:-}${arguments+/$arguments}"
+  echo "${GITHUB_API_URL}/${user}/${repository}${branch:-}${arguments+/$arguments}"
 }
 
 github::branch_raw_url() {
@@ -125,22 +161,23 @@ github::_curl() {
   url="$1"
   shift
 
-  script::depends_on curl
+  github::check_curl
+
   CURL_BIN="$(command -v curl)"
 
-  params=(-fsL -H 'Accept: application/vnd.github.v3+json')
-  [[ -n "$GITHUB_TOKEN" ]] && params+=(-H "'Authorization: token ${GITHUB_TOKEN}'")
+  params=(-fsL -H "Accept: application/vnd.github.v3+json")
+  [[ -n "$GITHUB_TOKEN" ]] && params+=(-H "Authorization: token ${GITHUB_TOKEN}")
 
-  "$CURL_BIN" "${params[@]}" "${@}" "$url" 2> /dev/null
+  "$CURL_BIN" "${params[@]}" "${@}" "$url"
 }
 
 github::curl() {
   local cached_request_file_path
 
-  local cached=true
+  local cached=${GITHUB_USE_CACHE:-true}
   local cache_period="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-3}"
 
-  script::depends_on tee
+  github::check_tee
 
   case "${1:-}" in
     --no-cache | -n)
@@ -197,32 +234,48 @@ github::curl() {
 }
 
 github::get_latest_sloth_tag() {
-  script::depends_on jq
+  github::check_jq
   github::curl "$(github::get_api_url "$GITHUB_SLOTH_REPOSITORY" "tags")" | jq -r '.[0].name' | uniq
 }
 
+#;
+# github::get_remote_file_path_json()
+# Gets a json from github repository api of a given file path. Useful to know hashes or if a file exists in a repository. If you want to call a file in specific branch you use github::get_api_url()
+# @param string url|repository full api url of the repository tree or "<user_or_organization>/<repository>"
+# @param string file_path relative to the repository
+# @return boolean|string if is true, the string is a json if not, only return false
+#"
 github::get_remote_file_path_json() {
-  local file_paths url json GITHUB_REPOSITORY
-  GITHUB_REPOSITORY="${2:-$GITHUB_SLOTH_REPOSITORY}"
+  local file_paths url json default_branch
 
-  script::depends_on jq
+  [[ $# -lt 2 ]] && return 1
 
-  if [[ "$#" -eq 2 ]]; then
-    url="$(github::get_api_url --branch "master" "$GITHUB_REPOSITORY" | github::curl | jq '.commit.commit.tree.url' 2> /dev/null)"
+  github::check_jq
 
-    [[ -n "$url" ]] && github::get_remote_file_path_json "$1" "$GITHUB_REPOSITORY" "$url" && return $?
-  elif [[ "$#" -gt 2 ]]; then
-    readarray -t file_paths < <(echo "${1:-}" | tr "/" "\n")
-    url="${3:-}"
+  if [[ $1 == *"api.github.com/"* ]]; then
+    url="$1"
+  else
+    default_branch="$(github::get_api_url "$1" | github::curl | jq -r '.default_branch')"
 
-    json="$(github::curl "$url" | jq --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
-
-    if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
-      github::get_remote_file_path_json "$(str::join / "${file_paths[@]:1}")" "$GITHUB_REPOSITORY" "$(echo "$json" | jq '.url')"
-    elif [[ -n "$json" ]]; then
-      echo "$json" | jq -r '.url' | github::curl
-      return $?
+    if [[ -z "$default_branch" ]]; then
+      echoerr "No default branch found for repository '$1'"
+      return 1
     fi
+
+    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl -n | jq -r '.commit.commit.tree.url' 2> /dev/null)"
+  fi
+  shift
+
+  [[ -z "${url:-}" ]] && return 1
+
+  readarray -t file_paths < <(str::join "/" "$@" | tr "/" "\n")
+  json="$(github::curl "$url" | jq --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
+
+  if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
+    github::get_remote_file_path_json "$(echo "$json" | jq -r '.url')" "$(str::join / "${file_paths[@]:1}")" && return
+  elif [[ -n "$json" ]]; then
+    printf "%s" "$json"
+    return
   fi
 
   return 1
