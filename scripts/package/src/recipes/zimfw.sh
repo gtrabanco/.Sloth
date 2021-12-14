@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+ZIMFW_GIT_REPOSITORY_URL="git@github.com:zimfw/zimfw.git"
+
 zimfw::fix_zim_home() {
   if [[ "$ZIM_HOME" == *"modules/zimfw"* ]]; then
     unset ZIM_HOME
@@ -61,7 +63,7 @@ zimfw::version() {
 }
 
 zimfw::latest() {
-  git::remote_latest_tag_version 'git@github.com:zimfw/zimfw.git' 'v*.*.*'
+  git::remote_latest_tag_version "${ZIMFW_GIT_REPOSITORY_URL:-git@github.com:zimfw/zimfw.git}" "v*.*.*"
 }
 
 zimfw::title() {
