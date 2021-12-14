@@ -56,6 +56,7 @@ semver::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 semver::is_outdated() {
+  script::depends_on "jq"
   local -r current_sha="$(github::hash "${SEMVER_INSTALL_PATH}/semver")"
   local -r latest_sha="$(github::get_remote_file_path_json "${SEMVER_GITHUB_REPOSITORY:-fsaintjacques/semver-tool}" "${SEMVER_GITHUB_PATH:-src/semver}" | jq -r '.sha')"
 
