@@ -49,7 +49,7 @@ dotbot::update_local_repository() {
 }
 
 dotbot::is_installed() {
-  command -v dotbot &>/dev/null || [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
+  command -v dotbot &> /dev/null || [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
 }
 
 dotbot::install_from_git() {
