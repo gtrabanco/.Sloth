@@ -38,9 +38,8 @@ z::install() {
     curl -fsL "${Z_LIBRARY_DOWNLOAD_URL}" -o "$full_z_path"
   fi
 
-  z::is_installed && output::solution "z installed" && return
+  z::is_installed && return
 
-  output::error "z could not be installed"
   return 1
 }
 

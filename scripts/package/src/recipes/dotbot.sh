@@ -49,7 +49,7 @@ dotbot::update_local_repository() {
 }
 
 dotbot::is_installed() {
-  [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
+  command -v dotbot &>/dev/null || [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
 }
 
 dotbot::install_from_git() {
@@ -76,7 +76,6 @@ dotbot::install_from_git() {
 
   dotbot::is_installed && return
 
-  output::error "dotbot could not be installed"
   return 1
 }
 
@@ -91,7 +90,7 @@ dotbot::install_as_package() {
     ! package::is_installed dotbot &&
       package::install dotbot auto
 
-    dotbot::is_installed && output::solution "dotbot installed" && return
+    dotbot::is_installed && return
   fi
 
   output::error "dotbot could not be installed"
@@ -109,9 +108,18 @@ dotbot::install() {
 # OPTIONAL
 dotbot::uninstall() {
   [[ -d "$(dotbot::get_dotbot_path)" ]] && rm -rf "$(dotbot::get_dotbot_path)"
-  {
-    package::which_package_manager "dotbot" &> /dev/null && package::uninstall dotbot
-  } || true
+
+  ! dotbot::is_installed && return
+
+  local -r package_manager="$(package::which_package_manager dotbot)"
+
+  if [[ "$package_manager" != "registry" ]]; then
+    package::uninstall dotbot "$package_manager"
+  fi
+
+  ! dotbot::is_installed && return
+
+  return 1
 }
 
 # OPTIONAL
