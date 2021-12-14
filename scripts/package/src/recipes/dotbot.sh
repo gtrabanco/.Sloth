@@ -63,11 +63,14 @@ dotbot::install_from_git() {
     if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot::update_local_repository || true
+      mkdir -p "${HOME}/bin"
+      ln -s "$(dotbot::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     else
       submodule="${submodule//${DOTFILES_PATH}\//}"
       submodule="${submodule//${HOME}\//}"
       git::git -C "$(dotbot::get_dotbot_path)" submodule update --init --recursive >&2 || true
       git::git -C "$(dotbot::get_dotbot_path)" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
+      ln -s "$(dotbot::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     fi
   fi
 
