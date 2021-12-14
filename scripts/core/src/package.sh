@@ -43,7 +43,7 @@ package::manager_exists() {
   local -r package_manager="${1:-}"
   for package_manager_src in "${PACKAGE_MANAGERS_SRC[@]}"; do
     [[ -f "${package_manager_src}/${package_manager}.sh" ]] &&
-      echo "${package_manager_src}/${package_manager}.sh" &&
+      echo -n "${package_manager_src}/${package_manager}.sh" &&
       return
   done
 }
@@ -94,7 +94,7 @@ package::get_all_package_managers() {
       done
     fi
 
-    $has_all && echo "$package_manager"
+    $has_all && echo -n "$package_manager"
   done
 }
 
@@ -110,7 +110,7 @@ package::get_available_package_managers() {
     package_manager="${package_manager_filename%%.sh}"
 
     if package::command "$package_manager" "is_available"; then
-      echo "$package_manager"
+      echo -n "$package_manager"
     fi
   done
 }
@@ -127,7 +127,7 @@ package::manager_preferred() {
   eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
   if [[ ${#uniq_values[@]} -gt 0 ]]; then
-    echo "${uniq_values[0]}"
+    echo -n "${uniq_values[0]}"
   fi
 }
 
@@ -222,7 +222,7 @@ package::which_package_manager() {
   # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && echo "$package_manager" && return
+      package::command "$package_manager" is_installed "$package_name" && echo -n "$package_manager" && return
   done
 
   # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
@@ -232,7 +232,7 @@ package::which_package_manager() {
       [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
-    registry::is_installed "$package_name" && echo "registry" && return
+    registry::is_installed "$package_name" && echo -n "registry" && return
     return 1
   fi
 
@@ -480,7 +480,7 @@ package::uninstall() {
         -z "$(package::manager_exists "$package_manager")" ]]
     then
 
-      echo "Package manager $package_manager"
+      echo -n "Package manager $package_manager" >&2
       # Could not determine which package manager to be used or package manager not exists
       return 1
     fi

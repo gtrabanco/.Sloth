@@ -25,7 +25,7 @@ registry::recipe_exists() {
     recipe_file_path=""
     recipe_file_path="${recipe_path}/${recipe}.sh"
     if [[ -f "$recipe_file_path" ]]; then
-      echo "$recipe_file_path"
+      echo -n "$recipe_file_path"
       break
     fi
   done
