@@ -63,14 +63,12 @@ z::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 z::is_outdated() {
-  # Check if current installed version is outdated, 0 means needs to be updated
-  return 1
+  [[ $(z::version) != "$(z::latest_version)" ]]
 }
 
 z::upgrade() {
-  # Steps to upgrade
-  sleep 1s
-  z upgrade
+  z::uninstall
+  z::install
 }
 
 z::description() {
@@ -88,14 +86,9 @@ z::version() {
 }
 
 z::latest() {
-  if z::is_outdated; then
-    # If it is outdated do whatever to get the current version
-    echo "1.0.1"
-  else
-    z::version
-  fi
+  github::get_remote_file_path_json "${Z_GITHUB_REPOSITORY:-rupa/z}" "${Z_GITHUB_PATH:-z.sh}" | jq -r '.sha'
 }
 
 z::title() {
-  echo -n "Z z"
+  echo -n ".Z Jump start"
 }
