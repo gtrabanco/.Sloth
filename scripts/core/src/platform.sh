@@ -129,13 +129,18 @@ platform::semver_is_minor_or_patch_update() {
 }
 
 platform::semver() {
-  local SEMVER_BIN=""
-  if command -v semver &> /dev/null; then
-    SEMVER_BIN="$(command -v "semver")"
-  elif [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver" ]]; then
-    SEMVER_BIN="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver"
-  else
-    return 1
+  script::depends_on semver
+
+  if [[ -z "${SEMVER_BIN:-}" || -x "$SEMVER_BIN" ]]; then
+    if command -v semver &> /dev/null; then
+      SEMVER_BIN="$(command -v "semver")"
+    elif [[ -x "${DOTFILES_PATH}/bin/semver" ]]; then
+      SEMVER_BIN="${DOTFILES_PATH}/bin/semver"
+    elif [[ -x "${HOME}/bin/semver" ]]; then
+      SEMVER_BIN="${HOME}/bin/semver"
+    else
+      return 1
+    fi
   fi
 
   "$SEMVER_BIN" "$@"

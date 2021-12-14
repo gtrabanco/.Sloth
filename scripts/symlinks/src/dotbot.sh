@@ -10,7 +10,35 @@ DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
 
 # Where is placed dotbot
-DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/dotbot/bin/dotbot}"
+DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-}"
+
+#;
+# dotbot::exec()
+# Execute dotbot with the given arguments
+#"
+dotbot::exec() {
+  local db
+  local -r dotbot_paths=(
+    "$(command -v dotbot || true)"
+    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}/bin/dotbot"
+    "${HOME}/bin/dotbot"
+  )
+
+  script::depends_on "dotbot"
+
+  if [[ ! -x "$DOTBOT_SCRIPT_BIN" ]]; then
+    for db in "${dotbot_paths[@]}"; do
+      if [[ -x "$db" ]]; then
+        DOTBOT_SCRIPT_BIN="$db"
+        break
+      fi
+    done
+  fi
+
+  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] && return 1
+
+  "$DOTBOT_SCRIPT_BIN" "$@"
+}
 
 #;
 # dotbot::yaml_file_path()
@@ -372,7 +400,7 @@ dotbot::apply_yaml() {
     -c "$yaml_file"
   )
 
-  "$DOTBOT_SCRIPT_BIN" "${_args[@]}" || {
+  dotbot::exec "${_args[@]}" || {
     output::error "Error applying symlinks file name \`$yaml_file\`"
     return 1
   }

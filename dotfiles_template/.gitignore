@@ -4,4 +4,5 @@
 .sloth_updated
 .cached_github_api_calls
 shell/zsh/.zimfw
+shell/zsh/.z
 # END OF SLOTH GITIGNORE

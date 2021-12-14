@@ -7,9 +7,10 @@ function cdd() {
 
 function j() {
   fname=$(declare -f -F _z)
+  Z_INSTALL_PATH="${Z_INSTALL_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/shell/zsh/.z}/z.sh"
 
   #shellcheck source=/dev/null
-  [ -n "$fname" ] || . "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/z/z.sh"
+  [ -n "$fname" ] || . "$Z_INSTALL_PATH"
 
   _z "$1"
 }
