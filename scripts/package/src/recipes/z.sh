@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #? Author:
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
-#? v1.0.0
+#? v1.0.1
 
 Z_REPOSITORY_URL="${Z_REPOSITORY_URL:-https://github.com/rupa/z}"
 Z_GITHUB_REPOSITORY="${Z_GITHUB_REPOSITORY:-rupa/z}"
@@ -35,6 +35,7 @@ z::install() {
   elif ! z::is_installed; then
     script::depends_on "curl"
 
+    mkdir -p "$(dirname "$full_z_path")"
     curl -fsL "${Z_LIBRARY_DOWNLOAD_URL}" -o "$full_z_path"
   fi
 
