@@ -6,6 +6,3 @@
 	path = modules/z
 	url = https://github.com/rupa/z.git
 	ignore = dirty
-[submodule "modules/semver-tool"]
-	path = modules/semver-tool
-	url = https://github.com/fsaintjacques/semver-tool
