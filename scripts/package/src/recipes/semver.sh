@@ -63,9 +63,8 @@ semver::is_outdated() {
 }
 
 semver::upgrade() {
-  # Steps to upgrade
-  sleep 1s
-  semver upgrade
+  semver::uninstall
+  semver::install
 }
 
 semver::description() {
