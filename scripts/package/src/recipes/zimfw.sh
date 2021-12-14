@@ -25,9 +25,7 @@ zimfw::install() {
 
   zsh "${ZIM_HOME}/zimfw.zsh" install 2>&1
 
-  if ! grep -q "${ZIM_HOME//${DOTFILES_PATH}\//}" "${DOTFILES_PATH}/.gitignore"; then
-    echo "${ZIM_HOME//${DOTFILES_PATH}\//}" | tee -a "${DOTFILES_PATH}/.gitignore" &> /dev/null
-  fi
+  git::add_to_gitignore "${DOTFILES_PATH}/.gitignore" "${ZIM_HOME//${DOTFILES_PATH}\//}" || true
 
   if zimfw::is_installed; then
     templating::modify_bash_file_variable "${DOTFILES_PATH}/shell/zsh/.zshenv" "ZIM_HOME" "${ZIM_HOME//$DOTFILES_PATH/\${DOTFILES_PATH\}}" || true

@@ -528,3 +528,31 @@ git::init_repository_if_necessary() {
     return 1
   fi
 }
+
+#;
+# git::add_to_gitignore()
+# Add something at the end of .gitignore only if not exists
+# @param string gitignore_file_path
+# @param array args Content to add
+# @return boolean
+#"
+git::add_to_gitignore() {
+  [[ $# -lt 2 ]] && return
+  local -r gitignore_file_path="${1:-}"
+  shift
+  local -r content="${1:-}"
+  shift
+
+  if [[ -n "$content" ]]; then
+    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" &> /dev/null
+    echo &>/dev/null
+  fi
+
+  if ! grep -q "^${content}$" "$gitignore_file_path"; then
+    return 1
+  fi
+
+  if [[ $# -gt 0 ]]; then
+    git::add_to_gitignore "$gitignore_file_path" "$@" || return 1
+  fi
+}
