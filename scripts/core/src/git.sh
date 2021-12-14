@@ -545,7 +545,7 @@ git::add_to_gitignore() {
 
   if [[ -n "$content" ]]; then
     grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" &> /dev/null
-    echo &>/dev/null
+    echo &> /dev/null
   fi
 
   if ! grep -q "^${content}$" "$gitignore_file_path"; then

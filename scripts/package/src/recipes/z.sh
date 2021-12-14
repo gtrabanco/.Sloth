@@ -53,7 +53,7 @@ z::uninstall() {
 z::force_install() {
   local _args
   mapfile -t _args < <(array::substract "--force" "$@")
-  
+
   z::is_installed "${_args[@]}" &&
     z::uninstall "${_args[@]}" &&
     z::install "${_args[@]}" &&
