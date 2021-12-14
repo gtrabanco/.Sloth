@@ -6,7 +6,7 @@
 DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
 DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
 DOTBOT_GIT_DEFAULT_REMOTE="origin"
-DOTBOT_GIT_DEFAULT_BRANCH=""
+DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
 DOTBOT_GIT_SUBMODULE="modules/dotbot"
 
 dotbot::get_dotbot_path() {
