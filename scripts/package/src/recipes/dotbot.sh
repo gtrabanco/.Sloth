@@ -7,10 +7,11 @@ DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
 DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
 DOTBOT_GIT_DEFAULT_REMOTE="origin"
 DOTBOT_GIT_DEFAULT_BRANCH=""
+DOTBOT_GIT_SUBMODULE="modules/dotbot"
 
 dotbot::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
-    printf "%s" "${DOTFILES_PATH}/modules/dotbot"
+    printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
   else
     printf "%s" "${HOME}/.dotbot"
   fi
@@ -51,13 +52,26 @@ dotbot::is_installed() {
   [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
 }
 
-dotbot::install_as_submodule() {
+dotbot::install_from_git() {
+  local submodule
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot::force_install "$@" && return
   else
-    echo # TODO
+    submodule="$(dotbot::get_dotbot_path)"
+
+    if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
+      git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
+      dotbot::update_local_repository || true
+    else
+      submodule="${submodule//${DOTFILES_PATH}\//}"
+      submodule="${submodule//${HOME}\//}"
+      git::git -C "$(dotbot::get_dotbot_path)" submodule update --init --recursive >&2 || true
+      git::git -C "$(dotbot::get_dotbot_path)" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
+    fi
   fi
+
+  dotbot::is_installed && return
 
   output::error "dotbot could not be installed"
   return 1
@@ -83,7 +97,7 @@ dotbot::install_as_package() {
 
 dotbot::install() {
   if [[ -d "$(dotbot::get_dotbot_path)" ]]; then
-    dotbot::install_as_submodule "$@"
+    dotbot::install_from_git "$@"
   else
     dotbot::install_as_package "$@"
   fi

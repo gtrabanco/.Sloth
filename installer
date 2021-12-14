@@ -380,6 +380,8 @@ git init 2>&1 | _log "Initializing repository"
 
 _a "Cloning .Sloth"
 git submodule add -b "$DOTLY_BRANCH" "https://github.com/$DOTLY_REPOSITORY.git" "$dotly_inner_path" 2>&1 | _log "Adding sloth submodule"
+git config -f .gitmodules submodule."$dotly_inner_path".ignore dirty
+
 
 _a "Installing .Sloth dependencies"
 git submodule update --init --recursive 2>&1 | _log "Installing dependencies"
