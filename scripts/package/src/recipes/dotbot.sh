@@ -7,17 +7,18 @@ DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
 DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
 DOTBOT_GIT_DEFAULT_REMOTE="origin"
 DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
-DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE="${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
-DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER="${DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER:-modules/dotbot}"
+
+DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot::install_from() {
   if
     [[ 
-      -n "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-}" &&
-      -d "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}" &&
+      -n "${DOTBOT_BASEDIR:-}" &&
+      -d "${DOTBOT_BASEDIR}" &&
       "${DOTBOT_INSTALL_METHOD:-module}" == "module" ]] &&
-      git::is_in_repo -C "$DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE"
+      git::is_in_repo -C "$DOTBOT_BASEDIR"
   then
     printf "module"
   else
@@ -45,8 +46,8 @@ dotbot::get_remote_latest_commit_sha() {
 }
 
 dotbot::get_dotbot_path_git_install() {
-  if [[ -n "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-}" && -d "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}" ]]; then
-    printf "%s" "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}/${DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER}"
+  if [[ -n "${DOTBOT_BASEDIR:-}" && -d "${DOTBOT_BASEDIR}" ]]; then
+    printf "%s" "${DOTBOT_BASEDIR}/${DOTBOT_SUBMODULE_DIR}"
   else
     printf "%s" "${HOME}/.dotbot"
   fi
@@ -70,18 +71,25 @@ dotbot::install_from_git() {
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot::force_install "$@" && return
   else
-    local_repository="${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+    local_repository="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
     dotbot_dir="$(dotbot::get_dotbot_path_git_install)"
 
     if git::is_in_repo -C "$local_repository"; then
       submodule="${dotbot_dir//$local_repository\//}"
       default_branch="$(dotbot::get_remote_default_branch)"
-      git::git -C "$local_repository" submodule add -b "$default_branch" "$DOTBOT_GIT_REPOSITORY_URL" "$submodule" 2>&1 | _log "Adding dotbot as submodule of your dotfiles" || true
-      git::git -C "$local_repository" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
-      git::git -C "${dotbot_dir}" submodule sync --quiet --recursive 2>&1 || true
-      git::git submodule update --init --recursive "${dotbot_dir}" 2>&1 || true
 
-      dotbot::update_local_repository || true
+      echo "Local repository: $local_repository"
+      echo "Dotbot submodule: $submodule"
+      echo "Dotbot default branch: $default_branch"
+      echo "Dotbot repository: ${DOTBOT_GIT_REPOSITORY_URL}"
+      echo "Dotbot directory: $dotbot_dir"
+
+      echo git::git -C "$local_repository" submodule add -b "${default_branch}" "${DOTBOT_GIT_REPOSITORY_URL}" "${submodule}"
+      git::git -C "$local_repository" submodule add -b "${default_branch:-master}" "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${submodule:-modules/dotbot}" 2>&1 | _log "Adding dotbot as submodule of your dotfiles"
+      # git::git -C "$local_repository" config -f .gitmodules submodule."${submodule:-modules/dotbot}".ignore dirty >&2 || true
+      # git::git -C "$local_repository" submodule update --init "${submodule:-modules/dotbot}" 2>&1 || true
+
+      #dotbot::update_local_repository || true
 
       mkdir -p "${HOME}/bin"
       ln -s "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
@@ -90,7 +98,7 @@ dotbot::install_from_git() {
       dotbot::update_local_repository || true
 
       mkdir -p "${HOME}/bin"
-      ln -s "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
+      ln -s "${HOME}/.dotbot/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
     fi
   fi
 
