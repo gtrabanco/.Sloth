@@ -7,13 +7,21 @@ DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
 DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
 DOTBOT_GIT_DEFAULT_REMOTE="origin"
 DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
-DOTBOT_GIT_SUBMODULE="modules/dotbot"
+DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE="${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER="${DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER:-modules/dotbot}"
+DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
-dotbot::get_dotbot_path() {
-  if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
-    printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
+dotbot::install_from() {
+  if
+    [[ 
+      -n "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-}" &&
+      -d "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}" &&
+      "${DOTBOT_INSTALL_METHOD:-module}" == "module" ]] &&
+      git::is_in_repo -C "$DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE"
+  then
+    printf "module"
   else
-    printf "%s" "${HOME}/.dotbot"
+    printf "package"
   fi
 }
 
@@ -36,41 +44,53 @@ dotbot::get_remote_latest_commit_sha() {
   } || true
 }
 
+dotbot::get_dotbot_path_git_install() {
+  if [[ -n "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-}" && -d "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}" ]]; then
+    printf "%s" "${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE}/${DOTBOT_GIT_SUBMODULE_DEPENDENCY_FOLDER}"
+  else
+    printf "%s" "${HOME}/.dotbot"
+  fi
+}
+
 dotbot::get_local_lastest_commit_sha() {
-  git::git -C "$(dotbot::get_dotbot_path)" rev-parse "$(dotbot::get_remote_default_branch)"
+  git::git -C "$(dotbot::get_dotbot_path_git_install)" rev-parse "$(dotbot::get_remote_default_branch)"
 }
 
 dotbot::update_local_repository() {
-  local -r dotbot_path="$(dotbot::get_dotbot_path)"
+  local -r dotbot_path="$(dotbot::get_dotbot_path_git_install)"
   local -r default_branch="$(dotbot::get_remote_default_branch)"
 
-  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
-  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
-}
-
-dotbot::is_installed() {
-  command -v dotbot &> /dev/null || [[ -d "$(dotbot::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
+  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" 2>&1
+  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" 2>&1
 }
 
 dotbot::install_from_git() {
-  local submodule
+  local dotbot_dir submodule local_repository default_branch
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot::force_install "$@" && return
   else
-    submodule="$(dotbot::get_dotbot_path)"
+    local_repository="${DOTBOT_LOCAL_REPOSITORY_AS_SUBMODULE:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+    dotbot_dir="$(dotbot::get_dotbot_path_git_install)"
 
-    if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
+    if git::is_in_repo -C "$local_repository"; then
+      submodule="${dotbot_dir//$local_repository\//}"
+      default_branch="$(dotbot::get_remote_default_branch)"
+      git::git -C "$local_repository" submodule add -b "$default_branch" "$DOTBOT_GIT_REPOSITORY_URL" "$submodule" 2>&1 | _log "Adding dotbot as submodule of your dotfiles" || true
+      git::git -C "$local_repository" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
+      git::git -C "${dotbot_dir}" submodule sync --quiet --recursive 2>&1 || true
+      git::git submodule update --init --recursive "${dotbot_dir}" 2>&1 || true
+
+      dotbot::update_local_repository || true
+
+      mkdir -p "${HOME}/bin"
+      ln -s "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
+    else
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot::update_local_repository || true
+
       mkdir -p "${HOME}/bin"
-      ln -s "$(dotbot::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
-    else
-      submodule="${submodule//${DOTFILES_PATH}\//}"
-      submodule="${submodule//${HOME}\//}"
-      git::git -C "$(dotbot::get_dotbot_path)" submodule update --init --recursive >&2 || true
-      git::git -C "$(dotbot::get_dotbot_path)" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
-      ln -s "$(dotbot::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+      ln -s "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
     fi
   fi
 
@@ -97,17 +117,34 @@ dotbot::install_as_package() {
   return 1
 }
 
+dotbot::is_installed() {
+  command -v dotbot &> /dev/null || [[ -d "$(dotbot::get_dotbot_path_git_install)" && -x "${HOME}/bin/dotbot" ]]
+}
+
 dotbot::install() {
-  if [[ -d "$(dotbot::get_dotbot_path)" ]]; then
-    dotbot::install_from_git "$@"
+  if [[ " $* " == *" --force "* ]]; then
+    dotbot::force_install "$@"
   else
-    dotbot::install_as_package "$@"
+    dotbot::is_installed && return
   fi
+
+  case "$(dotbot::install_from)" in
+    "package")
+      dotbot::install_as_package "$@"
+      ;;
+    "module")
+      dotbot::install_from_git "$@"
+      ;;
+    *)
+      output::error "dotbot could not be installed"
+      return 1
+      ;;
+  esac
 }
 
 # OPTIONAL
 dotbot::uninstall() {
-  [[ -d "$(dotbot::get_dotbot_path)" ]] && rm -rf "$(dotbot::get_dotbot_path)"
+  [[ -d "$(dotbot::get_dotbot_path_git_install)" ]] && rm -rf "$(dotbot::get_dotbot_path_git_install)"
 
   ! dotbot::is_installed && return
 
@@ -135,7 +172,7 @@ dotbot::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 dotbot::is_outdated() {
-  [[ "$(package::which_package_manager "dotbot")" != registry ]] && return # Use the package manager used to install
+  [[ "$(package::which_package_manager "dotbot")" != registry ]] && return 1 # Use the package manager used to install
 
   [[ $(dotbot::get_local_lastest_commit_sha) != $(dotbot::get_remote_latest_commit_sha) ]]
 }
@@ -161,7 +198,7 @@ dotbot::version() {
 
   [[ -z "$dotbot_bin" ]] &&
     dotbot::is_installed &&
-    dotbot_bin="$(dotbot::get_dotbot_path)/bin/dotbot"
+    dotbot_bin="$(dotbot::get_dotbot_path_git_install)/bin/dotbot"
 
   [[ -x "$dotbot_bin" ]] &&
     "$dotbot_bin" --version &&
