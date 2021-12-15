@@ -37,6 +37,7 @@ z::install() {
 
     mkdir -p "$(dirname "$full_z_path")"
     curl -fsL "${Z_LIBRARY_DOWNLOAD_URL}" -o "$full_z_path"
+    [[ -d "$DOTFILES_PATH" ]] && git::add_to_gitignore "${DOTFILES_PATH}/.gitignore" "$full_z_path"
   fi
 
   z::is_installed && return
