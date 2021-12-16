@@ -175,6 +175,7 @@ else
   # If old version call the script, else source it
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
+      grep -q "^docs::parse$" "${script_full_path}" ||
       grep -q "^docs::parse " "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}" ||
