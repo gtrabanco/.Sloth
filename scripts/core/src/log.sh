@@ -46,7 +46,7 @@ fi
 
 _log() {
   local template="${1:-}"
-  shift
+  [[ $# -gt 0 ]] && shift
   if ${log_to_file:-false}; then
     #shellcheck disable=SC2059
     echoerr -e "$(printf "$template" "$@")" | tee -a "$DOT_LOG_FILE" >&2
@@ -59,7 +59,7 @@ _log() {
 _header() {
   local TOTAL_CHARS=60
   local total=$TOTAL_CHARS-2
-  local size=${#1}
+  local size=${#1:-}
   local left=$(((total - size) / 2))
   local right=$((total - size - left))
   #shellcheck disable=SC2059
@@ -69,13 +69,13 @@ _header() {
   printf "%${right}s" '' | tr ' ' =
 }
 
-log::header() { _log "\n$(log::ansi bold)$(log::ansi purple)$(_header "$1")$(log::ansi reset)\n"; }
+log::header() { _log "\n$(log::ansi bold)$(log::ansi purple)$(_header "${1:-}")$(log::ansi reset)\n"; }
 log::success() { _log "$(log::ansi green)✔ %s$(log::ansi reset)\n" "$@"; }
 log::error() { _log "$(log::ansi red)✖ %s$(log::ansi reset)\n" "$@"; }
 log::warning() { _log "$(log::ansi yellow)➜ %s$(log::ansi reset)\n" "$@"; }
 log::note() { _log "$(log::ansi blue)%s$(log::ansi reset)\n" "$@"; }
 log::file() {
-  local -r log_name="$1"
+  local -r log_name="${1:-}"
   local -r current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
@@ -89,7 +89,7 @@ log::file() {
 }
 
 log::append() {
-  local -r log_name="$1"
+  local -r log_name="${1:-}"
   local -r current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
