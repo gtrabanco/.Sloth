@@ -7,10 +7,13 @@
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 
 # Where to look for the yaml files
-DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-${DOTBOT_BASE_PATH}/symlinks}"
 
 # Where is placed dotbot
 DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-}"
+
+# Default file to retrieve when looking for default dotbot file
+DOTBOT_DEFAULT_YAML_FILE_NAME="${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}"
 
 #;
 # dotbot::exec()
@@ -48,7 +51,7 @@ dotbot::exec() {
 #"
 dotbot::yaml_file_path() {
   local yaml_file_posibilities yaml_file yaml_dir_path
-  yaml_file="${1:-}"
+  yaml_file="${1:-${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}}"
   yaml_dir_path="${2:-$DOTBOT_DEFAULT_YAML_FILES_BASE_PATH}"
   yaml_file_posibilities=(
     "$yaml_file"
