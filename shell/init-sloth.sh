@@ -5,13 +5,24 @@ function cdd() {
   cd "$(ls -d -- */ | fzf)" || echo "Invalid directory"
 }
 
-function j() {
+function _z() {
   fname=$(declare -f -F _z)
   Z_INSTALL_PATH="${Z_INSTALL_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/shell/zsh/.z}/z.sh"
 
+  ! [[ -f "$Z_INSTALL_PATH" ]] && echo "Error: Could not find z.sh, use \`dot package add z\` first" && return 1
+
+  unset -f z _z
   #shellcheck source=/dev/null
   [ -n "$fname" ] || . "$Z_INSTALL_PATH"
 
+  _z "$1"
+}
+
+function z() {
+  _z "$1"
+}
+
+function j() {
   _z "$1"
 }
 
