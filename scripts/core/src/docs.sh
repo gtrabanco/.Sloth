@@ -77,14 +77,12 @@ docs::parse_docopt_argument() {
   echo "$show_args"
 }
 
+# TODO
 docs::parse() {
-  echo "parse"
-  docs::parse "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}" "$@"
-}
-
-docs::parse() {
-  local -r script_path="${1:-}"
-  shift
+  local script_path
+  script_path="${1:-}"
+  local -r argc="${#BASH_SOURCE[*]}"
+  [[ -f "$script_path" ]] && shift || script_path="${BASH_SOURCE[$(( argc - 1))]:-}"
 
   if ! platform::command_exists docopts; then
     output::error "You need to have docopts installed to use \`.Sloth\`"

@@ -175,14 +175,18 @@ else
   # If old version call the script, else source it
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
-      grep -q "^docs::parse" "${script_full_path}" ||
+      grep -q "^docs::parse " "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/self/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/self/src/_main.sh" "${script_full_path}"
   then
     #shellcheck disable=SC2098,SC2097
-    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "$script_full_path" "$@"
+    export SLOTH_PATH="$SLOTH_PATH"
+    export DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    export DOTFILES_PATH="${DOTFILES_PATH:-}"
+    
+    "$script_full_path" "$@"
   else
     if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
       docs::parse "$script_full_path" "$@"

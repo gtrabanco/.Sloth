@@ -45,7 +45,7 @@ if [ -z ${DOT_LOG_FILE+x} ]; then
 fi
 
 _log() {
-  local template="$1"
+  local template="${1:-}"
   shift
   if ${log_to_file:-false}; then
     #shellcheck disable=SC2059

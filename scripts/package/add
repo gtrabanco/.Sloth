@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# FORCE_LEGACY_EXECUTION
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
@@ -38,10 +39,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help | -h)
+      echo "help"
       docs::parse_docopt "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
       exit
       ;;
     --version | -v)
+      echo "version"
       docs::parse_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
       exit
       ;;
@@ -88,11 +91,6 @@ if [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
-# If the package is not docopts and docopts is not installed
-if [[ "$package_name" != "docopts" ]] && ! package::is_installed "docopts" && ! ${DOTLY_INSTALLER:-false}; then
-  script::depends_on docopts
-fi
-
 # Load cargo PATH
 if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
@@ -103,7 +101,8 @@ fi
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
-  [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
+  [[ -n "$(registry::recipe_exists "$package_name")" ]]
+then
   if ${force:-false}; then
     registry::force_install "$package_name" || true
   else

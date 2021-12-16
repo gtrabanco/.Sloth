@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2016
 
-# script::depends_on realpath tee python-yq jq
+script::depends_on python-yq jq
+
 
 # DOTBOT_BASE_PATH is the path used in option -d when executing dotbot
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
@@ -40,6 +41,7 @@ dotbot::exec() {
 
   [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] && return 1
 
+  echo "$DOTBOT_SCRIPT_BIN" "$@"
   "$DOTBOT_SCRIPT_BIN" "$@"
 }
 
