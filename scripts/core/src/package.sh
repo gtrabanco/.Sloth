@@ -43,7 +43,7 @@ package::manager_exists() {
   local -r package_manager="${1:-}"
   for package_manager_src in "${PACKAGE_MANAGERS_SRC[@]}"; do
     [[ -f "${package_manager_src}/${package_manager}.sh" ]] &&
-      echo -n "${package_manager_src}/${package_manager}.sh" &&
+      printf "%s" "${package_manager_src}/${package_manager}.sh" &&
       return
   done
 }
@@ -76,7 +76,7 @@ package::load_manager() {
 package::get_all_package_managers() {
   local package_manager_src package_manager command has_all
 
-  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ echo _); do
+  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ printf "%s" _); do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
@@ -94,7 +94,7 @@ package::get_all_package_managers() {
       done
     fi
 
-    $has_all && echo -n "$package_manager"
+    $has_all && printf "%s" "$package_manager"
   done
 }
 
@@ -110,7 +110,7 @@ package::get_available_package_managers() {
     package_manager="${package_manager_filename%%.sh}"
 
     if package::command "$package_manager" "is_available"; then
-      echo -n "$package_manager"
+      printf "%s" "$package_manager"
     fi
   done
 }
@@ -127,7 +127,7 @@ package::manager_preferred() {
   eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
   if [[ ${#uniq_values[@]} -gt 0 ]]; then
-    echo -n "${uniq_values[0]}"
+    printf "%s" "${uniq_values[0]}"
   fi
 }
 
@@ -222,7 +222,7 @@ package::which_package_manager() {
   # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && echo -n "$package_manager" && return
+      package::command "$package_manager" is_installed "$package_name" && printf "%s" "$package_manager" && return
   done
 
   # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
@@ -232,7 +232,7 @@ package::which_package_manager() {
       [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
-    registry::is_installed "$package_name" && echo -n "registry" && return
+    registry::is_installed "$package_name" && printf "%s" "registry" && return
     return 1
   fi
 
@@ -473,14 +473,14 @@ package::uninstall() {
       registry::uninstall "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
     fi
   else
-    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || echo -n)"
+    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || true)"
     if
       [[ 
         -z "$package_manager" ||
         -z "$(package::manager_exists "$package_manager")" ]]
     then
 
-      echo -n "Package manager $package_manager" >&2
+      printf "%s" "Package manager $package_manager"
       # Could not determine which package manager to be used or package manager not exists
       return 1
     fi

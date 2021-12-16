@@ -183,11 +183,7 @@ else
       grep -q "/scripts/self/src/_main.sh" "${script_full_path}"
   then
     #shellcheck disable=SC2098,SC2097
-    export SLOTH_PATH="$SLOTH_PATH"
-    export DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
-    export DOTFILES_PATH="${DOTFILES_PATH:-}"
-
-    "$script_full_path" "$@"
+    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "$script_full_path" "$@"
   else
     if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
       docs::parse "$script_full_path" "$@"
