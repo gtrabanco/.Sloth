@@ -4,7 +4,7 @@
 green='\033[0;32m'
 normal='\033[0m'
 
-docs::parse_script_version() {
+docs::parse_version() {
   local version
   local -r SCRIPT_FULL_PATH="${1:-}"
 
@@ -48,7 +48,7 @@ docs::parse_docopt_section() {
   [[ -n "${SCRIPT_FULL_PATH:-}" && ! -r "${SCRIPT_FULL_PATH:-}" ]] && return 1
 
   if [[ $SECTION_NAME == "Version" ]]; then
-    docs::parse_script_version "$SCRIPT_FULL_PATH"
+    docs::parse_version "$SCRIPT_FULL_PATH"
   else
     docs::parse_full_docopt "$SCRIPT_FULL_PATH" | command -p sed -n "/${SECTION_NAME}:/,/^$/ p" | command -p sed -e '1d' -e '$d'
   fi
@@ -78,10 +78,11 @@ docs::parse_docopt_argument() {
 }
 
 docs::parse() {
-  docs::parse_script "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}" "$@"
+  echo "parse"
+  docs::parse "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}" "$@"
 }
 
-docs::parse_script() {
+docs::parse() {
   local -r script_path="${1:-}"
   shift
 
@@ -99,7 +100,7 @@ docs::parse_script() {
     docs::parse_docopt "$script_path"
     exit 0
   elif [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
-    docs::parse_script_version "$script_path"
+    docs::parse_version "$script_path"
     exit 0
   fi
 

@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
       exit
       ;;
     --version | -v)
-      docs::parse_script_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
+      docs::parse_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
       exit
       ;;
     *)
