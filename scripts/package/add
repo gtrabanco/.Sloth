@@ -24,6 +24,7 @@ package_name=""
 skip_recipe=false
 package_manager=""
 packages_names=()
+force=false
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --skipe-recipe | -s)
@@ -97,7 +98,7 @@ if [[ -f "$HOME/.cargo/env" ]]; then
 fi
 
 # Check if package is installed
-! $force && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+! ${force:-false} && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
