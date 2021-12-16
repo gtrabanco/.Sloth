@@ -71,7 +71,7 @@ fi
 
 # This script help
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  docs::parse_script "$BASH_SOURCE" "$@"
+  docs::parse "$BASH_SOURCE" "$@"
   exit
 
 # This script version
@@ -165,17 +165,18 @@ else
     output::error "The script \`$script_full_path\` does not exists"
     exit 1
   elif [[ "$firstarg" == "-h" || "$firstarg" == "--help" ]]; then
-    docs::parse_script "${script_full_path}" "--help"
+    docs::parse "${script_full_path}" "--help"
     exit
   elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
-    docs::parse_script "${script_full_path}" "--version"
+    docs::parse "${script_full_path}" "--version"
     exit
   fi
 
   # If old version call the script, else source it
   if
     grep -q "FORCE_LEGACY_EXECUTION" "${script_full_path}" ||
-      grep -q "^docs::parse" "${script_full_path}" ||
+      grep -q "^docs::parse$" "${script_full_path}" ||
+      grep -q "^docs::parse " "${script_full_path}" ||
       grep -q "/scripts/core/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/core/src/_main.sh" "${script_full_path}" ||
       grep -q "/scripts/self/_main.sh" "${script_full_path}" ||
@@ -185,7 +186,7 @@ else
     SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "$script_full_path" "$@"
   else
     if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
-      docs::parse_script "$script_full_path" "$@"
+      docs::parse "$script_full_path" "$@"
     fi
 
     #shellcheck disable=SC1090
