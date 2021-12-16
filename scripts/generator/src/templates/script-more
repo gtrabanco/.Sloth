@@ -9,8 +9,8 @@
 ##?   XXX_SCRIPT_NAME_XXX subcommand <example_variable> [<example_optional_variable>...]
 ##?
 ##? Arguments:
-##?   <example_variable>
-##?   <example_optional_variable>...
+##?   <example_variable>              Description for this example variable
+##?   <example_optional_variable>...  Description for this array variable
 ##?
 ##? Options:
 ##?   -h --help                                                      Show this help
