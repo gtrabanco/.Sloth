@@ -5,7 +5,16 @@ tldr::is_installed() {
 }
 
 tldr::install() {
-  package::install tldr auto "${1:-}"
+  package::install tldr auto "$@"
+}
+
+tldr::uninstall() {
+  package::uninstall tldr auto "$@"
+}
+
+tldr::force_install() {
+  tldr::uninstall "$@"
+  tldr::install "$@"
 }
 
 tldr::is_outdated() {

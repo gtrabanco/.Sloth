@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# FORCE_LEGACY_EXECUTION
 
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
@@ -17,45 +18,43 @@
 ##?    --pkgmgr          Force to use a package manager, for example: cargo
 ##?    --force           Force to install the package
 ##?
-#? v3.2.0
-if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  docs::parse "$@"
-  _all_args=("$@")
-
-  # There is an issue in docopts when using arrays
-  if ! ${pkgmgr:-false} && [[ -n "${package_manager}" ]]; then
-    packages_names=(
-      "$package_manager"
-      "${packages_names[@]}"
-    )
-    package_manager=""
-  fi
-else
-  _all_args=("$@")
-  package_name=""
-  skip_recipe=false
-  package_manager=""
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --skipe-recipe | -s)
-        skip_recipe=true
-        shift
-        ;;
-      --pkgmgr)
-        package_manager="$2"
-        shift 2
-        ;;
-      --force | -f)
-        force=true
-        shift
-        ;;
-      *)
-        packages_names=("$@")
-        break 2
-        ;;
-    esac
-  done
-fi
+#? v3.2.1
+_all_args=("$@")
+package_name=""
+skip_recipe=false
+package_manager=""
+packages_names=()
+force=false
+while [[ $# -gt 0 ]]; do
+  case "${1:-}" in
+    --skipe-recipe | -s)
+      skip_recipe=true
+      shift
+      ;;
+    --pkgmgr)
+      package_manager="$2"
+      shift 2
+      ;;
+    --force | -f)
+      force=true
+      shift
+      ;;
+    --help | -h)
+      echo "help"
+      docs::parse_docopt "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
+      exit
+      ;;
+    --version | -v)
+      echo "version"
+      docs::parse_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
+      exit
+      ;;
+    *)
+      packages_names+=("$1")
+      shift
+      ;;
+  esac
+done
 
 # Multiple package installation
 number_of_packages="${#packages_names[@]}"
@@ -93,23 +92,18 @@ if [[ -z "${package_name:-}" ]]; then
   exit 1
 fi
 
-# If the package is not docopts and docopts is not installed
-if [[ "$package_name" != "docopts" ]] && ! package::is_installed "docopts" && ! ${DOTLY_INSTALLER:-false}; then
-  script::depends_on docopts
-fi
-
 # Load cargo PATH
 if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
 # Check if package is installed
-! $force && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+! ${force:-false} && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
   [[ -n "$(registry::recipe_exists "$package_name")" ]]; then
-  if $force; then
+  if ${force:-false}; then
     registry::force_install "$package_name" || true
   else
     registry::install "$package_name" || true
@@ -120,7 +114,7 @@ if ! ${skip_recipe:-false} &&
     exit 0
   fi
 else
-  if $force; then
+  if ${force:-false}; then
     package::force_install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true
   else
     package::install "$package_name" "${FORCED_PKGMGR:-auto}" 2>&1 || true

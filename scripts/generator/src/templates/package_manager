@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #? Author:
 #?   XXX_AUTHOR_NAME_XXX <XXX_AUTHOR_EMAIL_XXX>
+#? This file contains instrucctions to use the package manager XXX_PACKAGE_MANAGER_NAME_XXX
 #? v1.0.0
 
 # REQUIRED VARIABLE
