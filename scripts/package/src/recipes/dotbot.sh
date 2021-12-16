@@ -66,33 +66,30 @@ dotbot::update_local_repository() {
 }
 
 dotbot::install_from_git() {
-  local dotbot_dir submodule local_repository default_branch
+  local submodule default_branch
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot::force_install "$@" && return
   else
-    local_repository="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
-    dotbot_dir="$(dotbot::get_dotbot_path_git_install)"
+    local -r local_repository="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+    local -r dotbot_dir="$(dotbot::get_dotbot_path_git_install)"
 
     if git::is_in_repo -C "$local_repository"; then
       submodule="${dotbot_dir//$local_repository\//}"
       default_branch="$(dotbot::get_remote_default_branch)"
 
-      echo "Local repository: $local_repository"
-      echo "Dotbot submodule: $submodule"
-      echo "Dotbot default branch: $default_branch"
-      echo "Dotbot repository: ${DOTBOT_GIT_REPOSITORY_URL}"
-      echo "Dotbot directory: $dotbot_dir"
+      git::git -C "$local_repository" submodule add -b "${default_branch:-master}" --force "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${submodule:-modules/dotbot}"
+      git::git -C "$local_repository" config -f .gitmodules submodule."${submodule:-modules/dotbot}".ignore dirty >&2 || true
+      dotbot::update_local_repository || true
 
-      echo git::git -C "$local_repository" submodule add -b "${default_branch}" "${DOTBOT_GIT_REPOSITORY_URL}" "${submodule}"
-      git::git -C "$local_repository" submodule add -b "${default_branch:-master}" "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${submodule:-modules/dotbot}" 2>&1 | _log "Adding dotbot as submodule of your dotfiles"
-      # git::git -C "$local_repository" config -f .gitmodules submodule."${submodule:-modules/dotbot}".ignore dirty >&2 || true
-      # git::git -C "$local_repository" submodule update --init "${submodule:-modules/dotbot}" 2>&1 || true
-
-      #dotbot::update_local_repository || true
-
+      local -r dotbot_yaml_file="$(dotbot::yaml_file_path "${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}" "${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-${DOTBOT_BASE_PATH}/symlinks}")"
+      touch "$dotbot_yaml_file"
       mkdir -p "${HOME}/bin"
-      ln -s "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
+
+      if [[ -f "$dotbot_yaml_file" ]]; then
+        dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "$(dotbot::get_dotbot_path_git_install)/bin/dotbot"
+      fi
+      ln -fs "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
     else
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot::update_local_repository || true
@@ -105,6 +102,20 @@ dotbot::install_from_git() {
   dotbot::is_installed && return
 
   return 1
+}
+
+dotbot::uninstall_submodule() {
+  local -r local_repository="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
+  local -r dotbot_dir="$(dotbot::get_dotbot_path_git_install)"
+  local -r submodule="${dotbot_dir//$local_repository\//}"
+  local -r dotbot_yaml_file="$(dotbot::yaml_file_path "${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}" "${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-${DOTBOT_BASE_PATH}/symlinks}")"
+  touch "$dotbot_yaml_file"
+
+  git::git -C "$local_repository" submodule deinit -f -- "$submodule"
+  git::git -C "$local_repository" rm -f "$submodule"
+  git::git -C "$local_repository" commit -m "Removed dotbot submodule"
+  rm -rf "${local_repository}/.git/modules/${submodule}" "${HOME}/bin/dotbot"
+  dotbot::delete_by_key_in "link" "~/bin/dotbot" "$dotbot_yaml_file"
 }
 
 dotbot::install_as_package() {
@@ -160,6 +171,14 @@ dotbot::uninstall() {
 
   if [[ "$package_manager" != "registry" ]]; then
     package::uninstall dotbot "$package_manager"
+  fi
+
+  if [[ -d "${HOME}/.dotbot" ]]; then
+    rm -rf "${HOME}/.dotbot"
+  fi
+
+  if [[ -n "$(git::get_submodule_property "$(dotbot::get_dotbot_path_git_install)/.gitmodules" "url")" ]]; then
+    dotbot::uninstall_submodule
   fi
 
   ! dotbot::is_installed && return
