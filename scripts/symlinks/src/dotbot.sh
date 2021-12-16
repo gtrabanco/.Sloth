@@ -3,7 +3,6 @@
 
 script::depends_on python-yq jq
 
-
 # DOTBOT_BASE_PATH is the path used in option -d when executing dotbot
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 

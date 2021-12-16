@@ -185,7 +185,7 @@ else
     export SLOTH_PATH="$SLOTH_PATH"
     export DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
     export DOTFILES_PATH="${DOTFILES_PATH:-}"
-    
+
     "$script_full_path" "$@"
   else
     if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then

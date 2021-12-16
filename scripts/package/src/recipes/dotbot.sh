@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2088
 #? Author:
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 #? v1.0.0
@@ -61,8 +62,8 @@ dotbot::update_local_repository() {
   local -r dotbot_path="$(dotbot::get_dotbot_path_git_install)"
   local -r default_branch="$(dotbot::get_remote_default_branch)"
 
-  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" &>/dev/null 
-  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" &>/dev/null 
+  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" &> /dev/null
+  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path" &> /dev/null
 }
 
 dotbot::install_from_git() {
@@ -80,10 +81,10 @@ dotbot::install_from_git() {
 
       dot::load_library "${SLOTH_PATH}/scripts/symlinks/src/dotbot.sh"
 
-      git::git -C "$local_repository" submodule add -b "${default_branch:-master}" --force "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${submodule:-modules/dotbot}" &>/dev/null 
-      git::git -C "$local_repository" config -f .gitmodules submodule."${submodule:-modules/dotbot}".ignore dirty &>/dev/null || true
+      git::git -C "$local_repository" submodule add -b "${default_branch:-master}" --force "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${submodule:-modules/dotbot}" &> /dev/null
+      git::git -C "$local_repository" config -f .gitmodules submodule."${submodule:-modules/dotbot}".ignore dirty &> /dev/null || true
       dotbot::update_local_repository || true
-      git::git -C "$local_repository" checkout "$default_branch" &>/dev/null
+      git::git -C "$local_repository" checkout "$default_branch" &> /dev/null
 
       DOTBOT_DEFAULT_YAML_FILE_NAME="${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}"
       DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-${DOTBOT_BASE_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}}/symlinks}"
@@ -92,7 +93,7 @@ dotbot::install_from_git() {
       mkdir -p "${HOME}/bin"
 
       if [[ -f "$dotbot_yaml_file" ]]; then
-        dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "$dotbot_yaml_file" &>/dev/null || true
+        dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "$dotbot_yaml_file" &> /dev/null || true
       fi
       ln -fs "$(dotbot::get_dotbot_path_git_install)/bin/dotbot" "${HOME}/bin/dotbot" &> /dev/null
     else
@@ -121,11 +122,11 @@ dotbot::uninstall_submodule() {
   local -r dotbot_yaml_file="$(dotbot::yaml_file_path "$DOTBOT_DEFAULT_YAML_FILE_NAME" "$DOTBOT_DEFAULT_YAML_FILES_BASE_PATH")"
   touch "$dotbot_yaml_file"
 
-  git::git -C "$local_repository" submodule deinit -f -- "$submodule" &>/dev/null
-  git::git -C "$local_repository" rm -f "$submodule" &>/dev/null
-  git::git -C "$local_repository" commit -m "Removed dotbot submodule" &>/dev/null
+  git::git -C "$local_repository" submodule deinit -f -- "$submodule" &> /dev/null
+  git::git -C "$local_repository" rm -f "$submodule" &> /dev/null
+  git::git -C "$local_repository" commit -m "Removed dotbot submodule" &> /dev/null
   rm -rf "${local_repository}/.git/modules/${submodule}" "${HOME}/bin/dotbot"
-  dotbot::delete_by_key_in "link" "~/bin/dotbot" "$dotbot_yaml_file" &>/dev/null || true
+  dotbot::delete_by_key_in "link" "~/bin/dotbot" "$dotbot_yaml_file" &> /dev/null || true
 }
 
 dotbot::install_as_package() {
