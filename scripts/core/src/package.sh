@@ -74,27 +74,24 @@ package::load_manager() {
 # @param any commands command or command that must have the package managers to list them as available
 #"
 package::get_all_package_managers() {
-  local package_manager_src package_manager command has_all
+  local package_manager_src package_manager package_command has_all
 
-  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ printf "%s" _); do
+  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0); do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
     has_all=true
 
-    # Check if it is a valid package manager
-    [[ -z "$(package::manager_exists "$package_manager")" ]] && continue
-
-    if [[ -n "$*" ]]; then
-      for command in "$@"; do
-        if ! script::function_exists "$package_manager_src" "${package_manager}::${command}"; then
-          has_all=false
-        fi
+    if [[ $# -gt 0 ]]; then
+      for package_command in "$@"; do
+        ! script::function_exists "$package_manager_src" "${package_manager}::${package_command}" && has_all=false && break
       done
     fi
 
-    $has_all && printf "%s" "$package_manager"
+    if ${has_all:-true}; then
+      printf "%s\n" "$package_manager"
+    fi
   done
 }
 
@@ -473,7 +470,8 @@ package::uninstall() {
       registry::uninstall "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
     fi
   else
-    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || true)"
+    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" true || true)"
+    echo "- $package_manager -"
     if
       [[ 
         -z "$package_manager" ||
