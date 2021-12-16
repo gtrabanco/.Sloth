@@ -27,10 +27,9 @@ semver::install() {
     # output::answer "\`--force\` option is ignored with this recipe"
     semver::force_install "$@" && return
   else
-    semver::is_installed && output::solution "semver installed" && return
+    semver::is_installed && return
   fi
 
-  output::error "semver could not be installed"
   return 1
 }
 
