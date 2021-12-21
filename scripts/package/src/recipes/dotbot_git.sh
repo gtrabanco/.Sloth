@@ -13,7 +13,6 @@ DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
 DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
-
 dotbot_git::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
     printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
@@ -83,8 +82,6 @@ dotbot_git::install() {
 
   return 1
 }
-
-
 
 # OPTIONAL
 dotbot_git::uninstall() {
