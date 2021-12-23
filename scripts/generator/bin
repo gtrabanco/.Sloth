@@ -6,7 +6,7 @@
 ##? Usage:
 ##?   bin [-h | --help]
 ##?   bin [-v | --version]
-##?   bin [-c | --core] <script_name>
+##?   bin [-c | --core] <script_name> [<description>]
 ##?
 ##? Options:
 ##?   -h --help          Show this help
@@ -47,6 +47,7 @@ if ${core:-}; then
 else
   new_script_path="${DOTFILES_PATH}/bin/${script_name:-}"
 fi
+
 if [[ -z "${script_name:-}" ]]; then
   output::error "🚨 No name for the script provided"
   exit 1
@@ -77,7 +78,7 @@ rm -f "$new_script_path"
 touch "$new_script_path"
 {
   printf "#!/usr/bin/env sloth\n\n"
-  printf "#? Description: Describe your script here"
+  printf "#? Description: %s\n" "${description:-Describe your script here}"
   printf "#? Author: %s <%s>\n\n" "$author" "$email"
   printf '[[ $* == *"--help"* ]] && grep "#?" "$BASH_SOURCE" && exit\n'
   printf 'output::write "Hello \`.Sloth\`"\n'
