@@ -64,7 +64,7 @@ z::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 z::is_outdated() {
-  [[ $(z::version) != "$(z::latest_version)" ]]
+  [[ $(z::version) != "$(z::latest)" ]]
 }
 
 z::upgrade() {
@@ -83,7 +83,7 @@ z::url() {
 
 z::version() {
   local -r full_z_path="${Z_INSTALL_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/shell/zsh/.z}/z.sh"
-  git::hash "$full_z_path"
+  github::hash "$full_z_path"
 }
 
 z::latest() {

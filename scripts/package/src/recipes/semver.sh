@@ -83,12 +83,12 @@ semver::version() {
 
 semver::latest() {
   if semver::is_outdated; then
-    "> $(semver::version)"
+    echo "> $(semver::version)"
   else
     semver::version
   fi
 }
 
 semver::title() {
-  echo -n "SEMVER semver"
+  echo -n "X.Y.Z semver"
 }
