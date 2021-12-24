@@ -46,17 +46,13 @@ registry::upgrade() {
   recipe_title="$(registry::_recipe_title)"
 
   if registry::command_exists "$recipe" "is_outdated"; then
-    output::empty_line
-    registry::_recipe_info "$recipe"
-
     if registry::is_outdated "$recipe"; then
+      output::empty_line
+      registry::_recipe_info "$recipe"
       registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
-
-    else
-      output::solution "${icon} Already has lastest version of ${recipe_title}"
+      output::empty_line
+      return
     fi
-    output::empty_line
-    return
 
   elif registry::command_exists "$recipe" "upgrade"; then
     output::empty_line
