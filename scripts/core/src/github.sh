@@ -260,7 +260,6 @@ github::get_remote_file_path_json() {
   [[ $# -lt 2 ]] && return 1
 
   github::check_jq
-  
 
   if [[ $1 == *"api.github.com/"* ]]; then
     url="$1"
