@@ -45,24 +45,26 @@ registry::upgrade() {
 
   recipe_title="$(registry::_recipe_title)"
 
-  output::empty_line
-  registry::_recipe_info "$recipe"
-
   if registry::command_exists "$recipe" "is_outdated"; then
     if registry::is_outdated "$recipe"; then
+      output::empty_line
+      registry::_recipe_info "$recipe"
       registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
-
-    else
-      output::solution "${icon} Already has lastest version of ${recipe_title}"
+      output::empty_line
+      return
     fi
-    output::empty_line
 
   elif registry::command_exists "$recipe" "upgrade"; then
+    output::empty_line
+    registry::_recipe_info "$recipe"
     output::empty_line
     output::answer "Can not check if \`${recipe_title}\` is outdated, trying to update it."
     registry::command "$recipe" "upgrade" 2>&1 | log::file "Updating ${registry_title} app: $(registry::_recipe_title)"
     output::empty_line
+    return
   fi
+
+  return 1
 }
 
 #;
@@ -172,23 +174,8 @@ registry::update_all() {
     recipe_file_name="$(basename "$recipe_file_path")"
     recipe="${recipe_file_name%.sh}"
 
-    if
-      registry::is_installed "$recipe" &&
-        registry::command_exists "$recipe" "upgrade"
-    then
-      if
-        registry::command_exists "$recipe" "is_outdated" &&
-          registry::command "$recipe" "is_outdated"
-      then
-        registry::upgrade "$recipe" 2>&1 | log::file "Updating ${registry_title} app: $recipe"
-        any_update=true
-
-      elif
-        ! registry::command_exists "$recipe" "is_outdated"
-      then
-        registry::upgrade "$recipe" 2>&1 | log::file "Updating ${registry_title} app: $recipe"
-        any_update=true
-      fi
+    if registry::upgrade "$recipe"; then
+      any_update=true
     fi
   done
 

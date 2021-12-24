@@ -37,6 +37,13 @@ github::check_tee() {
   fi
 }
 
+github::check_git() {
+  if ! ${GIT_CHECKED:-false}; then
+    script::depends_on "git"
+    GIT_CHECKED=true
+  fi
+}
+
 #;
 # github::get_api_url()
 # Get the api url of a github repository
@@ -146,12 +153,14 @@ github::_is_valid_url() {
 }
 
 github::hash() {
-  script::depends_on sha1sum
+  github::check_git
 
-  if [[ -f "$1" ]]; then
-    shasum -a 256 "$1" | awk '{print $1}'
+  if [ ! -t 0 ]; then
+    git hash-object --stdin < /dev/stdin
+  elif [[ -f "${1:-}" ]]; then
+    git hash-object --stdin < "${1:-}"
   else
-    printf '%s' "$*" | shasum -a 256 | awk '{print $1}'
+    printf "%s" "$*" | git hash-object --stdin
   fi
 }
 
@@ -262,7 +271,7 @@ github::get_remote_file_path_json() {
       return 1
     fi
 
-    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl -n | jq -r '.commit.commit.tree.url' 2> /dev/null)"
+    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | jq -r '.commit.commit.tree.url' 2> /dev/null)"
   fi
   shift
 
