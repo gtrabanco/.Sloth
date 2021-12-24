@@ -43,7 +43,7 @@ zimfw::uninstall() {
 }
 
 zimfw::is_outdated() {
-  [[ $(platform::semver_compare "$(zimfw::latest)" "$(zimfw::version)") -gt 0 ]]
+  [[ $(platform::semver_compare "$(zimfw::latest)" "$(zimfw::version)") -lt 0 ]]
 }
 
 zimfw::upgrade() {
@@ -59,7 +59,7 @@ zimfw::url() {
 }
 
 zimfw::version() {
-  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" version"
+  zsh -c ". \"${HOME}/.zshrc\"; zimfw version"
 }
 
 zimfw::latest() {

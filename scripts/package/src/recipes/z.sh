@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2034
 #? Author:
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 #? v1.0.1
@@ -8,18 +9,8 @@ Z_GITHUB_REPOSITORY="${Z_GITHUB_REPOSITORY:-rupa/z}"
 Z_GITHUB_PATH="${Z_GITHUB_PATH:-z.sh}"
 Z_LIBRARY_DOWNLOAD_URL="https://raw.githubusercontent.com/rupa/z/HEAD/z.sh"
 DOTFILES_PATH="${DOTFILES_PATH:-${HOME}/.dotfiles}"
-GITIGNORE_PATH="${DOTFILES_PATH}/.gitignore"
+GITIGNORE_PATH="${GITIGNORE_PATH:-${DOTFILES_PATH}/.gitignore}"
 Z_INSTALL_PATH="${Z_INSTALL_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/shell/zsh/.z}"
-
-z::add_to_gitignore() {
-  if [[ -d "$DOTFILES_PATH" ]]; then
-    touch "$GITIGNORE_PATH"
-  fi
-
-  if [[ -f "$GITIGNORE_PATH" ]]; then
-    grep -q "${Z_INSTALL_PATH//$DOTFILES_PATH\//}" "$GITIGNORE_PATH" || echo "${Z_INSTALL_PATH//$DOTFILES_PATH\//}" | tee -a "$GITIGNORE_PATH" &> /dev/null
-  fi
-}
 
 # REQUIRED FUNCTION
 z::is_installed() {
@@ -37,7 +28,7 @@ z::install() {
 
     mkdir -p "$(dirname "$full_z_path")"
     curl -fsL "${Z_LIBRARY_DOWNLOAD_URL}" -o "$full_z_path"
-    [[ -d "$DOTFILES_PATH" ]] && git::add_to_gitignore "${DOTFILES_PATH}/.gitignore" "$full_z_path"
+    [[ -d "$DOTFILES_PATH" ]] && git::add_to_gitignore "$GITIGNORE_PATH" "${full_z_path/$DOTFILES_PATH\//}"
   fi
 
   z::is_installed && return
@@ -87,6 +78,7 @@ z::version() {
 }
 
 z::latest() {
+  GITHUB_USE_CACHE=false
   github::get_remote_file_path_json "${Z_GITHUB_REPOSITORY:-rupa/z}" "${Z_GITHUB_PATH:-z.sh}" | jq -r '.sha'
 }
 

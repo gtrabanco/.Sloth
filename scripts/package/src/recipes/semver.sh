@@ -56,6 +56,7 @@ semver::force_install() {
 # Description, url and versions only be showed if defined
 semver::is_outdated() {
   script::depends_on "jq"
+  GITHUB_USE_CACHE=false
   local -r current_sha="$(github::hash "${SEMVER_INSTALL_PATH}/semver")"
   local -r latest_sha="$(github::get_remote_file_path_json "${SEMVER_GITHUB_REPOSITORY:-fsaintjacques/semver-tool}" "${SEMVER_GITHUB_PATH:-src/semver}" | jq -r '.sha')"
 
@@ -78,7 +79,7 @@ semver::url() {
 
 semver::version() {
   # Get the current installed version
-  "${SEMVER_INSTALL_PATH}/semver" --version
+  "${SEMVER_INSTALL_PATH}/semver" --version | awk '{print $2}'
 }
 
 semver::latest() {
