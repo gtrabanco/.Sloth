@@ -20,13 +20,13 @@ semver::is_installed() {
 semver::install() {
   script::depends_on "curl"
 
-  curl -fsL "${SEMVER_DOWNLOAD_URL}" -o "${SEMVER_INSTALL_PATH}/semver"
-  chmod +x "${SEMVER_INSTALL_PATH}/semver"
-
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     semver::force_install "$@" && return
   else
+    curl -fsL "${SEMVER_DOWNLOAD_URL}" -o "${SEMVER_INSTALL_PATH}/semver"
+    chmod +x "${SEMVER_INSTALL_PATH}/semver"
+
     semver::is_installed && return
   fi
 

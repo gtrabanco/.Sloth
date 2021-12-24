@@ -47,7 +47,7 @@ zimfw::is_outdated() {
 }
 
 zimfw::upgrade() {
-  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" clean; \"${ZIM_HOME}/zimfw.zsh\" update; \"${ZIM_HOME}/zimfw.zsh\" upgrade; \"${ZIM_HOME}/zimfw.zsh\" compile"
+  zsh -c ". \"${HOME}/.zshrc\"; zimfw clean; zimfw update; zimfw upgrade; zimfw compile"
 }
 
 zimfw::description() {
