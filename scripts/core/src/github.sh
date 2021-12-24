@@ -260,6 +260,7 @@ github::get_remote_file_path_json() {
   [[ $# -lt 2 ]] && return 1
 
   github::check_jq
+  
 
   if [[ $1 == *"api.github.com/"* ]]; then
     url="$1"
@@ -271,7 +272,7 @@ github::get_remote_file_path_json() {
       return 1
     fi
 
-    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl -n | jq -r '.commit.commit.tree.url' 2> /dev/null)"
+    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | jq -r '.commit.commit.tree.url' 2> /dev/null)"
   fi
   shift
 
