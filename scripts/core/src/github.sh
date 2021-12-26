@@ -208,6 +208,7 @@ github::curl() {
   else
     local -r url="$(< /dev/stdin)"
   fi
+
   ! github::_is_valid_url "$url" && return 1
 
   local -r url_hash="$(github::hash "$url")"
@@ -291,28 +292,22 @@ github::get_remote_file_path_json() {
 }
 
 github::get_latest_package_release_download_url() {
-  [[ $# -lt 2 ]] && return 1
+  [[ $# -lt 1 ]] && return 1
 
   local -r repository="${1:-}"
-  local -r filename="${2:-}"
 
-  #github::curl "$(github::get_api_url "$repository" "releases/latest")" | jq -r '.assets[] | select(.name == "'"$filename"'") | .browser_download_url'
   github::curl "$(github::get_api_url "$repository" "releases/latest")" |
-    grep "browser_download_url.*$filename" |
+    grep "browser_download_url" |
     cut -d '"' -f 4
 }
 
 github::get_latest_package_release_sha256sum() {
-  [[ $# -lt 2 ]] && return 1
+  [[ $# -lt 1 ]] && return 1
 
   local -r repository="${1:-}"
-  local -r filename="${2:-}"
-  local -r shafile="sha256sum.txt"
+  local -r filename="${2:-sha256sum.txt}"
 
-  #github::curl "$(github::get_api_url "$repository" "releases/latest")" | jq -r '.assets[] | select(.name == "'"$filename"'") | .browser_download_url'
-  curl -sfL "$(github::curl "$(github::get_api_url "$repository" "releases/latest")" |
-    grep "browser_download_url.*${shafile}" |
-    cut -d '"' -f 4)" |
+  github::get_latest_package_release_download_url "$repository" |
     grep "${filename}$" |
     awk '{print $1}'
 }
