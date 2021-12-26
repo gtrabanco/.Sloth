@@ -7,7 +7,7 @@
 DOTBOT_GIT_REPOSITORY_URL="${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}"
 DOTBOT_GIT_REPOSITORY="${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
 DOTBOT_GIT_DEFAULT_REMOTE="${DOTBOT_GIT_DEFAULT_REMOTE:-origin}"
-DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
+DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-$(dotbot_git::get_remote_default_branch)}"
 
 DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
 DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
@@ -20,21 +20,22 @@ dotbot_git::get_dotbot_path() {
 }
 
 dotbot_git::get_repository_tag_version() {
-  git::remote_latest_tag_version "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "v*.*.*"
+  git::remote_latest_tag_version "$DOTBOT_GIT_REPOSITORY_URL" "v*.*.*"
 }
 
 dotbot_git::get_remote_default_branch() {
   if [[ -n "$DOTBOT_GIT_DEFAULT_BRANCH" ]]; then
     printf "%s" "$DOTBOT_GIT_DEFAULT_BRANCH"
   else
-    github::get_api_url "${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" | github::curl | jq -r '.default_branch' || true
+    local -r default_branch="$(github::get_api_url "$DOTBOT_GIT_REPOSITORY" | github::curl | jq -r '.default_branch' || true)"
+    DOTBOT_GIT_DEFAULT_BRANCH="${default_branch:-master}"
   fi
 }
 
 dotbot_git::get_remote_latest_commit_sha() {
   local -r default_branch="$(dotbot_git::get_remote_default_branch)"
   {
-    [[ -n "$default_branch" ]] && github::get_api_url "${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "commits/${default_branch}" | jq -r '.sha' 2> /dev/null
+    [[ -n "$default_branch" ]] && github::get_api_url "$DOTBOT_GIT_REPOSITORY" "commits/${default_branch}" | jq -r '.sha' 2> /dev/null
   } || true
 }
 
@@ -46,8 +47,8 @@ dotbot_git::update_local_repository() {
   local -r dotbot_path="$(dotbot_git::get_dotbot_path)"
   local -r default_branch="$(dotbot_git::get_remote_default_branch)"
 
-  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
-  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
+  git::init_repository_if_necessary "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_GIT_DEFAULT_REMOTE" "$default_branch" -C "$dotbot_path"
+  git::pull_branch "$DOTBOT_GIT_DEFAULT_REMOTE" "$default_branch" -C "$dotbot_path"
 }
 
 dotbot_git::is_installed() {
