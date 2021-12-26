@@ -59,7 +59,7 @@ dotbot_git::update_local_repository() {
 dotbot_git::symlinks() {
   if [[ -d "${DOTFILES_PATH:-}" ]]; then
     dot::load_library "dotbot.sh" "symlinks"
-    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "$DOTBOT_SUBMODULE_DIR" "$(dotbot::yaml_file_path)" &> /dev/null
+    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "${DOTBOT_SUBMODULE_DIR}/bin/dotbot" "$(dotbot::yaml_file_path)" &> /dev/null
     ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
 
   elif [[ -d "${HOME}/.dotbot" ]]; then
