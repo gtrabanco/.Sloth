@@ -24,7 +24,7 @@ dotbot::exec() {
   local db
   local -r dotbot_paths=(
     "$(command -v dotbot || true)"
-    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}/bin/dotbot"
+    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE:-modules/dotbot}/bin/dotbot"
     "${HOME}/bin/dotbot"
   )
 
