@@ -21,9 +21,10 @@ docopts::install() {
   docopts::is_installed && return
 
   DOCOPTS_BINARY_FILENAME="${DOCOPTS_BINARY_FILENAME:-docopts_$(platform::get_os)_$(platform::get_arch)}"
-  local -r docopts_bin_download_url="$(github::get_latest_package_release_download_url "$DOCOPTS_GIT_REPOSITORY" "$DOCOPTS_BINARY_FILENAME")"
+  local -r docopts_bin_download_url="$(github::get_latest_package_release_download_url "$DOCOPTS_GIT_REPOSITORY" | grep "$DOCOPTS_BINARY_FILENAME")"
+
   if ! github::_is_valid_url "$docopts_bin_download_url"; then
-    _log "Invalid URL: $docopts_bin_download_url"
+    _log "Invalid URL: \`$docopts_bin_download_url\`"
     return 1
   fi
 
