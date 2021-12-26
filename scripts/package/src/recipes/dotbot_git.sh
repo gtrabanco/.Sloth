@@ -29,6 +29,8 @@ dotbot_git::get_remote_default_branch() {
   else
     local -r default_branch="$(github::get_api_url "$DOTBOT_GIT_REPOSITORY" | github::curl | jq -r '.default_branch' || true)"
     DOTBOT_GIT_DEFAULT_BRANCH="${default_branch:-master}"
+
+    printf "%s" "$DOTBOT_GIT_DEFAULT_BRANCH"
   fi
 }
 
@@ -57,7 +59,7 @@ dotbot_git::is_installed() {
 
 dotbot_git::install() {
   local submodule
-  
+
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot_git::force_install "$@" && return
