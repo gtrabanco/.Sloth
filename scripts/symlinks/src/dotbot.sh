@@ -28,8 +28,6 @@ dotbot::exec() {
     "${HOME}/bin/dotbot"
   )
 
-  script::depends_on "dotbot"
-
   if [[ ! -x "$DOTBOT_SCRIPT_BIN" ]]; then
     for db in "${dotbot_paths[@]}"; do
       if [[ -x "$db" ]]; then
@@ -39,7 +37,9 @@ dotbot::exec() {
     done
   fi
 
-  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] && return 1
+  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] &&
+    output::error "Dotbot could not be found. Please use \`dot package add dotbot_git\` or \`dot package add dotbot\` to install." &&
+    return 1
 
   "$DOTBOT_SCRIPT_BIN" "$@"
 }
