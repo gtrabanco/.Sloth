@@ -112,6 +112,38 @@ git::get_submodule_property() {
 }
 
 #;
+# git::submodule_exists()
+# Check if a submodule exists in .gitmodules file
+# @param string submodule_name
+# @return boolean
+#"
+git::submodule_exists() {
+  local -r submodule_name="${1:-}"
+
+  [[ -n "$submodule_name" ]] && git::git "${@:2}" config -f ".gitmodules" submodule."$submodule_name".path &> /dev/null
+}
+
+#;
+# git::remove_submodule()
+# Remove a git submodule
+# @param string submodule_name The name of the submodule, if no provided when adding will be the relative path
+# @return boolean
+#"
+git::remove_submodule() {
+  local -r submodule_name="${1:-}"
+  [[ -z "$submodule_name" ]] || ! git::submodule_exists "$submodule_name" && return 1
+  shift
+
+  local -r submodule_path="$(git::git "$@" config -f ".gitmodules" submodule."$submodule_name".path)"
+
+  git::git "$@"
+  git submodule deinit -f -- "$submodule_name"
+  git::git "$@" rm -rf "$submodule_path"
+  git commit -m "Removed submodule '$1'"
+  rm -rf ".git/modules/${submodule_name}" "$submodule_path"
+}
+
+#;
 # git::check_remote_exists()
 # @param string remote Optional remote, use "origin" as default
 #"
