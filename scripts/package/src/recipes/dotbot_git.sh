@@ -11,11 +11,14 @@ DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
 
 DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
 DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
+DOTBOT_SUBMODULE_NAME="${DOTBOT_SUBMODULE_NAME:-dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot_git::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
     printf "%s" "${DOTFILES_PATH}/${DOTBOT_SUBMODULE_DIR}"
+  else
+    printf "%s" "${HOME}/.dotbot"
   fi
 }
 
@@ -69,31 +72,28 @@ dotbot_git::is_installed() {
 }
 
 dotbot_git::install() {
-  local submodule
-
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot_git::force_install "$@" && return
   else
-    submodule="$(dotbot_git::get_dotbot_path)"
-
-    output::answer "$submodule"
-
-    if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
+    if
+      [[ -n "${DOTFILES_PATH:-}" ]] &&
+        [[ -d "${DOTFILES_PATH:-}" ]] &&
+        ! git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".path &> /dev/null
+    then
+      git::git -C "$DOTFILES_PATH" submodule add -b "$(dotbot_git::get_remote_default_branch)" --name "$DOTBOT_SUBMODULE_NAME" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
+      git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".ignore dirty >&2 || true
+    elif [[ -z "${DOTFILES_PATH:-}" ]]; then
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot_git::update_local_repository || true
       mkdir -p "${HOME}/bin"
       ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
-    elif ! git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".url &> /dev/null; then
-      submodule="${submodule//${DOTFILES_PATH}\//}"
-      submodule="${submodule//${HOME}\//}"
-      git::git -C "$(dotbot_git::get_dotbot_path)" submodule add -b "$(dotbot_git::get_remote_default_branch)" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
-      git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".ignore dirty >&2 || true
     fi
   fi
 
-  dotbot_git::symlinks &&
-    dotbot_git::is_installed &&
+  dotbot_git::symlinks
+
+  dotbot_git::is_installed &&
     return
 
   return 1
@@ -102,6 +102,7 @@ dotbot_git::install() {
 # OPTIONAL
 dotbot_git::uninstall() {
   [[ -d "$(dotbot_git::get_dotbot_path)" ]] && rm -rf "$(dotbot_git::get_dotbot_path)"
+  [[ -d "${DOTFILES_PATH:-}" ]] && git::remove_submodule "$DOTBOT_SUBMODULE_DIR" -C "$DOTFILES_PATH"
   {
     package::which_package_manager "dotbot" &> /dev/null && package::uninstall dotbot
   } || true
