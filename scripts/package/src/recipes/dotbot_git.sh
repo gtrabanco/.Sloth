@@ -15,7 +15,7 @@ DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot_git::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
-    printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
+    printf "%s" "${DOTFILES_PATH}/${DOTBOT_SUBMODULE_DIR}"
   fi
 }
 
@@ -53,6 +53,17 @@ dotbot_git::update_local_repository() {
   git::pull_branch "$DOTBOT_GIT_DEFAULT_REMOTE" "$default_branch" -C "$dotbot_path"
 }
 
+dotbot_git::symlinks() {
+  if [[ -d "${DOTFILES_PATH:-}" ]]; then
+    dot::load_library "dotbot.sh" "symlinks"
+    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "$DOTBOT_SUBMODULE_DIR" "$(dotbot::yaml_file_path)" &> /dev/null
+    ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+
+  elif [[ -d "${HOME}/.dotbot" ]]; then
+    ln -fs "${HOME}/.dotbot/bin/dotbot" "${HOME}/bin/dotbot"
+  fi
+}
+
 dotbot_git::is_installed() {
   [[ -d "$(dotbot_git::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
 }
@@ -66,21 +77,24 @@ dotbot_git::install() {
   else
     submodule="$(dotbot_git::get_dotbot_path)"
 
+    output::answer "$submodule"
+
     if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot_git::update_local_repository || true
       mkdir -p "${HOME}/bin"
-      ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
-    else
+      ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+    elif ! git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".url &> /dev/null; then
       submodule="${submodule//${DOTFILES_PATH}\//}"
       submodule="${submodule//${HOME}\//}"
       git::git -C "$(dotbot_git::get_dotbot_path)" submodule add -b "$(dotbot_git::get_remote_default_branch)" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
       git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".ignore dirty >&2 || true
-      ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     fi
   fi
 
-  dotbot_git::is_installed && return
+  dotbot_git::symlinks &&
+    dotbot_git::is_installed &&
+    return
 
   return 1
 }
