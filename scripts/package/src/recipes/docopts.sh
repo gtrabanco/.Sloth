@@ -7,6 +7,9 @@ DOCOPTS_INSTALL_PATH="${DOCOPTS_INSTALL_PATH:-${HOME}/bin}"
 DOCOPTS_BIN="$DOCOPTS_INSTALL_PATH/docopts"
 #DOCOPTS_SH_INSTALL_PATH="${SLOTH_PATH}/scripts/core/src"
 
+DOCOPTS_GIT_REPOSITORY="${DOCOPTS_GIT_REPOSITORY:-docopt/docopts}"
+DOCOPTS_GIT_REPOSITORY_URL="https://github.com/${DOCOPTS_GIT_REPOSITORY:-docopt/docopts}"
+
 # REQUIRED FUNCTION
 docopts::is_installed() {
   #[[ -x "$DOCOPTS_BIN" && -r "$DOCOPTS_SH_INSTALL_PATH" ]]
@@ -17,9 +20,11 @@ docopts::is_installed() {
 docopts::install() {
   docopts::is_installed && return
 
-  local -r docopts_bin_download_url="$(github::get_latest_package_release_download_url "docopt/docopts" "docopts_$(platform::get_os)_$(platform::get_arch)")"
+  DOCOPTS_BINARY_FILENAME="${DOCOPTS_BINARY_FILENAME:-docopts_$(platform::get_os)_$(platform::get_arch)}"
+  local -r docopts_bin_download_url="$(github::get_latest_package_release_download_url "$DOCOPTS_GIT_REPOSITORY" | grep "$DOCOPTS_BINARY_FILENAME")"
+
   if ! github::_is_valid_url "$docopts_bin_download_url"; then
-    _log "Invalid URL: $docopts_bin_download_url"
+    _log "Invalid URL: \`$docopts_bin_download_url\`"
     return 1
   fi
 
@@ -59,10 +64,10 @@ docopts::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 docopts::is_outdated() {
-  local -r latest_sha="$(github::get_latest_package_release_sha256sum "docopt/docopts" "docopts_$(platform::get_os)_$(platform::get_arch)")"
-  local -r current_sha="$(github::hash "$DOCOPTS_BIN")"
+  local -r latest="$(docopts::latest)"
+  local -r current="$(docopts::version)"
 
-  [[ "$latest_sha" != "$current_sha" ]]
+  [[ $(platform::semver compare "$current" "$latest") -lt 0 ]]
 }
 
 docopts::upgrade() {
@@ -79,16 +84,11 @@ docopts::url() {
 }
 
 docopts::version() {
-  docopts::is_installed && "$DOCOPTS_BIN" --version
+  docopts::is_installed && "$DOCOPTS_BIN" --version | head -n1 | awk '{print $2}'
 }
 
 docopts::latest() {
-  if docopts::is_outdated; then
-    # If it is outdated do whatever to get the current version
-    echo "1.0.1"
-  else
-    docopts::version
-  fi
+  git::remote_latest_tag_version "$DOCOPTS_GIT_REPOSITORY_URL"
 }
 
 docopts::title() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+#shellcheck disable=SC2302,SC2303
 # This was literally copied from: https://github.com/zombieleet/async-bash
 # check the README.md for information on how to use this script
 
