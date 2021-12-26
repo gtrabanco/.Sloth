@@ -4,9 +4,9 @@
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 #? v1.0.0
 
-DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
-DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
-DOTBOT_GIT_DEFAULT_REMOTE="origin"
+DOTBOT_GIT_REPOSITORY_URL="${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}"
+DOTBOT_GIT_REPOSITORY="${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
+DOTBOT_GIT_DEFAULT_REMOTE="${DOTBOT_GIT_DEFAULT_REMOTE:-origin}"
 DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
 
 DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
@@ -16,8 +16,6 @@ DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 dotbot_git::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
     printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
-  else
-    printf "package"
   fi
 }
 
