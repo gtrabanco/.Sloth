@@ -14,7 +14,7 @@ DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot_git::get_dotbot_path() {
-  if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
+  if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
     printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
   fi
 }
@@ -75,8 +75,8 @@ dotbot_git::install() {
       submodule="${submodule//${DOTFILES_PATH}\//}"
       submodule="${submodule//${HOME}\//}"
       git::git -C "$(dotbot_git::get_dotbot_path)" submodule add -b "$(dotbot_git::get_remote_default_branch)" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
-      git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$submodule".ignore dirty >&2 || true
-      ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+      git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".ignore dirty >&2 || true
+      ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     fi
   fi
 
