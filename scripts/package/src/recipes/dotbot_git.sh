@@ -57,6 +57,7 @@ dotbot_git::is_installed() {
 
 dotbot_git::install() {
   local submodule
+  
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot_git::force_install "$@" && return
@@ -71,8 +72,8 @@ dotbot_git::install() {
     else
       submodule="${submodule//${DOTFILES_PATH}\//}"
       submodule="${submodule//${HOME}\//}"
-      git::git -C "$(dotbot_git::get_dotbot_path)" submodule update --init --recursive >&2 || true
-      git::git -C "$(dotbot_git::get_dotbot_path)" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
+      git::git -C "$(dotbot_git::get_dotbot_path)" submodule add -b "$(dotbot_git::get_remote_default_branch)" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
+      git::git -C "$(dotbot_git::get_dotbot_path)" config -f ".gitmodules" submodule."$submodule".ignore dirty >&2 || true
       ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     fi
   fi
