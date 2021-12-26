@@ -26,6 +26,7 @@ dotbot::exec() {
     "$(command -v dotbot || true)"
     "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE:-modules/dotbot}/bin/dotbot"
     "${HOME}/bin/dotbot"
+    "${HOME}/.dotbot/bin/dotbot"
   )
 
   if [[ ! -x "$DOTBOT_SCRIPT_BIN" ]]; then
