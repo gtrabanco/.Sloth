@@ -82,7 +82,7 @@ dotbot_git::install() {
         ! git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".path &> /dev/null
     then
       git::git -C "$DOTFILES_PATH" submodule add -b "$(dotbot_git::get_remote_default_branch)" --name "$DOTBOT_SUBMODULE_NAME" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
-      git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".ignore dirty >&2 || true
+      git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_NAME".ignore dirty >&2 || true
     elif [[ -z "${DOTFILES_PATH:-}" ]]; then
       git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot_git::update_local_repository || true
