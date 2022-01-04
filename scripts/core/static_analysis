@@ -17,7 +17,7 @@ files=()
 ##?
 ##? Options:
 ##?    --help -h      Gives this help
-##?    --dotfiles -d  Execute against your dotfiles instead of Sloth/Dotly core
+##?    --dotfiles -d  Execute against your `DOTFILES_PATH`` instead of Sloth/Dotly core
 ##?
 #? v2.1.0
 if [[ "${1:-}" == "-h" || "${1:-}" = "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed "docopts"; then
@@ -33,9 +33,9 @@ fi
 script::depends_on shellcheck
 
 if [[ ${#files[@]} -gt 0 ]]; then
-  printf "%s\n" "${files[@]}" | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+  printf "%s\n" "${files[@]}" | sort --unique | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
 elif ${dotfiles:-false}; then
-  dotly::list_dotfiles_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+  dotly::list_dotfiles_bash_files | sort --unique | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
 else
-  dotly::list_bash_files | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
+  dotly::list_bash_files | sort --unique | xargs shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154
 fi
