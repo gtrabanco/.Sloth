@@ -4,36 +4,43 @@
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 #? v1.0.0
 
+DOTBOT_GIT_REPOSITORY_URL="${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}"
 DOTBOT_GIT_REPOSITORY="${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
-DOTBOT_GIT_DEFAULT_REMOTE="origin"
+DOTBOT_GIT_DEFAULT_REMOTE="${DOTBOT_GIT_DEFAULT_REMOTE:-origin}"
 DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
 
 DOTBOT_BASEDIR="${DOTBOT_BASEDIR:-${DOTFILES_PATH:-${HOME}/.dotfiles}}"
 DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
+DOTBOT_SUBMODULE_NAME="${DOTBOT_SUBMODULE_NAME:-dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot_git::get_dotbot_path() {
   if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
-    printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
+    printf "%s" "${DOTFILES_PATH}/${DOTBOT_SUBMODULE_DIR}"
+  else
+    printf "%s" "${HOME}/.dotbot"
   fi
 }
 
 dotbot_git::get_repository_tag_version() {
-  git::remote_latest_tag_version "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "v*.*.*"
+  git::remote_latest_tag_version "$DOTBOT_GIT_REPOSITORY_URL" "v*.*.*"
 }
 
 dotbot_git::get_remote_default_branch() {
-  if [[ -n "${DOTBOT_GIT_DEFAULT_BRANCH:-}" ]]; then
+  if [[ -n "$DOTBOT_GIT_DEFAULT_BRANCH" ]]; then
     printf "%s" "$DOTBOT_GIT_DEFAULT_BRANCH"
   else
-    github::get_api_url "${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" | github::curl | jq -r '.default_branch' || true
+    local -r default_branch="$(github::get_api_url "$DOTBOT_GIT_REPOSITORY" | github::curl | jq -r '.default_branch' || true)"
+    DOTBOT_GIT_DEFAULT_BRANCH="${default_branch:-master}"
+
+    printf "%s" "$DOTBOT_GIT_DEFAULT_BRANCH"
   fi
 }
 
 dotbot_git::get_remote_latest_commit_sha() {
   local -r default_branch="$(dotbot_git::get_remote_default_branch)"
   {
-    [[ -n "$default_branch" ]] && github::get_api_url "${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "commits/${default_branch}" | jq -r '.sha' 2> /dev/null
+    [[ -n "$default_branch" ]] && github::get_api_url "$DOTBOT_GIT_REPOSITORY" "commits/${default_branch}" | jq -r '.sha' 2> /dev/null
   } || true
 }
 
@@ -45,8 +52,19 @@ dotbot_git::update_local_repository() {
   local -r dotbot_path="$(dotbot_git::get_dotbot_path)"
   local -r default_branch="$(dotbot_git::get_remote_default_branch)"
 
-  git::init_repository_if_necessary "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
-  git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
+  git::init_repository_if_necessary "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_GIT_DEFAULT_REMOTE" "$default_branch" -C "$dotbot_path"
+  git::pull_branch "$DOTBOT_GIT_DEFAULT_REMOTE" "$default_branch" -C "$dotbot_path"
+}
+
+dotbot_git::symlinks() {
+  if [[ -d "${DOTFILES_PATH:-}" ]]; then
+    dot::load_library "dotbot.sh" "symlinks"
+    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "${DOTBOT_SUBMODULE_DIR}/bin/dotbot" "$(dotbot::yaml_file_path)" &> /dev/null
+    ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+
+  elif [[ -d "${HOME}/.dotbot" ]]; then
+    ln -fs "${HOME}/.dotbot/bin/dotbot" "${HOME}/bin/dotbot"
+  fi
 }
 
 dotbot_git::is_installed() {
@@ -54,28 +72,29 @@ dotbot_git::is_installed() {
 }
 
 dotbot_git::install() {
-  local submodule
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     dotbot_git::force_install "$@" && return
   else
-    submodule="$(dotbot_git::get_dotbot_path)"
-
-    if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
-      git::git clone "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "${HOME}/.dotbot" || true
+    if
+      [[ -n "${DOTFILES_PATH:-}" ]] &&
+        [[ -d "${DOTFILES_PATH:-}" ]] &&
+        ! git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".path &> /dev/null
+    then
+      git::git -C "$DOTFILES_PATH" submodule add -b "$(dotbot_git::get_remote_default_branch)" --name "$DOTBOT_SUBMODULE_NAME" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
+      git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_NAME".ignore dirty >&2 || true
+    elif [[ -z "${DOTFILES_PATH:-}" ]]; then
+      git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
       dotbot_git::update_local_repository || true
       mkdir -p "${HOME}/bin"
-      ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
-    else
-      submodule="${submodule//${DOTFILES_PATH}\//}"
-      submodule="${submodule//${HOME}\//}"
-      git::git -C "$(dotbot_git::get_dotbot_path)" submodule update --init --recursive >&2 || true
-      git::git -C "$(dotbot_git::get_dotbot_path)" config -f .gitmodules submodule."$submodule".ignore dirty >&2 || true
-      ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
+      ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
     fi
   fi
 
-  dotbot_git::is_installed && return
+  dotbot_git::symlinks
+
+  dotbot_git::is_installed &&
+    return
 
   return 1
 }
@@ -83,6 +102,7 @@ dotbot_git::install() {
 # OPTIONAL
 dotbot_git::uninstall() {
   [[ -d "$(dotbot_git::get_dotbot_path)" ]] && rm -rf "$(dotbot_git::get_dotbot_path)"
+  [[ -d "${DOTFILES_PATH:-}" ]] && git::remove_submodule "$DOTBOT_SUBMODULE_DIR" -C "$DOTFILES_PATH"
   {
     package::which_package_manager "dotbot" &> /dev/null && package::uninstall dotbot
   } || true
@@ -117,7 +137,7 @@ dotbot_git::description() {
 }
 
 dotbot_git::url() {
-  printf "%s" "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
+  printf "%s" "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}"
 }
 
 dotbot_git::version() {
