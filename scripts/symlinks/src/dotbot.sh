@@ -24,11 +24,10 @@ dotbot::exec() {
   local db
   local -r dotbot_paths=(
     "$(command -v dotbot || true)"
-    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}/bin/dotbot"
+    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE:-modules/dotbot}/bin/dotbot"
     "${HOME}/bin/dotbot"
+    "${HOME}/.dotbot/bin/dotbot"
   )
-
-  script::depends_on "dotbot"
 
   if [[ ! -x "$DOTBOT_SCRIPT_BIN" ]]; then
     for db in "${dotbot_paths[@]}"; do
@@ -39,7 +38,9 @@ dotbot::exec() {
     done
   fi
 
-  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] && return 1
+  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] &&
+    output::error "Dotbot could not be found. Please use \`dot package add dotbot_git\` or \`dot package add dotbot\` to install." &&
+    return 1
 
   "$DOTBOT_SCRIPT_BIN" "$@"
 }

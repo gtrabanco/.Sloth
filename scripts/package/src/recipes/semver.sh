@@ -20,13 +20,13 @@ semver::is_installed() {
 semver::install() {
   script::depends_on "curl"
 
-  curl -fsL "${SEMVER_DOWNLOAD_URL}" -o "${SEMVER_INSTALL_PATH}/semver"
-  chmod +x "${SEMVER_INSTALL_PATH}/semver"
-
   if [[ $* == *"--force"* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     semver::force_install "$@" && return
   else
+    curl -fsL "${SEMVER_DOWNLOAD_URL}" -o "${SEMVER_INSTALL_PATH}/semver"
+    chmod +x "${SEMVER_INSTALL_PATH}/semver"
+
     semver::is_installed && return
   fi
 
@@ -56,6 +56,8 @@ semver::force_install() {
 # Description, url and versions only be showed if defined
 semver::is_outdated() {
   script::depends_on "jq"
+  #shellcheck disable=SC2034
+  GITHUB_USE_CACHE=false
   local -r current_sha="$(github::hash "${SEMVER_INSTALL_PATH}/semver")"
   local -r latest_sha="$(github::get_remote_file_path_json "${SEMVER_GITHUB_REPOSITORY:-fsaintjacques/semver-tool}" "${SEMVER_GITHUB_PATH:-src/semver}" | jq -r '.sha')"
 
@@ -78,17 +80,17 @@ semver::url() {
 
 semver::version() {
   # Get the current installed version
-  "${SEMVER_INSTALL_PATH}/semver" --version
+  "${SEMVER_INSTALL_PATH}/semver" --version | awk '{print $2}'
 }
 
 semver::latest() {
   if semver::is_outdated; then
-    "> $(semver::version)"
+    echo "> $(semver::version)"
   else
     semver::version
   fi
 }
 
 semver::title() {
-  echo -n "SEMVER semver"
+  echo -n "X.Y.Z semver"
 }

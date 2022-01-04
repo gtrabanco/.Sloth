@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2296
 
 command_or_package_exists() {
   platform::command_exists "$1" || package::is_installed "$1"

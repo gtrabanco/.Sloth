@@ -43,11 +43,11 @@ zimfw::uninstall() {
 }
 
 zimfw::is_outdated() {
-  [[ $(platform::semver_compare "$(zimfw::latest)" "$(zimfw::version)") -gt 0 ]]
+  [[ $(platform::semver_compare "$(zimfw::latest)" "$(zimfw::version)") -lt 0 ]]
 }
 
 zimfw::upgrade() {
-  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" clean; \"${ZIM_HOME}/zimfw.zsh\" update; \"${ZIM_HOME}/zimfw.zsh\" upgrade; \"${ZIM_HOME}/zimfw.zsh\" compile"
+  zsh -c ". \"${HOME}/.zshrc\"; zimfw clean; zimfw update; zimfw upgrade; zimfw compile"
 }
 
 zimfw::description() {
@@ -59,7 +59,7 @@ zimfw::url() {
 }
 
 zimfw::version() {
-  zsh -c ". \"${HOME}/.zshrc\"; \"${ZIM_HOME}/zimfw.zsh\" version"
+  zsh -c ". \"${HOME}/.zshrc\"; zimfw version"
 }
 
 zimfw::latest() {
