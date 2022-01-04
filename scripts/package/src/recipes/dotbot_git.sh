@@ -4,8 +4,7 @@
 #?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 #? v1.0.0
 
-DOTBOT_GIT_REPOSITORY_URL="https://github.com/anishathalye/dotbot"
-DOTBOT_GIT_REPOSITORY="anishathalye/dotbot"
+DOTBOT_GIT_REPOSITORY="${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
 DOTBOT_GIT_DEFAULT_REMOTE="origin"
 DOTBOT_GIT_DEFAULT_BRANCH="${DOTBOT_GIT_DEFAULT_BRANCH:-}"
 
@@ -14,19 +13,17 @@ DOTBOT_SUBMODULE_DIR="${DOTBOT_SUBMODULE_DIR:-modules/dotbot}"
 DOTBOT_INSTALL_METHOD="${DOTBOT_INSTALL_METHOD:-module}"
 
 dotbot_git::get_dotbot_path() {
-  if [[ -n "${DOTFILES_PATH}" && -d "$DOTFILES_PATH" ]]; then
+  if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
     printf "%s" "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE}"
-  else
-    printf "package"
   fi
 }
 
 dotbot_git::get_repository_tag_version() {
-  git::remote_latest_tag_version "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "v*.*.*"
+  git::remote_latest_tag_version "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "v*.*.*"
 }
 
 dotbot_git::get_remote_default_branch() {
-  if [[ -n "$DOTBOT_GIT_DEFAULT_BRANCH" ]]; then
+  if [[ -n "${DOTBOT_GIT_DEFAULT_BRANCH:-}" ]]; then
     printf "%s" "$DOTBOT_GIT_DEFAULT_BRANCH"
   else
     github::get_api_url "${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" | github::curl | jq -r '.default_branch' || true
@@ -48,7 +45,7 @@ dotbot_git::update_local_repository() {
   local -r dotbot_path="$(dotbot_git::get_dotbot_path)"
   local -r default_branch="$(dotbot_git::get_remote_default_branch)"
 
-  git::init_repository_if_necessary "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
+  git::init_repository_if_necessary "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
   git::pull_branch "${DOTBOT_GIT_DEFAULT_REMOTE:-origin}" "$default_branch" -C "$dotbot_path"
 }
 
@@ -65,7 +62,7 @@ dotbot_git::install() {
     submodule="$(dotbot_git::get_dotbot_path)"
 
     if [[ "$submodule" == "${HOME}/.dotbot" ]]; then
-      git::git clone "$DOTBOT_GIT_REPOSITORY_URL" "${HOME}/.dotbot" || true
+      git::git clone "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}" "${HOME}/.dotbot" || true
       dotbot_git::update_local_repository || true
       mkdir -p "${HOME}/bin"
       ln -s "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
@@ -120,7 +117,7 @@ dotbot_git::description() {
 }
 
 dotbot_git::url() {
-  printf "%s" "${DOTBOT_GIT_REPOSITORY_URL:-https://github.com/anishathalye/dotbot}"
+  printf "%s" "https://github.com/${DOTBOT_GIT_REPOSITORY:-anishathalye/dotbot}"
 }
 
 dotbot_git::version() {
