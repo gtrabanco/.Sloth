@@ -29,6 +29,7 @@ script::list_functions() {
   if head -n1 "$file" | grep -q 'bash'; then
     bash -c ". \"$file\"; typeset -F" | awk '{print $3}'
   elif head -n1 "$file" | grep -q 'zsh'; then
+    #shellcheck disable=SC2296
     zsh -c ". \"$file\"; print -l ${(ok)functions}"
   fi
 }
