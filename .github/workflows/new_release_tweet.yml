@@ -15,7 +15,8 @@ jobs:
     steps:
       - name: Get release json
         run: |
-          curl -sL -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" -o release.json
+          echo "$PWD"
+          curl -sL -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" --output "release.json"
       
       - name: Set variables for making the tweet
         run: |
