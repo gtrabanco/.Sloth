@@ -9,29 +9,29 @@ on:
         required: false
         default: 'Enjoy this new version!'
 
-# Inputs
-# jobs:
-#   say_hello:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - run: |
-#           echo Hello $NAME!
-#           echo -in $HOME
-#         env:
-#           NAME: ${{ github.event.inputs.name }}
-# End inputs
-
 jobs:
   tweet:
     runs-on: ubuntu-latest
     steps:
-      - name: Get the version
+      - name: Get release json
         run: |
-          echo ${{ github.api_url }}
-      # - uses: ethomson/send-tweet-action@v1
-      #   with:
-      #     status: "Hi, this is a test tweet!"
-      #     consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-      #     consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-      #     access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-      #     access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          curl -sL ${{ github.api_url }}/${{ github.repository }}/releases/latest -o release.json
+      
+      - name: Set variables for making the tweet
+        run: |
+          package_body="$(jq -r '.body' "release.json")" >> $GITHUB_ENV
+          package_version="$(jq -r '.tag_name' "release.json")" >> $GITHUB_ENV
+          package_url="$(jq -r '.url' "release.json")" >> $GITHUB_ENV
+
+      - uses: ethomson/send-tweet-action@v1
+        with:
+          status: |
+            .Sloth ${{ env.package_version }} was launched! 🚀
+            You can now improve the experience of being a productivity master with this new version on:
+              ${{ env.package_url }}
+
+            ${{ github.event.inputs.message }}
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
