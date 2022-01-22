@@ -1,0 +1,37 @@
+name: Send a Tweet when new package
+on:
+  registry_package:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Custom message'
+        required: false
+        default: 'Enjoy this new version!'
+
+# Inputs
+# jobs:
+#   say_hello:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - run: |
+#           echo Hello $NAME!
+#           echo -in $HOME
+#         env:
+#           NAME: ${{ github.event.inputs.name }}
+# End inputs
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the version
+        run: |
+          echo ${{ github.api_url }}
+      # - uses: ethomson/send-tweet-action@v1
+      #   with:
+      #     status: "Hi, this is a test tweet!"
+      #     consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+      #     consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+      #     access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+      #     access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
