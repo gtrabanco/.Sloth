@@ -3,11 +3,6 @@ on:
   registry_package:
     types: [published]
   workflow_dispatch:
-    inputs:
-      message:
-        description: 'Custom message'
-        required: false
-        default: 'Enjoy this new version!'
 
 jobs:
   tweet:
@@ -15,23 +10,31 @@ jobs:
     steps:
       - name: Get release json
         run: |
-          echo "$PWD"
           curl -sL -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" --output "release.json"
-      
+      - name: Show the file
+        run: |
+            cat release.json
+
+      - name: View version and url
+        run: |
+            jq -r '.tag_name' "release.json"
+            jq -r '.html_url' "release.json"
+
       - name: Set variables for making the tweet
         run: |
-          package_body="$(jq -r '.body' "release.json")" >> $GITHUB_ENV
-          package_version="$(jq -r '.tag_name' "release.json")" >> $GITHUB_ENV
-          package_url="$(jq -r '.url' "release.json")" >> $GITHUB_ENV
+            PACKAGE_VERSION=$(jq -r '.tag_name' release.json)
+            PACKAGE_URL=$(jq -r '.html_url' release.json)
+            echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+            echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
 
       - uses: ethomson/send-tweet-action@v1
         with:
           status: |
-            .Sloth ${{ env.package_version }} was launched! 🚀
-            You can now improve the experience of being a productivity master with this new version on:
-              ${{ github.api_url }}/${{ github.repository }}/releases/latest
+            .Sloth ${{ env.PACKAGE_VERSION }} was launched! 🚀
+            You can now improve the experience of being a productivity raptor with this new version on:
+              ${{ env.PACKAGE_URL }}
 
-            ${{ github.event.inputs.message }}
+            Enjoy the #usrbinenvsloth!
           consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
           consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
           access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
