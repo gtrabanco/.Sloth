@@ -13,11 +13,11 @@ pip::pip() {
 }
 
 pip::is_available() {
-  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &> /dev/null
+  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" > /dev/null 2>&1
 }
 
 pip::is_installed() {
-  [[ -n "${1:-}" ]] && pip::pip show "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && pip::pip show "$1" > /dev/null 2>&1
 }
 
 # Not define the function because it is not possible to do it with pip

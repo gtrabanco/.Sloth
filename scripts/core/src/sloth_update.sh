@@ -141,7 +141,7 @@ sloth_update::local_sloth_repository_can_be_updated() {
 
   # If remote exists locally
   if git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_DEFAULT_BRANCH:-master}" &> /dev/null
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_DEFAULT_BRANCH:-master}" > /dev/null 2>&1
     git::check_branch_is_ahead "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && HAS_UNPUSHED_COMMITS=true
   fi
 
@@ -173,7 +173,7 @@ sloth_update::should_be_updated() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot &> /dev/null; then
+    if brew outdated dot > /dev/null 2>&1; then
       return 1
     else
       return 0
@@ -181,7 +181,7 @@ sloth_update::should_be_updated() {
   fi
 
   # Check if currently we want to pin to a fixed version but is more recent that current version
-  if platform::semver get major "$SLOTH_UPDATE_VERSION" &> /dev/null; then
+  if platform::semver get major "$SLOTH_UPDATE_VERSION" > /dev/null 2>&1; then
     # Different than current version & is not available in local & remote latest version is greater or equal that SLOTH_UPDATE_VERSION (pinned version)
     if
       [[ 
@@ -249,7 +249,7 @@ sloth_update::sloth_update() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot &> /dev/null; then
+    if brew outdated dot > /dev/null 2>&1; then
       return
     else
       output::answer "Updating .Sloth by using brew"

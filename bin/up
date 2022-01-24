@@ -51,7 +51,7 @@ for package_manager in "${package_managers[@]}"; do
   fi
 done
 
-if command -v tmux &> /dev/null; then
+if command -v tmux > /dev/null 2>&1; then
   pkill -f tmux || true
 fi
 

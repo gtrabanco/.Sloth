@@ -58,12 +58,12 @@ install_macos_custom() {
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
-    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -n -v &> /dev/null; then
-      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/zsh' | tee -a /etc/shells &> /dev/null"
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -n -v > /dev/null 2>&1; then
+      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/zsh' | tee -a /etc/shells >/dev/null 2>&1"
     fi
 
-    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -n -v &> /dev/null; then
-      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/bash' | tee -a /etc/shells &> /dev/null"
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -n -v > /dev/null 2>&1; then
+      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/bash' | tee -a /etc/shells >/dev/null 2>&1"
     fi
 
     output::answer "Installing mas"

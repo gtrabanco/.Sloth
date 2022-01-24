@@ -32,18 +32,18 @@ start_sudo() {
 }
 
 stop_sudo() {
-  builtin kill "$SUDO_PID" &> /dev/null
+  builtin kill "$SUDO_PID" > /dev/null 2>&1
   builtin trap - SIGINT SIGTERM
   command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  command -p sudo -n -v &> /dev/null
+  command -p sudo -n -v > /dev/null 2>&1
 }
 
 initilize_sloth_if_necessary() {
-  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" &> /dev/null; then
+  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" > /dev/null 2>&1; then
     output::answer "Initilizing .Sloth as repository"
     sloth_update::sloth_repository_set_ready 2>&1 | log::file "Initilizing .Sloth as repository" || true
     output::empty_line
@@ -145,7 +145,7 @@ else
 fi
 
 if ${only_git_init_sloth:-false}; then
-  if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+  if platform::command_exists brew && ! brew list gtrabanco/tools/dot > /dev/null 2>&1; then
     initilize_sloth_if_necessary
   else
     output::answer "Skiping init .Sloth installation as repository because you have used a package manager to install it"
@@ -257,7 +257,7 @@ export SETUP_ZSH_AS_DEFAULT_SHELL
 export ZIM_HOME="${DOTFILES_PATH:-}/shell/zsh/.zimfw"
 export PATH="$HOME/.cargo/bin:$PATH"
 
-if platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null; then
+if platform::command_exists brew && ! brew list gtrabanco/tools/dot > /dev/null 2>&1; then
   # Initilize .Sloth only if necessary
   initilize_sloth_if_necessary
 fi
@@ -347,7 +347,7 @@ fi
 zsh_shell_path="$(command -v zsh || true)"
 output::answer "Trying to setup zsh as the default shell"
 if $SETUP_ZSH_AS_DEFAULT_SHELL && has_sudo; then
-  sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" &> /dev/null
+  sudo bash -c "echo '$zsh_shell_path' | tee -a /etc/shells" > /dev/null 2>&1
 
   {
     sudo chsh -s "$(command -v zsh)" 2>&1 || output::write "Shell could not be changed to zsh"
@@ -377,7 +377,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
 
   {
-    zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions &> /dev/null &&
+    zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions > /dev/null 2>&1 &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions. Execute later \`dot shell zsh reload_completions\`'
 
@@ -385,7 +385,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
 fi
 
 if
-  platform::command_exists brew && ! brew list gtrabanco/tools/dot &> /dev/null ||
+  platform::command_exists brew && ! brew list gtrabanco/tools/dot > /dev/null 2>&1 ||
     ! ${ignore_link:-false}
 then
   output::answer "Linking dot command for all users in \`/usr/local/bin\`"

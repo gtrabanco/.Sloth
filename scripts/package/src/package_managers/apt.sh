@@ -30,11 +30,11 @@ apt::uninstall() {
 
 apt::is_installed() {
   #apt list -a "$@" | grep -q 'installed'
-  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" > /dev/null 2>&1
 }
 
 apt::package_exists() {
-  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" > /dev/null 2>&1
 }
 
 apt::outdated_list() {

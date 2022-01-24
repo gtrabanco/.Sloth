@@ -20,7 +20,7 @@
 #shellcheck disable=SC1091
 [[ -f "${HOME}/.bashrc" ]] && . "${HOME}/.bashrc"
 
-if command -v dot &> /dev/null; then
+if command -v dot >/dev/null 2>&1; then
   if [[ -n "${1:-}" && $1 != "all" ]]; then
     dot package update_all "${1:-}" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'
   else

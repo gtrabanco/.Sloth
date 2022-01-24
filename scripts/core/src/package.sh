@@ -23,11 +23,11 @@ fi
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      brew cargo pip volta npm mas
+      brew cargo pipx pip volta npm mas
     )
   else
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      apt snap brew dnf pacman yum cargo pip gem volta npm
+      brew apt snap dnf pacman yum cargo pipx pip gem volta npm
     )
   fi
 fi
@@ -263,7 +263,7 @@ package::is_installed() {
     registry::is_installed "$package_name" && return
     return 1
   elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
-    package::which_package_manager "$package_name" true &> /dev/null && return 0
+    package::which_package_manager "$package_name" true > /dev/null 2>&1 && return 0
   elif [[ -n "$package_manager" ]]; then
     package::command_exists "$package_manager" "is_installed" && package::command "$package_manager" "is_installed" "$package_name" && return
   fi

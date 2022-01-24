@@ -11,17 +11,17 @@ XXX_RECIPE_NAME_XXX::is_installed() {
 
 # REQUIRED FUNCTION
 XXX_RECIPE_NAME_XXX::install() {
-  # Install using a package manager, in this case auto but you can choose brew, pip...
-  package::install XXX_RECIPE_NAME_XXX auto "$@"
-  package::is_installed XXX_RECIPE_NAME_XXX auto &&
-    output::solution "XXX_RECIPE_NAME_XXX installed" &&
-    return 0
-
-  if [[ $* == *"--force"* ]]; then
+  if [[ " $* " == *" --force "* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
-    XXX_RECIPE_NAME_XXX::force_install "$@" && return
+    XXX_RECIPE_NAME_XXX::force_install "$@" &&
+      return
   else
-    XXX_RECIPE_NAME_XXX::is_installed && output::solution "XXX_RECIPE_NAME_XXX installed" && return
+    # Install using a package manager, in this case auto but you can choose brew, pip...
+    package::install XXX_RECIPE_NAME_XXX auto "$@"
+
+    XXX_RECIPE_NAME_XXX::is_installed &&
+      output::solution "XXX_RECIPE_NAME_XXX installed" &&
+      return 0
   fi
 
   output::error "XXX_RECIPE_NAME_XXX could not be installed"
@@ -30,7 +30,14 @@ XXX_RECIPE_NAME_XXX::install() {
 
 # OPTIONAL
 XXX_RECIPE_NAME_XXX::uninstall() {
-  return
+  package::uninstall XXX_RECIPE_NAME_XXX auto "$@"
+
+  ! XXX_RECIPE_NAME_XXX::is_installed &&
+    output::solution "XXX_RECIPE_NAME_XXX uninstalled" &&
+    return 0
+  
+  ourput::error "XXX_RECIPE_NAME_XXX could not be uninstalled"
+  return 1
 }
 
 # OPTIONAL

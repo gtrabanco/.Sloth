@@ -46,9 +46,9 @@ brew::custom_shellenv() {
     BREW_BIN="/opt/homebrew/bin/brew"
   elif [[ -x "/usr/local/bin/brew" ]]; then
     BREW_BIN="/usr/local/bin/brew"
-  elif command -v brew &> /dev/null; then
+  elif command -v brew > /dev/null 2>&1; then
     BREW_BIN="$(command -v brew)"
-  elif command -vp brew &> /dev/null; then
+  elif command -vp brew > /dev/null 2>&1; then
     BREW_BIN="$(command -vp brew)"
   fi
 

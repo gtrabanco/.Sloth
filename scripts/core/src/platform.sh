@@ -79,7 +79,7 @@ platform::is_windows() {
 }
 
 platform::is_wsl() {
-  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &> /dev/null || grep -q -F 'Microsoft' /proc/sys/kernel/osrelease
+  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version > /dev/null 2>&1 || grep -q -F 'Microsoft' /proc/sys/kernel/osrelease
 }
 
 platform::is_bsd() {
@@ -132,7 +132,7 @@ platform::semver() {
   script::depends_on semver
 
   if [[ -z "${SEMVER_BIN:-}" || -x "$SEMVER_BIN" ]]; then
-    if command -v semver &> /dev/null; then
+    if command -v semver > /dev/null 2>&1; then
       SEMVER_BIN="$(command -v "semver")"
     elif [[ -x "${DOTFILES_PATH}/bin/semver" ]]; then
       SEMVER_BIN="${DOTFILES_PATH}/bin/semver"

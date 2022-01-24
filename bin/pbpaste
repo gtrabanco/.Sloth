@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-if command -v xclip &> /dev/null; then
+if command -v xclip > /dev/null 2>&1; then
   xclip -selection clipboard -o
 
-elif command -vp pbpaste &> /dev/null; then
+elif command -vp pbpaste > /dev/null 2>&1; then
   command -p pbpaste
 
 else

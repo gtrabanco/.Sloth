@@ -83,7 +83,7 @@ async() {
 
   for _c in "${__temp[@]}"; do
     read -r -d " " comm <<< "${_c}"
-    type "${comm}" &> /dev/null
+    type "${comm}" > /dev/null 2>&1
 
     status=$?
 

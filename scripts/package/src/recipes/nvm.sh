@@ -17,7 +17,7 @@ nvm::finish_install() {
 nvm::is_installed() {
   if
     [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]] &&
-      command -v brew &> /dev/null &&
+      command -v brew > /dev/null 2>&1 &&
       [[ -n "$(brew --prefix nvm)" ]]
   then
     NVM_DIR="$(brew --prefix nvm)"

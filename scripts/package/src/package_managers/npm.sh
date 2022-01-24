@@ -16,7 +16,7 @@ npm::install() {
 }
 
 npm::is_installed() {
-  [[ -n "${1:-}" ]] && npm::is_available && npm list --global "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && npm::is_available && npm list --global "$1" > /dev/null 2>&1
 }
 
 npm::uninstall() {

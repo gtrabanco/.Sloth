@@ -370,7 +370,7 @@ case "${action:-${1:-}}" in
     fi
     ;;
   shellenv)
-    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" &> /dev/null
+    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" > /dev/null 2>&1
 
     case "${SHELL##*/}" in
       bash)

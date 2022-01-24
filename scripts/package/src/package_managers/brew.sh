@@ -36,7 +36,7 @@ brew::install() {
 brew::force_install() {
   local _args
   readarray -t _args < <(array::substract "--force" "$@")
-  brew unlink "${_args[@]}" &> /dev/null || true
+  brew unlink "${_args[@]}" > /dev/null 2>&1 || true
   brew reinstall "${_args[@]}"
 }
 
@@ -45,14 +45,14 @@ brew::uninstall() {
 }
 
 brew::package_exists() {
-  [[ -n "${1:-}" ]] && brew::is_available && brew info "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && brew::is_available && brew info "$1" > /dev/null 2>&1
 }
 
 brew::is_installed() {
   ! brew::is_available && return 1
 
-  platform::command_exists brew && brew list --formula "$@" &> /dev/null && return
-  platform::command_exists brew && brew list --cask "$@" &> /dev/null && return
+  platform::command_exists brew && brew list --formula "$@" > /dev/null 2>&1 && return
+  platform::command_exists brew && brew list --cask "$@" > /dev/null 2>&1 && return
 
   return 1
 }

@@ -39,7 +39,7 @@ cargo::is_outdated() {
 }
 
 cargo::upgrade() {
-  rustup update &> /dev/null
+  rustup update > /dev/null 2>&1
 }
 
 cargo::description() {

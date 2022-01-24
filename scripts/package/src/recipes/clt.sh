@@ -43,7 +43,7 @@ clt::install() {
   if ! clt::is_installed && command -p sudo -v -B; then
     command -p xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-      until command -p xcode-select --print-path &> /dev/null; do
+      until command -p xcode-select --print-path > /dev/null 2>&1; do
         output::answer "Waiting for Command Line tools to be installed... Check again in 10 secs"
         sleep 10
       done
@@ -64,7 +64,7 @@ clt::install() {
 }
 
 clt::is_installed() {
-  platform::is_macos && command -vp xcode-select &> /dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+  platform::is_macos && command -vp xcode-select > /dev/null 2>&1 && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
 }
 
 clt::uninstall() {
