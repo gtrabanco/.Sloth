@@ -27,15 +27,16 @@ jobs:
             echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
             echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
 
-      - uses: ethomson/send-tweet-action@v1
+      - uses: devigned/go-twitter-action@v1
         with:
-          status: |
+          message: |
             .Sloth ${{ env.PACKAGE_VERSION }} was launched! 🚀
             You can now improve the experience of being a productivity raptor with this new version on:
-              ${{ env.PACKAGE_URL }}
+            ${{ env.PACKAGE_URL }}
 
             Enjoy the #usrbinenvsloth!
-          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+            #dotSloth #dotfiles #productivityraptor
+          apiKey: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          apiKeySecret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          accessToken: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          accessTokenSecret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
