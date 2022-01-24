@@ -89,7 +89,7 @@ is_macos() {
 }
 
 is_clt_installed() {
-  command -vp xcode-select &> /dev/null && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+  command -vp xcode-select > /dev/null 2>&1 && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
 }
 
 install_clt() {
@@ -116,7 +116,7 @@ install_clt() {
   if ! is_clt_installed && command -p sudo -v -B; then
     command -p xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-      until command -p xcode-select --print-path &> /dev/null; do
+      until command -p xcode-select --print-path > /dev/null 2>&1; do
         _a "Waiting for Command Line tools to be installed... Check again in 10 secs"
         sleep 10
       done
@@ -150,17 +150,17 @@ start_sudo() {
 }
 
 stop_sudo() {
-  builtin kill "$SUDO_PID" &> /dev/null
+  builtin kill "$SUDO_PID" > /dev/null 2>&1
   builtin trap - SIGINT SIGTERM
   command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  command -p sudo -n -v &> /dev/null
+  command -p sudo -n -v > /dev/null 2>&1
 }
 
-if command -v brew &> /dev/null; then
+if command -v brew > /dev/null 2>&1; then
   eval "$(command brew shellenv)"
 else
   PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"

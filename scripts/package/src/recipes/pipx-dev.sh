@@ -27,7 +27,7 @@ pipx-dev::install() {
     if pipx-dev::is_installed; then
       python3 -m pipx ensurepath
       output::solution "pipx installed" &&
-      return
+        return
     fi
   fi
 
@@ -44,7 +44,7 @@ pipx-dev::uninstall() {
 pipx-dev::force_install() {
   local _args
   mapfile -t _args < <(array::substract "--force" "$@")
-  
+
   pipx-dev::uninstall "${_args[@]}"
   pipx-dev::install "${_args[@]}"
 

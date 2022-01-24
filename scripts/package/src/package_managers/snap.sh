@@ -12,7 +12,7 @@ snap::is_available() {
 }
 
 snap::package_exists() {
-  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" > /dev/null 2>&1
 }
 
 snap::is_installed() {

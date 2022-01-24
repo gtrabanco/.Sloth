@@ -13,7 +13,7 @@ __right_prompt() {
     printf "%${n}s$RIGHT_PROMPT\\r"
   fi
 
-  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "$THEME_COMMAND" >/dev/null 2>&1; then
+  if [[ -n "${THEME_COMMAND:-}" ]] && declare -F "$THEME_COMMAND" > /dev/null 2>&1; then
     return_code "$LAST_CODE"
     "$THEME_COMMAND"
   fi

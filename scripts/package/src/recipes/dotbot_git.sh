@@ -59,7 +59,7 @@ dotbot_git::update_local_repository() {
 dotbot_git::symlinks() {
   if [[ -d "${DOTFILES_PATH:-}" ]]; then
     dot::load_library "dotbot.sh" "symlinks"
-    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "${DOTBOT_SUBMODULE_DIR}/bin/dotbot" "$(dotbot::yaml_file_path)" &> /dev/null
+    dotbot::add_or_edit_json_value_to_directive "link" "~/bin/dotbot" "${DOTBOT_SUBMODULE_DIR}/bin/dotbot" "$(dotbot::yaml_file_path)" > /dev/null 2>&1
     ln -fs "$(dotbot_git::get_dotbot_path)/bin/dotbot" "${HOME}/bin/dotbot"
 
   elif [[ -d "${HOME}/.dotbot" ]]; then
@@ -68,7 +68,7 @@ dotbot_git::symlinks() {
 }
 
 dotbot_git::is_installed() {
-  [[ -d "$(dotbot_git::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" &> /dev/null
+  [[ -d "$(dotbot_git::get_dotbot_path)" && -x "${HOME}/bin/dotbot" ]] || package::which_package_manager "dotbot" > /dev/null 2>&1
 }
 
 dotbot_git::install() {
@@ -79,7 +79,7 @@ dotbot_git::install() {
     if
       [[ -n "${DOTFILES_PATH:-}" ]] &&
         [[ -d "${DOTFILES_PATH:-}" ]] &&
-        ! git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".path &> /dev/null
+        ! git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_DIR".path > /dev/null 2>&1
     then
       git::git -C "$DOTFILES_PATH" submodule add -b "$(dotbot_git::get_remote_default_branch)" --name "$DOTBOT_SUBMODULE_NAME" "$DOTBOT_GIT_REPOSITORY_URL" "$DOTBOT_SUBMODULE_DIR" >&2 || true
       git::git -C "$DOTFILES_PATH" config -f ".gitmodules" submodule."$DOTBOT_SUBMODULE_NAME".ignore dirty >&2 || true
@@ -104,7 +104,7 @@ dotbot_git::uninstall() {
   [[ -d "$(dotbot_git::get_dotbot_path)" ]] && rm -rf "$(dotbot_git::get_dotbot_path)"
   [[ -d "${DOTFILES_PATH:-}" ]] && git::remove_submodule "$DOTBOT_SUBMODULE_DIR" -C "$DOTFILES_PATH"
   {
-    package::which_package_manager "dotbot" &> /dev/null && package::uninstall dotbot
+    package::which_package_manager "dotbot" > /dev/null 2>&1 && package::uninstall dotbot
   } || true
 }
 

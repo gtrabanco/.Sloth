@@ -12,19 +12,19 @@ if
     [[ 
       -n "${GIT_EXECUTABLE:-}" &&
       ! -x "$GIT_EXECUTABLE" ]] &&
-    command -v git &> /dev/null
+    command -v git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -v git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-    command -v git &> /dev/null
+    command -v git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -v git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-    command -vp git &> /dev/null
+    command -vp git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -vp git)"
 
@@ -70,7 +70,7 @@ git::git() {
 # check if a directory is a repository
 #"
 git::is_in_repo() {
-  git::git "$@" rev-parse --is-inside-work-tree &> /dev/null
+  git::git "$@" rev-parse --is-inside-work-tree > /dev/null 2>&1
 }
 
 #;
@@ -120,7 +120,7 @@ git::get_submodule_property() {
 git::submodule_exists() {
   local -r submodule_name="${1:-}"
 
-  [[ -n "$submodule_name" ]] && git::git "${@:2}" config -f ".gitmodules" submodule."$submodule_name".path &> /dev/null
+  [[ -n "$submodule_name" ]] && git::git "${@:2}" config -f ".gitmodules" submodule."$submodule_name".path > /dev/null 2>&1
 }
 
 #;
@@ -150,7 +150,7 @@ git::remove_submodule() {
 git::check_remote_exists() {
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" remote get-url "$remote" &> /dev/null
+  git::git "$@" remote get-url "$remote" > /dev/null 2>&1
 }
 
 #;
@@ -353,7 +353,7 @@ git::set_remote_head_upstream_branch() {
 # git::check_file_exists_in_previous_commit()
 #"
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" &> /dev/null
+  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
 #;
@@ -436,7 +436,7 @@ git::clone_branches() {
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
 
-  ! git::git "$@" remote get-url "$remote" &> /dev/null && return 1
+  ! git::git "$@" remote get-url "$remote" > /dev/null 2>&1 && return 1
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
@@ -536,7 +536,7 @@ git::init_repository_if_necessary() {
   [[ -n "${url}" ]] && shift
   [[ -n "${1:-}" ]] && shift # remote
   [[ -n "${1:-}" ]] && shift # branch
-  git::is_in_repo "$@" &> /dev/null && return
+  git::is_in_repo "$@" > /dev/null 2>&1 && return
 
   if [[ -n "$url" ]]; then
     git::git "$@" init 1>&2
@@ -545,7 +545,7 @@ git::init_repository_if_necessary() {
     git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
     git::git "$@" fetch --all --tags --force 1>&2
     git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
-    git::git "$@" remote set-head "$remote" --auto &> /dev/null 1>&2
+    git::git "$@" remote set-head "$remote" --auto > /dev/null 2>&1 1>&2
     head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
 
     if [[ -z "$head_branch" ]]; then
@@ -576,8 +576,8 @@ git::add_to_gitignore() {
   shift
 
   if [[ -n "$content" ]]; then
-    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" &> /dev/null
-    echo &> /dev/null
+    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" > /dev/null 2>&1
+    echo > /dev/null 2>&1
   fi
 
   if ! grep -q "^${content}$" "$gitignore_file_path"; then

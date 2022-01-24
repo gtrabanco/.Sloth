@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 python3-pip::is_installed() {
-  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &> /dev/null
+  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" > /dev/null 2>&1
 }
 
 python3-pip::install() {

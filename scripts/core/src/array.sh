@@ -11,7 +11,7 @@ array::exists_value() {
   shift
 
   for array_value in "$@"; do
-    [[ "$array_value" == "$value" ]] && return 0
+    [ "$array_value" == "$value" ] && return 0
   done
 
   return 1
@@ -25,7 +25,8 @@ array::substract() {
 
   if array::exists_value "$value" "${@:-}"; then
     for array_value in "$@"; do
-      [[ $value != "$array_value" ]] && echo -E "$array_value"
+      [ "$value" != "$array_value" ] &&
+        echo -E "$array_value"
     done
   else
     echo -E "$@"
@@ -41,16 +42,17 @@ array::uniq_unordered() {
   # Variable declarations
   declare -a uniq_values=()
 
-  if [[ $# -gt 0 ]]; then
+  if [ $# -gt 0 ]; then
     for item in "$@"; do
-      ! array::exists_value "$item" "${uniq_values[@]:-}" && uniq_values+=("$item")
+      ! array::exists_value "$item" "${uniq_values[@]:-}" &&
+        uniq_values+=("$item")
     done
   fi
 
   declare -p uniq_values
 }
 
-if ! type readarray &> /dev/null; then
+if ! type readarray > /dev/null 2>&1; then
   # Very minimal readarray implementation using read. Does NOT work with lines that contain double-quotes due to eval()
   # https://stackoverflow.com/a/64793921
   readarray() {

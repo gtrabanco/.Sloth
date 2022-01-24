@@ -8,7 +8,7 @@ macos::title() {
 }
 
 macos::is_available() {
-  platform::is_macos && command -vp softwareupdate &> /dev/null
+  platform::is_macos && command -vp softwareupdate > /dev/null 2>&1
 }
 
 macos::update_all() {

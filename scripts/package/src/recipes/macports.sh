@@ -82,8 +82,8 @@ macports::uninstall() {
   fi
 
   output::answer "Deleting MacPorts' users and groups"
-  /usr/bin/sudo /usr/bin/dscl . -delete /Users/macports &> /dev/null
-  /usr/bin/sudo /usr/bin/dscl . -delete /Groups/macports &> /dev/null
+  /usr/bin/sudo /usr/bin/dscl . -delete /Users/macports > /dev/null 2>&1
+  /usr/bin/sudo /usr/bin/dscl . -delete /Groups/macports > /dev/null 2>&1
 
   output::answer "Deleting MacPorts' files"
   /usr/bin/sudo /bin/rm -rf /opt/local /Applications/DarwinPorts /Applications/MacPorts

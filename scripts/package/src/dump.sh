@@ -17,8 +17,11 @@ dump::file_path() {
     volta)
       echo "$DOTFILES_PATH/langs/js/volta/${dump_file_name}.txt"
       ;;
-    pip*)
-      echo "$DOTFILES_PATH/langs/js/python/${dump_file_name}.txt"
+    pipx)
+      echo "${DOTFILES_PATH}/python/pipx-${dump_file_name}.txt"
+      ;;
+    pip | pip3)
+      echo "$DOTFILES_PATH/langs/python/${dump_file_name}.txt"
       ;;
     # Please if you are adding a new package manager keep this last name the others
     # are just to keep compatibility with Dotly and previous dumps

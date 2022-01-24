@@ -27,16 +27,16 @@ pipx::install() {
 
     if pipx::is_installed pipx; then
       case $(package::which_package_manager "pipx") in
-        pip|pip3)
+        pip | pip3)
           python3 -m pipx ensurepath
           ;;
         *)
           pipx ensurepath
           ;;
       esac
-      package::install ensurepath 
+      package::install ensurepath
       output::solution "pipx installed" &&
-      return
+        return
     fi
   fi
 
@@ -53,7 +53,7 @@ pipx::uninstall() {
 pipx::force_install() {
   local _args
   mapfile -t _args < <(array::substract "--force" "$@")
-  
+
   pipx::uninstall "${_args[@]}"
   pipx::install "${_args[@]}"
 

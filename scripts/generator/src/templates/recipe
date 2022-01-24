@@ -11,7 +11,7 @@ XXX_RECIPE_NAME_XXX::is_installed() {
 
 # REQUIRED FUNCTION
 XXX_RECIPE_NAME_XXX::install() {
-  if [[ $* == *"--force"* ]]; then
+  if [[ " $* " == *" --force "* ]]; then
     # output::answer "\`--force\` option is ignored with this recipe"
     XXX_RECIPE_NAME_XXX::force_install "$@" &&
       return
@@ -19,7 +19,7 @@ XXX_RECIPE_NAME_XXX::install() {
     # Install using a package manager, in this case auto but you can choose brew, pip...
     package::install XXX_RECIPE_NAME_XXX auto "$@"
 
-    package::is_installed XXX_RECIPE_NAME_XXX auto &&
+    XXX_RECIPE_NAME_XXX::is_installed &&
       output::solution "XXX_RECIPE_NAME_XXX installed" &&
       return 0
   fi
@@ -32,7 +32,7 @@ XXX_RECIPE_NAME_XXX::install() {
 XXX_RECIPE_NAME_XXX::uninstall() {
   package::uninstall XXX_RECIPE_NAME_XXX auto "$@"
 
-  package::is_installed XXX_RECIPE_NAME_XXX auto &&
+  ! XXX_RECIPE_NAME_XXX::is_installed &&
     output::solution "XXX_RECIPE_NAME_XXX uninstalled" &&
     return 0
   

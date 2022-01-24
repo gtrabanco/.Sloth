@@ -93,7 +93,7 @@ for file in "${all_files[@]}"; do
   elif ${patch:-false}; then
     {
       output::answer "Linting \`$file\`" &&
-        echo "$patch_content" | patch "$file" &> /dev/null
+        echo "$patch_content" | patch "$file" > /dev/null 2>&1
     } || exit_code=1
   else
     echo "$patch_content"

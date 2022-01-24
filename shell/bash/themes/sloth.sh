@@ -57,7 +57,7 @@ prompt_sloth_git_info_is_behind() {
 prompt_sloth_git_info() {
   local clean_prompt untracked_prompt behind_prompt branch_prompt
   [[ ! -x "$GIT_EXECUTABLE" ]] && return
-  ! "$GIT_EXECUTABLE" rev-parse --is-inside-work-tree >/dev/null 2>&1 && return
+  ! "$GIT_EXECUTABLE" rev-parse --is-inside-work-tree > /dev/null 2>&1 && return
   local -r branch="$("$GIT_EXECUTABLE" branch --show-current --no-color 2> /dev/null || true)"
   [[ -z "$branch" ]] && return
 

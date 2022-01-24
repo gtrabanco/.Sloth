@@ -8,15 +8,9 @@
 XXX_PACKAGE_MANAGER_NAME_XXX_title='XXX_PACKAGE_MANAGER_ICON_XXX XXX_PACKAGE_MANAGER_NAME_XXX'
 
 # REQUIRED
+# Check if a package is installed
 XXX_PACKAGE_MANAGER_NAME_XXX::is_installed() {
-  ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available &&
-  return 1
-
-  platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX &&
-    XXX_PACKAGE_MANAGER_NAME_XXX is_installed "$@" &> /dev/null &&
-    return
-
-  return 1
+  XXX_PACKAGE_MANAGER_NAME_XXX list "$@"
 }
 
 # REQUIRED FUNCTION
@@ -25,6 +19,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::title() {
 }
 
 # REQUIRED FUNCTION
+# Check if package manager is installed
 XXX_PACKAGE_MANAGER_NAME_XXX::is_available() {
   platform::command_exists XXX_PACKAGE_MANAGER_NAME_XXX
 }
@@ -79,7 +74,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::uninstall() {
 XXX_PACKAGE_MANAGER_NAME_XXX::package_exists() {
   [[ -n "${1:-}" ]] &&
     XXX_PACKAGE_MANAGER_NAME_XXX::is_available &&
-    XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" &> /dev/null
+    XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" >/dev/null 2>&1
 }
 
 # REQUIRED TO USE `up` or `up XXX_PACKAGE_MANAGER_NAME_XXX`
@@ -137,7 +132,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::cleanup() {
 # Only require for backup your packages
 XXX_PACKAGE_MANAGER_NAME_XXX::dump() {
   ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
-  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH}"
+  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-${XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/langs/XXX_PACKAGE_MANAGER_NAME_XXX/$(hostname -s).txt}}"
 
   if package::common_dump_check XXX_PACKAGE_MANAGER_NAME_XXX "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH"; then
     XXX_PACKAGE_MANAGER_NAME_XXX dump | tee "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH" | log::file "Exporting $XXX_PACKAGE_MANAGER_NAME_XXX_title packages"
@@ -151,11 +146,16 @@ XXX_PACKAGE_MANAGER_NAME_XXX::dump() {
 # Only required for importing your packages from previous backup
 XXX_PACKAGE_MANAGER_NAME_XXX::import() {
   ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available && return 1
-  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH}"
+  XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH="${1:-${XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/langs/XXX_PACKAGE_MANAGER_NAME_XXX/$(hostname -s).txt}}"
 
   if package::common_import_check XXX_PACKAGE_MANAGER_NAME_XXX "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH"; then
-    XXX_PACKAGE_MANAGER_NAME_XXX import <"$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH" | log::file "Importing $XXX_PACKAGE_MANAGER_NAME_XXX_title packages"
+    # Import all packages
+    # XXX_PACKAGE_MANAGER_NAME_XXX import <"$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH" | log::file "Importing ${XXX_PACKAGE_MANAGER_NAME_XXX_title} packages"
 
+    # Import one by one package
+    while read -r pkg; do
+      package::install "$pkg" "XXX_PACKAGE_MANAGER_NAME_XXX" | log::file "Importing ${XXX_PACKAGE_MANAGER_NAME_XXX_title} package: ${pkg}"
+    done < "$XXX_PACKAGE_MANAGER_NAME_XXX_DUMP_FILE_PATH"
     return 0
   fi
 

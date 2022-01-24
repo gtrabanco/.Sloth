@@ -22,7 +22,7 @@ context="${1:-}"
 script="${2:-}"
 arg="${3:-}"
 
-if command -v dot &> /dev/null; then
+if command -v dot >/dev/null 2>&1; then
   dot "$context" "$script" $arg | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'
 else
   echo "Error: dot is not installed for not login shell. Execute \`dot core install\` again"

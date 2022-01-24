@@ -10,7 +10,7 @@ set -euo pipefail
 
 # In Linux we can do this with readlink -f but will fail in macOS and BSD OS
 if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]]; then
-  if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && ! command -vp realpath &> /dev/null; then
+  if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && ! command -vp realpath > /dev/null 2>&1; then
     dot_path="${BASH_SOURCE}"
     until [[ ! -L $dot_path ]]; do
       dot_path="$(readlink "$dot_path")"
@@ -107,7 +107,7 @@ fi
 
 fzf_prompt() {
   local fzf_scripts fzf_context fzf_script full_script script
-  ! command -v fzf &> /dev/null && return 1
+  ! command -v fzf > /dev/null 2>&1 && return 1
 
   for full_script in $(printf "%s\n" "$@"); do
     [[ ! -x "$full_script" ]] && continue

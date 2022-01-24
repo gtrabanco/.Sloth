@@ -44,8 +44,7 @@ function recent_dirs() {
 if [ -z "${DOTFILES_PATH:-}" ] ||
   [ ! -d "${DOTFILES_PATH:-}" ] ||
   [ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ] ||
-  [ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]
-  then
+  [ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]; then
   if [[ -d "$HOME/.dotfiles" && -d "${HOME}/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="${HOME}/.dotfiles"
     SLOTH_PATH="${DOTFILES_PATH}/modules/dotly"
@@ -151,9 +150,9 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
   elif [[ -x "/usr/local/bin/brew" ]]; then
     BREW_BIN="/usr/local/bin/brew"
     HOMEBREW_PREFIX="/usr/local"
-  elif command -v brew >/dev/null 2>&1; then
+  elif command -v brew > /dev/null 2>&1; then
     BREW_BIN="$(command -v brew)"
-  elif command -vp brew >/dev/null 2>&1; then
+  elif command -vp brew > /dev/null 2>&1; then
     BREW_BIN="$(command -vp brew)"
   fi
 fi
@@ -213,7 +212,7 @@ fi
 # Conditional paths
 [ -d "${HOME}/.cargo/bin" ] && path+=("${HOME}/.cargo/bin")
 [ -d "${JAVA_HOME:-}" ] && path+=("${JAVA_HOME}/bin")
-if command -v gem > /dev/null 2>/dev/null || command -vp gem >/dev/null 2>&1; then
+if command -v gem > /dev/null 2> /dev/null || command -vp gem > /dev/null 2>&1; then
   gem_bin="$(command -v gem || command -vp gem)"
   gem_paths="$("$gem_bin" env gempath 2> /dev/null)"
   #shellcheck disable=SC2207
