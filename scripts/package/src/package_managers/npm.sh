@@ -63,9 +63,8 @@ npm::update_all() {
 }
 
 npm::dump() {
-  local npm_prefix node_modules
-  npm_prefix="$(npm config --json -g ls -l | jq -r '.prefix' || echo -n)"
-  node_modules="${npm_prefix:-/usr/local}/lib/node_modules"
+  local node_modules
+  node_modules="$(npm root -g)"
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
 
   if package::common_dump_check npm "$NPM_DUMP_FILE_PATH"; then
