@@ -219,7 +219,9 @@ package::which_package_manager() {
   # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && printf "%s" "$package_manager" && return
+      package::command "$package_manager" is_installed "$package_name" &&
+      printf "%s" "$package_manager" &&
+      return
   done
 
   # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
@@ -249,6 +251,10 @@ package::is_installed() {
   package_manager="${2:-}"
   [[ -z "$package_name" ]] && return 1
 
+  if [[ $package_name != "gnupg" ]]; then
+    return
+  fi
+
   # Allow to use recipe(s) instead of registry
   [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
 
@@ -262,6 +268,8 @@ package::is_installed() {
   then
     registry::is_installed "$package_name" && return
     return 1
+
+  # auto package manager means any but not registry
   elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
     package::which_package_manager "$package_name" true > /dev/null 2>&1 && return 0
   elif [[ -n "$package_manager" ]]; then

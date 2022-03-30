@@ -67,7 +67,7 @@ symlinks::link_exists() {
   fi
 
   # By link
-  link_check_value="$(echo "$input" | dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link_or_dotfile_path")" || echo "")"
+  link_check_value="$(echo "$input" | dotbot::get_value_of_key_in "link" "$(dotbot::relativepath "$link_or_dotfile_path")" || true)"
   [[ -n "$link_check_value" ]] && dotbot::relativepath "$link_or_dotfile_path" && return 0
 
   # By link value
