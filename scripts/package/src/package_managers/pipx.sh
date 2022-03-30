@@ -18,7 +18,7 @@ pipx::pipx() {
 
 # REQUIRED
 pipx::is_installed() {
-  [ -n "$(package::which_package_manager pipx)" ]
+  pipx list | awk '/^\s*-.+$/ {print $2}' | grep -q "^${1:-}$"
 }
 
 # REQUIRED FUNCTION

@@ -6,7 +6,7 @@
 
 # REQUIRED FUNCTION
 pipx-dev::is_installed() {
-  platform::command_exists pipx-dev
+  platform::command_exists pipx
 }
 
 # REQUIRED FUNCTION
@@ -33,20 +33,4 @@ pipx-dev::install() {
 
   output::error "pipx could not be installed"
   return 1
-}
-
-# OPTIONAL
-pipx-dev::uninstall() {
-  return
-}
-
-# OPTIONAL
-pipx-dev::force_install() {
-  local _args
-  mapfile -t _args < <(array::substract "--force" "$@")
-
-  pipx-dev::uninstall "${_args[@]}"
-  pipx-dev::install "${_args[@]}"
-
-  pipx-dev::is_installed "${_args[@]}"
 }
