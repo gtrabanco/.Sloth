@@ -251,10 +251,6 @@ package::is_installed() {
   package_manager="${2:-}"
   [[ -z "$package_name" ]] && return 1
 
-  if [[ $package_name != "gnupg" ]]; then
-    return
-  fi
-
   # Allow to use recipe(s) instead of registry
   [[ -n "$package_manager" && $package_manager == "recipe"[s] ]] && package_manager="registry"
 
