@@ -16,6 +16,8 @@ composer::update_all() {
   outdated=$(composer global outdated --direct -f json --no-ansi)
   total_outdated=$(echo "$outdated" | jq '.installed' | jq length)
 
+  # The next fixme seems like be wrong in outdated variable because no composer.json file is present
+  #FIXME /modules/sloth/scripts/package/src/package_managers/composer.sh: line 19: [: : integer expression expected
   if [ 0 -ne "$total_outdated" ]; then
     echo "$outdated" | jq -cr '.installed | .[]' | while IFS= read -r dependency; do
       composer::update "$dependency"
