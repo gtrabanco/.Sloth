@@ -61,7 +61,7 @@ initilize_sloth_if_necessary() {
 ##? Usage:
 ##?    install [-v | --version]
 ##?    install [-h | --help]
-##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth] [--link-prefix <link_prefix>]
+##?    install [[-n | --never-backup] | [-b |--always-backup] | [--ignore-symlinks]] [--ignore-loader] [--ignore-restoration] [--only-git-init-sloth] [--link_prefix <prefix>]
 ##?
 ##? Options:
 ##?    -h --help                Prints this help
@@ -84,8 +84,7 @@ initilize_sloth_if_necessary() {
 #? v3.2.0
 if ! ${DOTLY_INSTALLER:-false} && package::is_installed "docopts" || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
   docs::parse "$@"
-
-  [[ -z "${link_prefix}" ]] && link_prefix="/usr/local"
+  link_prefix="${prefix:-/usr/local}"
 else
   backup=false
   interactive_backup=false
@@ -134,7 +133,7 @@ else
         ;;
       --link-prefix)
         [[ -z "${2:-}" ]] && output::error "Wrong usage of \`--link-prefix\` option, it should include a second param with the prefix where to link \`dot\` command." && exit 4
-        link_prefix=$2
+        link_prefix="${2:-}"
         shift 2
         ;;
       *)
@@ -388,9 +387,9 @@ if
   platform::command_exists brew && ! brew list gtrabanco/tools/dot > /dev/null 2>&1 ||
     ! ${ignore_link:-false}
 then
-  output::answer "Linking dot command for all users in \`/usr/local/bin\`"
-  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" /usr/local/bin/dot
-  [[ -x "/usr/local/bin/dot" ]] || output::error "\`dot\` command could not be linked"
+  output::answer "Linking dot command for all users in \`${link_prefix}/bin\`"
+  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "${link_prefix}/bin/dot"
+  [[ -x "${link_prefix}/dot" ]] || output::error "\`dot\` command could not be linked"
   output::empty_line
 fi
 
