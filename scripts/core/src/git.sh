@@ -81,9 +81,6 @@ git::current_branch() {
   git::git "$@" branch --show-current --no-color 2> /dev/null || return
 }
 
-#!/usr/bin/env bash
-#shellcheck disable=SC2034
-
 #;
 # git::get_submodule_property()
 # Get the property of a submodule, by default get properties of DOTFILES_PATH submodules
