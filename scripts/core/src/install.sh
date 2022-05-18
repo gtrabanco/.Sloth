@@ -120,7 +120,12 @@ install_linux_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh python3-pip python-yq jq
+
+    if [[ $package_manager != "brew" ]]; then
+      custom::install bash zsh python3-pip yq jq
+    else
+      custom::install bash zsh python3-pip python-yq jq
+    fi
 
     # Required packages output an error
     if ! package::is_installed "docopts" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
