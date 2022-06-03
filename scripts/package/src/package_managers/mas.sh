@@ -65,7 +65,12 @@ mas::dump() {
   local -r filepath="${1:-}"
   [[ -n "${filepath:-}" ]] || return 1
 
-  mas list | awk '{print $1}' | tee -a "$filepath"
+  if package::common_dump_check mas "$filepath"; then
+    mas list | awk '{print $1}' | tee "$filepath" > /dev/null
+    return 0
+  fi
+
+  return 1
 }
 
 mas::import() {
@@ -80,7 +85,7 @@ mas::import() {
       if mas::package_exists "$app"; then
         mas::install "$app"
       else
-        output::error "Package '$app' not found"
+        output::error "Package '${app}' not found"
       fi
     fi
   done < "$filepath"
