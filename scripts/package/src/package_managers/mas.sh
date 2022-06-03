@@ -60,3 +60,34 @@ mas::update_all() {
     done
   fi
 }
+
+mas::dump() {
+  local -r filepath="${1:-}"
+  [[ -n "${filepath:-}" ]] || return 1
+
+  if package::common_dump_check mas "$filepath"; then
+    mas list | awk '{print $1}' | tee "$filepath" > /dev/null
+    return 0
+  fi
+
+  return 1
+}
+
+mas::import() {
+  local app
+  local -r filepath="${1:-}"
+  [[ -r "${filepath:-}" ]] || return 1
+
+  while read -r app; do
+    if [[ $app =~ ^[0-9]+$ ]]; then
+      mas install "$app"
+    else
+      if mas::package_exists "$app"; then
+        mas::install "$app"
+      else
+        output::error "Package '${app}' not found"
+      fi
+    fi
+  done < "$filepath"
+
+}

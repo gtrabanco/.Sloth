@@ -23,7 +23,7 @@ fi
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      brew cargo pipx pip volta npm mas
+      mas brew cargo pipx pip volta npm
     )
   else
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
@@ -107,7 +107,7 @@ package::get_available_package_managers() {
     package_manager="${package_manager_filename%%.sh}"
 
     if package::command "$package_manager" "is_available"; then
-      printf "%s" "$package_manager"
+      printf "%s\n" "$package_manager"
     fi
   done
 }

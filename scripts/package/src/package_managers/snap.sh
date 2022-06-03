@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 snap_title='🦜 Snap'
-SNAP_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/snap/$(hostname -s).txt"
+SNAP_DUMP_FILE_PATH="${SNAP_DUMP_FILE_PATH:-${DOTFILES_PATH}/os/linux/snap/$(hostname -s).txt}"
 
 snap::title() {
   echo -n "🦜 Snap"
