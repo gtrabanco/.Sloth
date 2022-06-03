@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 pip_title='🐍 pip'
-PYTHON_DUMP_FILE_PATH="$DOTFILES_PATH/langs/python/$(hostname -s).txt"
+PYTHON_DUMP_FILE_PATH="${PYTHON_DUMP_FILE_PATH:-${DOTFILES_PATH}/langs/python/$(hostname -s).txt}"
 
 pip::title() {
   echo -n "🐍 pip"
@@ -84,7 +84,7 @@ pip::dump() {
 pip::import() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
-  if package::common_import_check pip::pip "$PYTHON_DUMP_FILE_PATH"; then
+  if package::common_import_check pip "$PYTHON_DUMP_FILE_PATH"; then
     pip::pip install -r "$PYTHON_DUMP_FILE_PATH" | log::file "Importing ${pip_title} packages"
 
     return 0

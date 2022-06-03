@@ -23,7 +23,7 @@ fi
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      brew cargo pipx pip volta npm mas
+      mas brew cargo pipx pip volta npm
     )
   else
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(

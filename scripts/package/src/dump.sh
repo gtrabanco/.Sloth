@@ -9,16 +9,26 @@ dump::file_path() {
 
   case "$package_manager" in
     cargo)
-      echo "${DOTFILES_PATH}/langs/rust/cargo/${dump_file_name}.txt"
+      if ${SLOTH_PACKAGES_DUMP_ARCH:-false}; then
+        echo "${DOTFILES_PATH}/langs/rust/cargo/$(platform::get_arch)/${dump_file_name}.txt"
+      else
+        echo "${DOTFILES_PATH}/langs/rust/cargo/${dump_file_name}.txt"
+      fi
       ;;
     npm)
-      echo "${DOTFILES_PATH}/langs/js/npm/${dump_file_name}.txt"
+      if [[ -r "${DOTFILES_PATH}/langs/js/global_packages.txt" ]]; then
+        echo "${DOTFILES_PATH}/langs/js/${dump_file_name}.txt"
+      else
+        echo "${DOTFILES_PATH}/langs/js/npm/${dump_file_name}.txt"
+      fi
       ;;
     volta)
-      echo "${DOTFILES_PATH}/langs/js/volta/${dump_file_name}.txt"
-      ;;
-    pipx)
-      echo "${DOTFILES_PATH}/python/pipx-${dump_file_name}.txt"
+      if [[ -r "${DOTFILES_PATH}/langs/js/volta_dependencies.txt" ]]; then
+        echo "${DOTFILES_PATH}/langs/js/volta_dependencies.txt"
+      else
+        echo "${DOTFILES_PATH}/langs/js/volta/${dump_file_name}.txt"
+      fi
+
       ;;
     pip | pip3)
       echo "${DOTFILES_PATH}/langs/python/${dump_file_name}.txt"
@@ -26,7 +36,11 @@ dump::file_path() {
     # Please if you are adding a new package manager keep this last name the others
     # are just to keep compatibility with Dotly and previous dumps
     *)
-      echo "${DOTFILES_PATH}/os/$(platform::os)/${package_manager}/${dump_file_name}.txt"
+      if ${SLOTH_PACKAGES_DUMP_ARCH:-false}; then
+        echo "${DOTFILES_PATH}/os/$(platform::os)/$(platform::get_arch)/${package_manager}/${dump_file_name}.txt"
+      else
+        echo "${DOTFILES_PATH}/os/$(platform::os)/${package_manager}/${dump_file_name}.txt"
+      fi
       ;;
   esac
 }

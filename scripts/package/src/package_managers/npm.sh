@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 npm_title='🌈 npm'
-NPM_DUMP_FILE_PATH="$DOTFILES_PATH/langs/js/npm/$(hostname -s).txt"
+NPM_DUMP_FILE_PATH="${NPM_DUMP_FILE_PATH:-${DOTFILES_PATH}/langs/js/npm/$(hostname -s).txt}"
 
 npm::title() {
   echo -n "🌈 npm"
@@ -78,9 +78,16 @@ npm::dump() {
 
 npm::import() {
   NPM_DUMP_FILE_PATH="${1:-$NPM_DUMP_FILE_PATH}"
+  local -r filename="${NPM_DUMP_FILE_PATH##*/}"
+  local -r global_packages="${NPM_DUMP_FILE_PATH%%/"${filename}"}/global_packages.txt"
 
   if package::common_import_check npm "$NPM_DUMP_FILE_PATH"; then
+    if [[ $filename != "global_packages.txt" ]] && [[ -r "$global_packages" ]]; then
+      xargs -I_ npm install -g _ < "$global_packages" | log::file "Importing global ${npm_title} packages"
+    fi
+
     xargs -I_ npm install -g _ < "$NPM_DUMP_FILE_PATH" | log::file "Importing ${npm_title} packages"
+    return 0
   fi
 
   return 1

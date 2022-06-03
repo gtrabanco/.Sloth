@@ -114,7 +114,7 @@ pipx::import() {
   if package::common_import_check pipx "$PIPX_DUMP_FILE_PATH"; then
     while read -r pkg; do
       [ -z "$pkg" ] && continue
-      package:install "$pkg" "pipx"
+      package::install "$pkg" "pipx"
     done < "$PIPX_DUMP_FILE_PATH"
 
     return 0
