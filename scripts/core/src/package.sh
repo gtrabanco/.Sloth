@@ -107,7 +107,7 @@ package::get_available_package_managers() {
     package_manager="${package_manager_filename%%.sh}"
 
     if package::command "$package_manager" "is_available"; then
-      printf "%s" "$package_manager"
+      printf "%s\n" "$package_manager"
     fi
   done
 }

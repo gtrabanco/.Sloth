@@ -9,24 +9,24 @@ dump::file_path() {
 
   case "$package_manager" in
     cargo)
-      echo "$DOTFILES_PATH/langs/rust/cargo/${dump_file_name}.txt"
+      echo "${DOTFILES_PATH}/langs/rust/cargo/${dump_file_name}.txt"
       ;;
     npm)
-      echo "$DOTFILES_PATH/langs/js/npm/${dump_file_name}.txt"
+      echo "${DOTFILES_PATH}/langs/js/npm/${dump_file_name}.txt"
       ;;
     volta)
-      echo "$DOTFILES_PATH/langs/js/volta/${dump_file_name}.txt"
+      echo "${DOTFILES_PATH}/langs/js/volta/${dump_file_name}.txt"
       ;;
     pipx)
       echo "${DOTFILES_PATH}/python/pipx-${dump_file_name}.txt"
       ;;
     pip | pip3)
-      echo "$DOTFILES_PATH/langs/python/${dump_file_name}.txt"
+      echo "${DOTFILES_PATH}/langs/python/${dump_file_name}.txt"
       ;;
     # Please if you are adding a new package manager keep this last name the others
     # are just to keep compatibility with Dotly and previous dumps
     *)
-      echo "$DOTFILES_PATH/os/$(platform::os)/$package_manager/${dump_file_name}.txt"
+      echo "${DOTFILES_PATH}/os/$(platform::os)/${package_manager}/${dump_file_name}.txt"
       ;;
   esac
 }
