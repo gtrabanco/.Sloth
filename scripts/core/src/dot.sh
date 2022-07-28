@@ -204,3 +204,29 @@ dot::add_to_path_file() {
   esac
   dot::create_path_file "${path[@]}" "${@:2}" | tee "${DOTFILES_PATH}/shell/exports.sh" > /dev/null 2>&1
 }
+
+#;
+#; dot::remove_from_path_file <...path>
+#;
+#; Remove a path from the PATH environment variable.
+#;
+dot::remove_from_path_file() {
+  #shellcheck disable=SC1091
+  . "${DOTFILES_PATH}/shell/exports.sh"
+  local -a new_path=()
+
+  for path in "${path[@]}"; do
+    # check if the path is not the one we want to remove
+    # Will check also for some values with env vars like $HOME
+    if
+      ! array::exists_value "$path" "${@}" &&
+        ! array::exists_value "$(realpath "$path")" "${@}" &&
+        ! array::exists_value "${path//${SLOTH_PATH:-${DOTLY_PATH:-}}//\${SLTOH_PATH:-\${DOTLY_PATH:-}}}" "${@}" &&
+        ! array::exists_value "${path//${DOTFILES_PATH}//\${DOTFILES_PATH}}" "${@}" &&
+        ! array::exists_value "${path//${HOME}//\${HOME}}" "${@}"
+    then
+      new_path+=("$path")
+    fi
+  done
+  dot::create_path_file "${new_path[@]}" | tee "${DOTFILES_PATH}/shell/exports.sh" > /dev/null 2>&1
+}
