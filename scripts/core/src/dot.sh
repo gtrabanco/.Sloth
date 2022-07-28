@@ -163,3 +163,44 @@ dot::load_library() {
   # No arguments
   return 1
 }
+
+#;
+#; dot::create_path_file <...path>
+#;
+#; Add a path to the PATH environment variable to the bottom.
+#;
+dot::create_path_file() {
+  if "${@:-}"; then
+    {
+      printf "path=("
+      printf "  \"%s\"\n" "${@:-}" | sort | uniq
+      printf ")\n"
+      printf "export path\n"
+    }
+  else
+    printf "path=()\n"
+    printf "export path\n"
+  fi
+}
+
+#;
+#; dot::add_to_path_file [<position>] <...path>
+#;
+#; Add a path to the PATH environment variable to the bottom (default) or top.
+dot::add_to_path_file() {
+  #shellcheck disable=SC1091
+  . "${DOTFILES_PATH}/shell/exports.sh"
+  case "$1" in
+    "top" | "--top" | "-t")
+      #shellcheck disable=SC2154
+      dot::create_path_file "${@:2}" "${path[@]}" | tee "${DOTFILES_PATH}/shell/exports.sh" > /dev/null 2>&1
+      return
+      ;;
+    "bottom" | "--bottom" | "-b")
+      if [[ $1 == "bottom" ]]; then
+        shift
+      fi
+      ;;
+  esac
+  dot::create_path_file "${path[@]}" "${@:2}" | tee "${DOTFILES_PATH}/shell/exports.sh" > /dev/null 2>&1
+}

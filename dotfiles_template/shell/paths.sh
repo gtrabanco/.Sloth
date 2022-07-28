@@ -8,6 +8,6 @@
 # paths defined here are loaded first
 #
 export path=(
-  "$HOME/bin"
-  "$DOTFILES_PATH/bin"
+  "${HOME}/bin"
+  "${DOTFILES_PATH}/bin"
 )
