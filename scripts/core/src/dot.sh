@@ -163,3 +163,87 @@ dot::load_library() {
   # No arguments
   return 1
 }
+
+dot::_escape_dotfiles_paths() {
+  local escaped_path
+  local -r to_escape_path="${1:-$(< /dev/stdin)}"
+  escaped_path="${to_escape_path//${SLOTH_PATH:-${DOTLY_PATH:-}}/\${SLOTH_PATH:-\${DOTLY_PATH\}\}}"
+  escaped_path="${escaped_path//${DOTFILES_PATH:-}/\${DOTFILES_PATH\}}"
+  printf $'%s\0' "${escaped_path//$HOME/\${HOME\}}"
+
+  if [ $# -gt 1 ]; then
+    dot::_escape_dotfiles_paths "${@:2}"
+  fi
+}
+
+dot::check_is_same_path() {
+  local -r path1="${1:-}"
+  local -r path2="${2:-}"
+
+  [[ -n "${path1:-}" && -n "${path2:-}" ]] && [[ "$(command -p readlink -f "$path1")" == "$(command -p readlink -f "$path2")" ]]
+
+  if [ $# -gt 2 ]; then
+    dot::check_is_same_path "$path1" "${@:3}"
+  fi
+}
+
+#;
+#; dot::create_path_file <...path>
+#;
+#; Add a path to the PATH environment variable to the bottom.
+#;
+dot::create_path_file() {
+  if [ $# -gt 0 ]; then
+    printf $'export path=(\n'
+    printf $'  "%s"\n' "$@" | uniq | dot::_escape_dotfiles_paths | xargs -0 -I _ printf $'%s\n' _
+    printf $')\n'
+  else
+    printf $'export path=()\n'
+  fi
+}
+
+#;
+# dot::add_to_path_file()
+# Add a path to paths file
+# @param string $1 Position to add the path is optional for add in bottom
+# @param array $@ Paths to add.
+# @return boolean
+#"
+dot::add_to_path_file() {
+  #shellcheck disable=SC1091
+  . "${DOTFILES_PATH}/shell/exports.sh"
+  case "$1" in
+    "top" | "--top" | "-t")
+      echo "top"
+      #shellcheck disable=SC2154
+      dot::create_path_file "${@:2}" "${path[@]}" | tee "${DOTFILES_PATH}/shell/paths.sh" > /dev/null 2>&1
+      return
+      ;;
+    "bottom" | "--bottom" | "-b")
+      if [[ $1 == "bottom" ]]; then
+        shift
+      fi
+      ;;
+  esac
+  dot::create_path_file "${path[@]}" "${@}" | tee "${DOTFILES_PATH}/shell/paths.sh" > /dev/null 2>&1
+}
+
+#;
+#; dot::remove_from_path_file <...path>
+#;
+#; Remove a path from the PATH environment variable.
+#;
+dot::remove_from_path_file() {
+  #shellcheck disable=SC1091
+  . "${DOTFILES_PATH}/shell/paths.sh"
+  local -a new_path=()
+
+  for path in "${path[@]}"; do
+    # check if the path is not the one we want to remove
+    # Will check also for some values with env vars like $HOME
+    if dot::check_is_same_path "$path" "$@"; then
+      new_path+=("$path")
+    fi
+  done
+  dot::create_path_file "${new_path[@]}" | tee "${DOTFILES_PATH}/shell/exports.sh" > /dev/null 2>&1
+}
