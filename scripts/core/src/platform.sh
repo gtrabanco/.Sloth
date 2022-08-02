@@ -34,6 +34,10 @@ platform::get_os() {
   echo "${SLOTH_OS}" | tr '[:upper:]' '[:lower:]'
 }
 
+platform::macos_is_rosetta() {
+  [[ $(sysctl -n sysctl.proc_translated 2> /dev/null) == 1 ]]
+}
+
 platform::get_arch() {
   local architecture="unknown"
   case "${SLOTH_ARCH}" in
