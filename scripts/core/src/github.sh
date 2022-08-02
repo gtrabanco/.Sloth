@@ -291,14 +291,26 @@ github::get_remote_file_path_json() {
   return 1
 }
 
-github::get_latest_package_release_download_url() {
+github::get_release_download_url_tag() {
+  local release_pathname
   [[ $# -lt 1 ]] && return 1
 
   local -r repository="${1:-}"
+  local -r release="${2:-latest}"
 
-  github::curl "$(github::get_api_url "$repository" "releases/latest")" |
+  if [[ $release == "latest" ]]; then
+    release_pathname="releases/latest"
+  else
+    release_pathname="releases/tags/${release}"
+  fi
+
+  github::curl "$(github::get_api_url "$repository" "$release_pathname")" |
     grep "browser_download_url" |
     cut -d '"' -f 4
+}
+
+github::get_latest_package_release_download_url() {
+  github::get_release_download_url_tag "${1:-}" "latest"
 }
 
 github::get_latest_package_release_sha256sum() {
