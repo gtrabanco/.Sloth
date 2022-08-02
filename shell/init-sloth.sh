@@ -35,6 +35,16 @@ function recent_dirs() {
   cd "$(echo "$selected" | sed "s/\~/$escaped_home/")" || echo "Invalid directory"
 }
 
+function dot::undot() {
+  [[ -z "${DOTLY_PATH:-}" ]] && return 1
+  PATH="$(echo "$PATH" | sed -E "s|:${SLOTH_PATH:-${DOTLY_PATH:-}}/bin||g")"
+  printf 'export PATH="%s"' "${PATH//::/:}"
+}
+
+function dot::dotback() {
+  printf 'export PATH="%s/bin:%s"' "${SLOTH_PATH:-${DOTLY_PATH:-}}" "${PATH//::/:}"
+}
+
 ##### Start of Homebrew Installation Patch #####
 # export HOMEBREW_SLOTH=true
 # export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
@@ -71,6 +81,8 @@ DOTLY_PATH="${DOTLY_PATH:-${SLOTH_PATH:-}}"
 alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
 alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias undot='eval "$(dot::undot)"'
+alias dotback='eval "$(dot::dotback)"'
 
 if [[ -n "${DOTFILES_PATH:-}" && -d "${DOTFILES_PATH:-}" ]]; then
   #User variables & configuration
