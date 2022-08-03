@@ -23,7 +23,8 @@ ENABLED_INIT_SCRIPTS_PATH="${ENABLED_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/ini
   exit 1
 
 init::exists_script() {
-  [[ -e "$SLOTH_INIT_SCRIPTS_PATH/$1" ]] || [[ -e "$DOTFILES_INIT_SCRIPTS_PATH" ]]
+  [[ -z "${1:-}" ]] && return 1
+  [[ -e "${SLOTH_INIT_SCRIPTS_PATH}/${1}" ]] || [[ -e "${DOTFILES_INIT_SCRIPTS_PATH}/${1}" ]]
 }
 
 init::status() {
