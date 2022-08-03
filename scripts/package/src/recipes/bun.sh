@@ -79,17 +79,9 @@ bun::install_script() {
 }
 
 bun::init_script() {
-  cat << EOF
-#!/usr/bin/env bash
+  printf $'#!/usr/bin/env bash\nif [ -s "${HOME}/.bun/_bun" ]; then\n\n  #shellcheck disable=SC1091\n  . "${HOME}/.bun/_bun"\nfi\n\n'
 
-if [ -s "${HOME}/.bun/_bun" ]; then
-  #shellcheck disable=SC1091
-  . "${HOME}/.bun/_bun"
-fi
-
-EOF
-
-  if [[ -n "${BUN_VERSION:-}" && "$BUN_VERSION" != "latest" ]]; then
+  if [[ -n "${BUN_VERSION:-}" ]] && [[ "$BUN_VERSION" != "latest" ]]; then
     printf $'\nexport BUN_VERSION="%s"\n\n' "$(echo "$BUN_VERSION" | awk '{gsub(/^(bun-)?[vV]/, "",$0); print $0}' | xargs)"
   fi
 }
