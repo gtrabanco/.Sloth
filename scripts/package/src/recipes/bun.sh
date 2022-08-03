@@ -16,20 +16,20 @@ BUN_VERSION="${BUN_VERSION:-latest}"
 
 bun::target() {
   case $(uname -sm) in
-  "Darwin x86_64")
-    if sysctl sysctl.proc_translated >/dev/null 2>&1; then
-      target="darwin-aarch64"
-    elif [[ $(sysctl -n machdep.cpu.features) != *avx2* ]]; then
-      target="darwin-x64-baseline"
-    else
-      target="darwin-x64"
-    fi
-    ;;
-  "Darwin arm64") target="darwin-aarch64" ;;
-  "Linux aarch64") target="linux-aarch64" ;;
-  "Linux arm64") target="linux-aarch64" ;;
-  "Linux x86_64") target="linux-x64" ;;
-  *) target="linux-x64" ;;
+    "Darwin x86_64")
+      if sysctl sysctl.proc_translated > /dev/null 2>&1; then
+        target="darwin-aarch64"
+      elif [[ $(sysctl -n machdep.cpu.features) != *avx2* ]]; then
+        target="darwin-x64-baseline"
+      else
+        target="darwin-x64"
+      fi
+      ;;
+    "Darwin arm64") target="darwin-aarch64" ;;
+    "Linux aarch64") target="linux-aarch64" ;;
+    "Linux arm64") target="linux-aarch64" ;;
+    "Linux x86_64") target="linux-x64" ;;
+    *) target="linux-x64" ;;
   esac
 
   if [[ $target == linux-x64 ]] && grep --no-messages avx2 /proc/cpu; then
@@ -69,9 +69,6 @@ bun::install_script() {
   local -r filename="$(basename "$download_url")"
   local -r tmp_path="$(mktemp -d)"
 
-  echo "Downloading ${download_url} to ${tmp_path}/${filename%%.*}"
-  open "$tmp_path"
-  sleep 5
   curl --fail --location --silent --output "${tmp_path}/${filename}" "$download_url"
   unzip -o "${tmp_path}/${filename}" -d "${tmp_path}"
   mkdir -p "${BUN_BIN_DIR}"
@@ -82,7 +79,7 @@ bun::install_script() {
 }
 
 bun::init_script() {
-  cat <<EOF
+  cat << EOF
 #!/usr/bin/env bash
 
 if [ -s "${HOME}/.bun/_bun" ]; then
@@ -91,13 +88,17 @@ if [ -s "${HOME}/.bun/_bun" ]; then
 fi
 
 EOF
+
+  if [[ -n "${BUN_VERSION:-}" && "$BUN_VERSION" != "latest" ]]; then
+    printf $'\nexport BUN_VERSION="%s"\n\n' "$(echo "$BUN_VERSION" | awk '{gsub(/^(bun-)?[vV]/, "",$0); print $0}' | xargs)"
+  fi
 }
 
 bun::create_enable_init_script() {
   dot::load_library init init
 
   if ! init::exists_script "${BUN_COMPLETIONS_INIT_SCRIPT}"; then
-    bun::init_script | tee "${DOTFILES_INIT_SCRIPTS_PATH}/${BUN_COMPLETIONS_INIT_SCRIPT}" >/dev/null 2>&1
+    bun::init_script | tee "${DOTFILES_INIT_SCRIPTS_PATH}/${BUN_COMPLETIONS_INIT_SCRIPT}" > /dev/null 2>&1
   fi
 
   init::enable "${BUN_COMPLETIONS_INIT_SCRIPT}"
@@ -143,7 +144,7 @@ bun::install() {
 bun::uninstall() {
   rm -rf "${BUN_INSTALL}"
 
-  if command -v bun &>/dev/null; then
+  if command -v bun &> /dev/null; then
     dirname "$(dirname "$(command -v bun)")" | xargs rm -rf
   fi
 
@@ -175,7 +176,7 @@ bun::force_install() {
 
 bun::upgrade() {
   ! bun::is_installed && return 1
-  bun upgrade >/dev/null 2>&1
+  bun upgrade > /dev/null 2>&1
   return $?
 }
 
@@ -201,8 +202,11 @@ bun::latest() {
 }
 
 bun::is_outdated() {
-  local -r latest="$(bun::latest)"
+  [[ "${BUN_VERSION:-latest}" == "latest" ]] && return 1
+
   local -r installed="$(bun::version)"
+  local -r latest="$(bun::latest)"
+
   [[ -z "$installed" || -z "$latest" ]] && return 1
   [[ $(platform::semver_compare "$installed" "$latest") -eq -1 ]]
 }
