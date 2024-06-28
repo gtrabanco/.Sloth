@@ -29,13 +29,13 @@ if [[ -z "${SLOTH_GITMODULES_BRANCH:-}" && -f "${DOTFILES_PATH:-${HOME}/.dotfile
 fi
 
 # Defaults values if no values are provided
-[[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/.Sloth"
-[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git+ssh://git@github.com:gtrabanco/.Sloth.git"
+[[ -z "${SLOTH_DEFAULT_GIT_HTTP_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_HTTP_URL="https://github.com/gtrabanco/dotSloth"
+[[ -z "${SLOTH_DEFAULT_GIT_SSH_URL:-}" ]] && readonly SLOTH_DEFAULT_GIT_SSH_URL="git+ssh://git@github.com:gtrabanco/dotSloth.git"
 [[ -z "${SLOTH_DEFAULT_REMOTE:-}" ]] && readonly SLOTH_DEFAULT_REMOTE="origin"
 # SLOTH_DEFAULT_BRANCH is not the same as SLOTH_GITMODULES_BRANCH
 # SLOTH_GITMODULES_BRANCH is the branch we want to use if we are using always latest version
 # SLOTH_GITMODULES_BRANCH is the HEAD branch of remote repository were Pull Request are merged
-[[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="master"
+[[ -z "${SLOTH_DEFAULT_BRANCH:-}" ]] && readonly SLOTH_DEFAULT_BRANCH="main"
 
 SLOTH_DEFAULT_URL=${SLOTH_GITMODULES_URL:-$SLOTH_DEFAULT_GIT_SSH_URL}
 
@@ -58,7 +58,7 @@ sloth_update::sloth_repository_set_ready() {
   fi
 
   if ! git::is_in_repo "${SLOTH_UPDATE_GIT_ARGS[@]}" || ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
+    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
 
   # Set head branch
@@ -68,7 +68,7 @@ sloth_update::sloth_repository_set_ready() {
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2 || true
 
   # Track default branch
-  git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
+  git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
 
   # Unshallow by the way
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow 1>&2 || true
@@ -91,7 +91,7 @@ sloth_update::get_current_version() {
     return
   fi
 
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2> /dev/null
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2>/dev/null
 }
 
 #;
@@ -141,8 +141,8 @@ sloth_update::local_sloth_repository_can_be_updated() {
 
   # If remote exists locally
   if git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_DEFAULT_BRANCH:-master}" > /dev/null 2>&1
-    git::check_branch_is_ahead "${SLOTH_DEFAULT_BRANCH:-master}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && HAS_UNPUSHED_COMMITS=true
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_DEFAULT_BRANCH:-main}" >/dev/null 2>&1
+    git::check_branch_is_ahead "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && HAS_UNPUSHED_COMMITS=true
   fi
 
   if $IS_WORKING_DIRECTORY_CLEAN && ! $HAS_UNPUSHED_COMMITS; then
@@ -173,7 +173,7 @@ sloth_update::should_be_updated() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot > /dev/null 2>&1; then
+    if brew outdated dot >/dev/null 2>&1; then
       return 1
     else
       return 0
@@ -181,7 +181,7 @@ sloth_update::should_be_updated() {
   fi
 
   # Check if currently we want to pin to a fixed version but is more recent that current version
-  if platform::semver get major "$SLOTH_UPDATE_VERSION" > /dev/null 2>&1; then
+  if platform::semver get major "$SLOTH_UPDATE_VERSION" >/dev/null 2>&1; then
     # Different than current version & is not available in local & remote latest version is greater or equal that SLOTH_UPDATE_VERSION (pinned version)
     if
       [[ 
@@ -238,7 +238,7 @@ sloth_update::sloth_update() {
   local remote url default_branch head_branch force_update updated_version
   remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
   url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}}"
-  branch="${3:-${SLOTH_DEFAULT_BRANCH:-master}}"
+  branch="${3:-${SLOTH_DEFAULT_BRANCH:-main}}"
   default_remote_branch="${remote}/${branch}"
   force_update="${4:-false}"
 
@@ -249,7 +249,7 @@ sloth_update::sloth_update() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot > /dev/null 2>&1; then
+    if brew outdated dot >/dev/null 2>&1; then
       return
     else
       output::answer "Updating .Sloth by using brew"
@@ -280,8 +280,8 @@ sloth_update::sloth_update() {
 
   git::pull_branch "$remote" "$head_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 && output::solution "Repository has been updated" || return 40
 
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout --force "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" reset --hard HEAD "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout --force "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" reset --hard HEAD "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
 
   touch "${SLOTH_UPDATED_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_updated}"
   rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
@@ -312,7 +312,7 @@ sloth_update::gracefully() {
   fi
 
   # Force update
-  sloth_update::sloth_update "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-master}" true || exit_code=$?
+  sloth_update::sloth_update "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-main}" true || exit_code=$?
 
   return $exit_code
 }
@@ -372,41 +372,41 @@ sloth_update::async_success() {
 
   if [[ -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}" ]]; then
     case "$(str::to_lower "${SLOTH_AUTO_UPDATE_MODE:-auto}")" in
-      "silent")
-        rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
-        sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
+    "silent")
+      rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
+      sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
 
-        [[ $status -eq 0 ]] && sloth_update::exists_migration_script &&
-          output::answer ".Sloth was updated but there are a migration script that must be executed" &&
-          output::empty_line
-
-        return $status
-        ;;
-      "info")
+      [[ $status -eq 0 ]] && sloth_update::exists_migration_script &&
+        output::answer ".Sloth was updated but there are a migration script that must be executed" &&
         output::empty_line
-        output::write " ---------------------------------------------"
-        output::write "|  🥳🎉🍾 NEW .Sloth VERSION AVAILABLE 🥳🎉🍾  |"
-        output::write " ---------------------------------------------"
-        output::empty_line
-        ;;
-      "prompt")
-        # Nothing to do here
-        ;;
-      *) # auto
-        output::answer "🚀 Updating .Sloth Automatically"
-        rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
-        sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
-        if [[ $status -eq 0 ]]; then
 
-          if sloth_update::exists_migration_script; then
-            output::answer ".Sloth was updated but there are a migration script that must be executed. Restart your terminal or execute \`dot core migration --updated\`"
-          else
-            output::solution ".Sloth was updated."
-          fi
+      return $status
+      ;;
+    "info")
+      output::empty_line
+      output::write " ---------------------------------------------"
+      output::write "|  🥳🎉🍾 NEW .Sloth VERSION AVAILABLE 🥳🎉🍾  |"
+      output::write " ---------------------------------------------"
+      output::empty_line
+      ;;
+    "prompt")
+      # Nothing to do here
+      ;;
+    *) # auto
+      output::answer "🚀 Updating .Sloth Automatically"
+      rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
+      sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
+      if [[ $status -eq 0 ]]; then
+
+        if sloth_update::exists_migration_script; then
+          output::answer ".Sloth was updated but there are a migration script that must be executed. Restart your terminal or execute \`dot core migration --updated\`"
         else
-          output::error ".Sloth was not updated, something was wrong. Check log using \`dot core debug\`"
+          output::solution ".Sloth was updated."
         fi
-        ;;
+      else
+        output::error ".Sloth was not updated, something was wrong. Check log using \`dot core debug\`"
+      fi
+      ;;
     esac
   fi
 }

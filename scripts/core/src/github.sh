@@ -10,6 +10,7 @@ fi
 
 GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-3}" # Maximum days a cache petition is cached
 GITHUB_USE_CACHE=${GITHUB_USE_CACHE:-true}                                          # Default behaviour for use of cache
+GIT_DEFAULT_BRANCH="${GIT_DEFAULT_BRANCH:-main}"
 
 # Non configurable variables (internal use only)
 JQ_CHECKED=false
@@ -57,21 +58,21 @@ github::get_api_url() {
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-      --user | -u | --organization | -o)
-        user="${2:-}"
-        shift 2
-        ;;
-      --repository | -r)
-        repository="${2:-}"
-        shift 2
-        ;;
-      --branch | -b)
-        branch="/branches/${2:-}"
-        shift 2
-        ;;
-      *)
-        break 2
-        ;;
+    --user | -u | --organization | -o)
+      user="${2:-}"
+      shift 2
+      ;;
+    --repository | -r)
+      repository="${2:-}"
+      shift 2
+      ;;
+    --branch | -b)
+      branch="/branches/${2:-}"
+      shift 2
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -99,25 +100,25 @@ github::get_api_url() {
 github::branch_raw_url() {
   local user repository branch arguments
 
-  branch="master"
+  branch="$GIT_DEFAULT_BRANCH"
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
-      --user | -u | --organization | -o)
-        user="${2:-}"
-        shift 2
-        ;;
-      --repository | -r)
-        repository="${2:-}"
-        shift 2
-        ;;
-      --branch | -b)
-        branch="/branches/${2:-}"
-        shift 2
-        ;;
-      *)
-        break 2
-        ;;
+    --user | -u | --organization | -o)
+      user="${2:-}"
+      shift 2
+      ;;
+    --repository | -r)
+      repository="${2:-}"
+      shift 2
+      ;;
+    --branch | -b)
+      branch="/branches/${2:-}"
+      shift 2
+      ;;
+    *)
+      break 2
+      ;;
     esac
   done
 
@@ -140,7 +141,7 @@ github::branch_raw_url() {
   [[ $# -gt 1 ]] && branch="$1" && shift
   [[ $# -gt 0 ]] && file="/$(str::join '/' "$*")"
 
-  echo "$GITHUB_RAW_FILES_URL/$user/$repository/${branch:-master}${file:-}"
+  echo "$GITHUB_RAW_FILES_URL/$user/$repository/${branch:-main}${file:-}"
 }
 
 github::clean_cache() {
@@ -156,9 +157,9 @@ github::hash() {
   github::check_git
 
   if [ ! -t 0 ]; then
-    git hash-object --stdin < /dev/stdin
+    git hash-object --stdin </dev/stdin
   elif [[ -f "${1:-}" ]]; then
-    git hash-object --stdin < "${1:-}"
+    git hash-object --stdin <"${1:-}"
   else
     printf "%s" "$*" | git hash-object --stdin
   fi
@@ -189,24 +190,24 @@ github::curl() {
   github::check_tee
 
   case "${1:-}" in
-    --no-cache | -n)
-      cached=false
-      shift
-      ;;
-    --cached | -c)
-      shift
-      ;;
-    --period-in-days | -p)
-      cache_period="$2"
-      shift 2
-      ;;
+  --no-cache | -n)
+    cached=false
+    shift
+    ;;
+  --cached | -c)
+    shift
+    ;;
+  --period-in-days | -p)
+    cache_period="$2"
+    shift 2
+    ;;
   esac
 
   if [[ -t 0 ]]; then
     local -r url=${1:-}
     shift
   else
-    local -r url="$(< /dev/stdin)"
+    local -r url="$(</dev/stdin)"
   fi
 
   ! github::_is_valid_url "$url" && return 1
@@ -272,14 +273,14 @@ github::get_remote_file_path_json() {
       return 1
     fi
 
-    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | yq -p=json -r '.commit.commit.tree.url' 2> /dev/null)"
+    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | yq -p=json -r '.commit.commit.tree.url' 2>/dev/null)"
   fi
   shift
 
   [[ -z "${url:-}" ]] && return 1
 
   readarray -t file_paths < <(str::join "/" "$@" | tr "/" "\n")
-  json="$(github::curl "$url" | yq -p=json --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
+  json="$(github::curl "$url" | yq -p=json --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2>/dev/null)"
 
   if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
     github::get_remote_file_path_json "$(echo "$json" | yq -p=json -r '.url')" "$(str::join / "${file_paths[@]:1}")" && return

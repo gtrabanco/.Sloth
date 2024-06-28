@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
+export DOTLY_DEFAULT_GIT_BRANCH="${DOTLY_DEFAULT_GIT_BRANCH:-main}"
 export DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
 export DOTLY_ENV=${DOTLY_ENV:-PROD}
 export DOTLY_INSTALLER=true
 export DOTLY_MIGRATION=true
-export SLOTH_REPOSITORY="${SLOTH_REPOSITORY:-https://github.com/gtrabanco/sloth}"
+export SLOTH_REPOSITORY="${SLOTH_REPOSITORY:-https://github.com/gtrabanco/dotSloth}"
 export SLOTH_INSTALLER_URL="${SLOTH_INSTALLER_URL:-https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer}"
 
 red='\033[0;31m'
@@ -20,7 +21,10 @@ _w() {
 _a() { _w " > $1"; }
 _e() { _a "${red}$1${normal}"; }
 _s() { _a "${green}$1${normal}"; }
-_q() { read -rp "🤔 $* : " "REPLY"; echo "${REPLY:-}"; }
+_q() {
+  read -rp "🤔 $* : " "REPLY"
+  echo "${REPLY:-}"
+}
 _pk() { read -rp "Press a key to ${1}... 👇" "REPLY"; }
 
 _log() {
@@ -70,29 +74,29 @@ if [[ -z "${DOTLY_PATH:-}" || -z "$DOTFILES_PATH" ]]; then
 fi
 
 if $DOTLY_MIGRATION; then
-    cp -R "$DOTFILES_PATH" "$HOME/.dotfiles.back-$(date +%s)"
-    cd "$DOTFILES_PATH"
-    # Move dotly to sloth
-    git mv "modules/dotly" "modules/sloth"
-    # Replace values in .gitmodules: path of module, branch and url
-    call_sed -i 's|modules/dotly|modules/sloth|g' .gitmodules
-    git config -f .gitmodules submodule."modules/sloth".branch "master"
-    git config -f .gitmodules submodule."modules/sloth".url "https://github.com/gtrabanco/sloth"
-    # Select master branch
-    cd modules/sloth || exit 4
-    git checkout --force master
-    cd ../..
-    # Sync submodule
-    git submodule sync --recursive | _log "Sync sloth module"
-    # Define new variables
-    export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"
-    export SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
-    export ZIM_HOME="${DOTFILES_PATH:-}/shell/zsh/.zimfw"
-    # Reinstall zim
-    zsh "$ZIM_HOME/zimfw.zsh" install
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
-    #shellcheck disable=SC1091
-    . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" migration v2.0.0
-    _w "🎉 Restart your terminal"
+  cp -R "$DOTFILES_PATH" "$HOME/.dotfiles.back-$(date +%s)"
+  cd "$DOTFILES_PATH"
+  # Move dotly to sloth
+  git mv "modules/dotly" "modules/sloth"
+  # Replace values in .gitmodules: path of module, branch and url
+  call_sed -i 's|modules/dotly|modules/sloth|g' .gitmodules
+  git config -f .gitmodules submodule."modules/sloth".branch "${DOTLY_DEFAULT_GIT_BRANCH}"
+  git config -f .gitmodules submodule."modules/sloth".url "${SLOTH_REPOSITORY}"
+  # Select master branch
+  cd modules/sloth || exit 4
+  git checkout --force "${DOTLY_DEFAULT_GIT_BRANCH}"
+  cd ../..
+  # Sync submodule
+  git submodule sync --recursive | _log "Sync sloth module"
+  # Define new variables
+  export DOTLY_PATH="$DOTFILES_PATH/modules/sloth"
+  export SLOTH_PATH="$DOTFILES_PATH/modules/sloth"
+  export ZIM_HOME="${DOTFILES_PATH:-}/shell/zsh/.zimfw"
+  # Reinstall zim
+  zsh "$ZIM_HOME/zimfw.zsh" install
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions
+  #shellcheck disable=SC1091
+  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"
+  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" migration v2.0.0
+  _w "🎉 Restart your terminal"
 fi

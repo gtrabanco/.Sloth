@@ -83,7 +83,7 @@ See [`support.md`][support] on how to get help.
     it’s your job to convince us
 *   Two small PRs are prefered than one big PR
 *   Separate issues from features in a PR, if you need to fix an issue to develop a feature or you find an issue when developing a feature. Make a `fix` branch, solve the issue, make the PR in the repository. Apply the patch by cherry-pick or by merging in the `feature` branch. Show in the description that PR ## is included in this feature.
-*   Merge master is preferred in PR if there is any update. We prefer that you solve the possible merge conflicts.
+*   Merge main is preferred in PR if there is any update. We prefer that you solve the possible merge conflicts.
 
 ## Resources
 

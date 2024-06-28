@@ -36,7 +36,7 @@ docs::parse "$@"
 
 if ${view_remote:-false}; then
   SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2>/dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
   exit 0
 fi
 
@@ -56,33 +56,33 @@ if platform::command_exists brew && brew list gtrabanco/tools/dot; then
 fi
 
 case "$selected_tag" in
-  "stable")
-    latest_stable="$(sloth_update::get_latest_stable_version)"
-    if [[ -n "$latest_stable" ]]; then
-      # "${SLOTH_UPDATE_GIT_ARGS[@]:-}"
-      git::sloth_repository_exec git checkout -q "$latest_stable"
-      output::solution "Switched to latest .Sloth stable version $latest_stable"
-      templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "stable"
-    else
-      output::error "No releases locally yet"
-    fi
-    ;;
-  "latest")
-    templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "latest"
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
-    ;;
-  *)
-    if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then
-      templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "$selected_tag"
-      git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "$selected_tag"
-      output::solution "Switched to Sloth version $selected_tag"
+"stable")
+  latest_stable="$(sloth_update::get_latest_stable_version)"
+  if [[ -n "$latest_stable" ]]; then
+    # "${SLOTH_UPDATE_GIT_ARGS[@]:-}"
+    git::sloth_repository_exec git checkout -q "$latest_stable"
+    output::solution "Switched to latest .Sloth stable version $latest_stable"
+    templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "stable"
+  else
+    output::error "No releases locally yet"
+  fi
+  ;;
+"latest")
+  templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "latest"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
+  ;;
+*)
+  if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then
+    templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "$selected_tag"
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "$selected_tag"
+    output::solution "Switched to Sloth version $selected_tag"
 
-      output::answer ".Sloth is update locked. Which mean that can not be updated."
-      output::answer "To unlock updates type: \`dot self update --enable\` command"
-      touch "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
-    elif [[ -n "$selected_tag" ]] && ! check_local_tag_exists "$selected_tag"; then
-      output::error "Selected version does not exists locally"
-      exit 1
-    fi
-    ;;
+    output::answer ".Sloth is update locked. Which mean that can not be updated."
+    output::answer "To unlock updates type: \`dot self update --enable\` command"
+    touch "${SLOTH_FORCE_CURRENT_VERSION_FILE:-$DOTFILES_PATH/.sloth_force_current_version}"
+  elif [[ -n "$selected_tag" ]] && ! check_local_tag_exists "$selected_tag"; then
+    output::error "Selected version does not exists locally"
+    exit 1
+  fi
+  ;;
 esac
