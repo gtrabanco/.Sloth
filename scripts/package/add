@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # FORCE_LEGACY_EXECUTION
 
-echo "Received args to add package $*" >>~/dotly.log
+echo "Received args to add package $*" >> ~/dotly.log
 #shellcheck disable=SC1091
 . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
 
@@ -28,32 +28,32 @@ packages_names=()
 force=false
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
-  --skipe-recipe | -s)
-    skip_recipe=true
-    shift
-    ;;
-  --pkgmgr)
-    package_manager="$2"
-    shift 2
-    ;;
-  --force | -f)
-    force=true
-    shift
-    ;;
-  --help | -h)
-    echo "help"
-    docs::parse_docopt "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
-    exit
-    ;;
-  --version | -v)
-    echo "version"
-    docs::parse_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
-    exit
-    ;;
-  *)
-    packages_names+=("$1")
-    shift
-    ;;
+    --skipe-recipe | -s)
+      skip_recipe=true
+      shift
+      ;;
+    --pkgmgr)
+      package_manager="$2"
+      shift 2
+      ;;
+    --force | -f)
+      force=true
+      shift
+      ;;
+    --help | -h)
+      echo "help"
+      docs::parse_docopt "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
+      exit
+      ;;
+    --version | -v)
+      echo "version"
+      docs::parse_version "${BASH_SOURCE[$((${#BASH_SOURCE[*]} - 1))]}"
+      exit
+      ;;
+    *)
+      packages_names+=("$1")
+      shift
+      ;;
   esac
 done
 

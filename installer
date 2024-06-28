@@ -11,7 +11,7 @@ ICLOUD_PATH="$HOME/Library/Mobile\ Documents/com~apple~CloudDocs/"
 IS_ICLOUD_DOTFILES=false
 
 DOTLY_REPOSITORY=${DOTLY_REPOSITORY:-gtrabanco/sloth}
-DOTLY_BRANCH=${DOTLY_BRANCH:-master}
+DOTLY_BRANCH=${DOTLY_BRANCH:-main}
 DOTLY_LOG_FILE=${DOTLY_LOG_FILE:-$HOME/dotly.log}
 export DOTLY_ENV=${DOTLY_ENV:-PROD}
 export DOTLY_INSTALLER=true

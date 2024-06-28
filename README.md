@@ -51,7 +51,7 @@ This need a very big improvement
 -->
 
 * Can be installed as standalone, not mandatory to be as git submodule (Should be done manually). 
-* Init scripts ([see init-scripts](https://github.com/gtrabanco/dotfiles/tree/master/shell/init.scripts) in [gtrabanco/dotfiles](https://github.com/gtrabanco/dotfiles)). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
+* Init scripts ([see init-scripts](https://github.com/gtrabanco/dotfiles/tree/main/shell/init.scripts) in [gtrabanco/dotfiles](https://github.com/gtrabanco/dotfiles)). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
 * Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
 * Compatibility with all Dotly scripts.
 * When you install SLOTH a backup of all previous files is done (`.bashrc`, `.zshrc` and `.zshenv`) if you request it.
@@ -62,7 +62,7 @@ This need a very big improvement
 * Improved package managers and the way they are executed. You can also create your own wrappers for your package manager.
 * Improved registry (recipes) and how recipes can be updated as if they were packages.
 
-**About autocompletion** Is a known issue that current autocompletion for `dot` command does not work as good as supposed and currently only autocomplete the first argument (option). This will be fixed in the future but suppossed a gain in complexity for autocompletion that I am not interested in develop now. [See PR #146 for more information](https://github.com/gtrabanco/.Sloth/pull/146)
+**About autocompletion** Is a known issue that current autocompletion for `dot` command does not work as good as supposed and currently only autocomplete the first argument (option). This will be fixed in the future but suppossed a gain in complexity for autocompletion that I am not interested in develop now. [See PR #146 for more information](https://github.com/gtrabanco/dotSloth/pull/146)
 
 ## INSTALLATION
 
@@ -130,7 +130,7 @@ dotfiles
 git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_DOTFILES_REPOSITORY}.git
 git add .
 git commit -m "Initial commit"
-git push origin master
+git push origin main
 ```
 Replace the variables for your own values or the full url for your repository.
 
@@ -211,7 +211,7 @@ There is a recipe for NVM and NVM and default LTS node, npm & npx are installed 
 
 # Contributing
 
-You can contribute to the project by making a PR, reporting an issue, suggesting a feature, writting about the project or by applying any idea you have. All contributions that respect our [Code of Conduct](https://github.com/gtrabanco/.Sloth/blob/master/.github/code-of-conduct.md) are very welcoming.
+You can contribute to the project by making a PR, reporting an issue, suggesting a feature, writting about the project or by applying any idea you have. All contributions that respect our [Code of Conduct](https://github.com/gtrabanco/.Sloth/blob/main/.github/code-of-conduct.md) are very welcoming.
 
 # Roadmap
 

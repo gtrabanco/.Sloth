@@ -162,9 +162,9 @@ if [[ -z "${BREW_BIN:-}" || ! -x "$BREW_BIN" ]]; then
   elif [[ -x "/usr/local/bin/brew" ]]; then
     BREW_BIN="/usr/local/bin/brew"
     HOMEBREW_PREFIX="/usr/local"
-  elif command -v brew >/dev/null 2>&1; then
+  elif command -v brew > /dev/null 2>&1; then
     BREW_BIN="$(command -v brew)"
-  elif command -vp brew >/dev/null 2>&1; then
+  elif command -vp brew > /dev/null 2>&1; then
     BREW_BIN="$(command -vp brew)"
   fi
 fi
@@ -224,16 +224,16 @@ fi
 # Conditional paths
 [ -d "${HOME}/.cargo/bin" ] && path+=("${HOME}/.cargo/bin")
 [ -d "${JAVA_HOME:-}" ] && path+=("${JAVA_HOME}/bin")
-if command -v gem >/dev/null 2>/dev/null || command -vp gem >/dev/null 2>&1; then
+if command -v gem > /dev/null 2> /dev/null || command -vp gem > /dev/null 2>&1; then
   gem_bin="$(command -v gem || command -vp gem)"
-  gem_paths="$("$gem_bin" env gempath 2>/dev/null)"
+  gem_paths="$("$gem_bin" env gempath 2> /dev/null)"
   #shellcheck disable=SC2207
   [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' "\n" | command -p xargs -I _ echo _"/bin"))
 fi
 
 [ -d "${GOHOME:-}" ] && path+=("${GOHOME}/bin")
 [ -d "${HOME}/.deno/bin" ] && path+=("${HOME}/.deno/bin")
-if command -v python3 >/dev/null 2>&1; then
+if command -v python3 > /dev/null 2>&1; then
   python_path="$(command python3 -c 'import site; print(site.USER_BASE)' | command -p xargs)/bin"
   [[ -d "$python_path" ]] && path+=("$(command python3 -c 'import site; print(site.USER_BASE)' | command -p xargs)/bin")
 fi
@@ -299,7 +299,7 @@ if
       -d "$init_scripts_path" ]]
 then
 
-  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2>/dev/null | command -p xargs -0 -I _ command realpath --quiet --logical _); do
+  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2> /dev/null | command -p xargs -0 -I _ command realpath --quiet --logical _); do
     [[ -z "$init_script" ]] && continue
 
     { [[ -r "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"

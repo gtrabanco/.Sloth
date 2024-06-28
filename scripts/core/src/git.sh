@@ -38,6 +38,8 @@ then
   echoerr "No git binary found, please install it or review your env \`PATH\` variable or check if defined that \`GIT_EXECUTABLE\` has a right value" | log::file "Error trying to locate git command"
 fi
 export GIT_EXECUTABLE
+export GIT_DEFAULT_BRANCH="${GIT_DEFAULT_BRANCH:-main}"
+export GIT_DEFAULT_REMOTE="${GIT_DEFAULT_REMOTE:-origin}"
 
 #;
 # git::git()
@@ -145,7 +147,7 @@ git::remove_submodule() {
 # @param string remote Optional remote, use "origin" as default
 #"
 git::check_remote_exists() {
-  local -r remote="${1:-origin}"
+  local -r remote="${1:-${GIT_DEFAULT_REMOTE}}"
   [[ -n "${1:-}" ]] && shift
   git::git "$@" remote get-url "$remote" > /dev/null 2>&1
 }
@@ -213,11 +215,11 @@ git::remote_branch_exists() {
     shift 2
   elif [[ $# -eq 1 ]]; then
     branch="$1"
-    remote="origin"
+    remote="${GIT_DEFAULT_REMOTE}"
     shift
   else
-    branch="master"
-    remote="origin"
+    branch="${GIT_DEFAULT_BRANCH}"
+    remote="${GIT_DEFAULT_REMOTE}"
   fi
 
   ! git::check_remote_exists "$remote" "$@" && return 1
@@ -317,7 +319,7 @@ git::check_branch_is_ahead() {
 # @return string|void
 #"
 git::get_remote_head_upstream_branch() {
-  local -r remote="${1:-origin}"
+  local -r remote="${1:-$GIT_DEFAULT_REMOTE}"
   [[ -n "${1:-}" ]] && shift
 
   ! git::check_remote_exists "$remote" "$@" && return
@@ -335,12 +337,12 @@ git::set_remote_head_upstream_branch() {
     branch="$2"
     shift 2
   elif [[ $# -eq 1 ]]; then
-    remote="origin"
+    remote="${GIT_DEFAULT_REMOTE}"
     branch="$1"
     shift
   else
-    remote="origin"
-    branch="master"
+    remote="${GIT_DEFAULT_REMOTE}"
+    branch="${GIT_DEFAULT_BRANCH}"
   fi
 
   git::git "$@" remote set-head "$remote" "$branch"
@@ -407,12 +409,12 @@ git::clone_track_branch() {
     branch="${2:-}"
     shift 2
   elif [[ $# -eq 1 ]]; then
-    remote="origin"
+    remote="${GIT_DEFAULT_REMOTE}"
     branch="${1:-}"
     shift
   else
-    remote="origin"
-    branch="master"
+    remote="${GIT_DEFAULT_REMOTE}"
+    branch="${GIT_DEFAULT_BRANCH}"
   fi
 
   ! git::check_remote_exists "$remote" "$@" && return 1
@@ -435,7 +437,7 @@ git::clone_branches() {
 
   ! git::git "$@" remote get-url "$remote" > /dev/null 2>&1 && return 1
 
-  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
+  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/${GIT_DEFAULT_BRANCH}$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
     git::clone_track_branch "$remote" "$branch" "$@" 1>&2 || true
   done
@@ -459,17 +461,17 @@ git::pull_branch() {
 
   case $# in
     1)
-      local -r remote="origin"
-      local -r branch="${1:-master}"
+      local -r remote="${GIT_DEFAULT_REMOTE}"
+      local -r branch="${1:-$GIT_DEFAULT_BRANCH}"
       shift
       ;;
     0)
-      local -r remote="origin"
-      local -r branch="master"
+      local -r remote="${GIT_DEFAULT_REMOTE}"
+      local -r branch="${GIT_DEFAULT_BRANCH}"
       ;;
     *)
-      local -r remote="${1:-origin}"
-      local -r branch="${2:-master}"
+      local -r remote="${1:-"$GIT_DEFAULT_REMOTE"}"
+      local -r branch="${2:-"$GIT_DEFAULT_BRANCH"}"
       shift 2
       ;;
   esac
@@ -500,14 +502,14 @@ git::pull_branch() {
 # @param any args Additional arguments to pass to git command
 #"
 git::repository_pull_all() {
-  local -r remote="${1:-origin}"
+  local -r remote="${1:-"$GIT_DEFAULT_REMOTE"}"
 
   ! git::check_remote_exists "$remote" "$@" && return 1
 
   git::git "$@" clean -f -q 1>&2
   git::git "$@" reset --hard HEAD 1>&2
 
-  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
+  for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/${GIT_DEFAULT_BRANCH}$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
     git::clone_track_branch "$remote" "$branch" "$@" 1>&2
     git::git "$@" checkout --force "$branch" 1>&2
@@ -522,14 +524,14 @@ git::repository_pull_all() {
 # Initialize a git repository only if necessary only
 # @param string url Mandatory if git::is_in_repo fails
 # @param string remote origin by default
-# @param string branch master by default. Only used if not any branch
+# @param string branch main by default. Only used if not any branch
 # @param any args Additional arguments to pass to git command. Url, remote and branch arguments are mandatory if you want to pass arguments to git.
 #"
 git::init_repository_if_necessary() {
   local head_branch
   local -r url="${1:-}"
-  local -r remote="${2:-origin}"
-  local -r branch="${3:-master}"
+  local -r remote="${2:-$GIT_DEFAULT_REMOTE}"
+  local -r branch="${3:-$GIT_DEFAULT_BRANCH}"
   [[ -n "${url}" ]] && shift
   [[ -n "${1:-}" ]] && shift # remote
   [[ -n "${1:-}" ]] && shift # branch

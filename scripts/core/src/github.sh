@@ -10,6 +10,7 @@ fi
 
 GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS="${GITHUB_CACHE_PETITIONS_PERIOD_IN_DAYS:-3}" # Maximum days a cache petition is cached
 GITHUB_USE_CACHE=${GITHUB_USE_CACHE:-true}                                          # Default behaviour for use of cache
+GIT_DEFAULT_BRANCH="${GIT_DEFAULT_BRANCH:-main}"
 
 # Non configurable variables (internal use only)
 JQ_CHECKED=false
@@ -99,7 +100,7 @@ github::get_api_url() {
 github::branch_raw_url() {
   local user repository branch arguments
 
-  branch="master"
+  branch="$GIT_DEFAULT_BRANCH"
 
   while [ $# -gt 0 ]; do
     case ${1:-} in
@@ -140,7 +141,7 @@ github::branch_raw_url() {
   [[ $# -gt 1 ]] && branch="$1" && shift
   [[ $# -gt 0 ]] && file="/$(str::join '/' "$*")"
 
-  echo "$GITHUB_RAW_FILES_URL/$user/$repository/${branch:-master}${file:-}"
+  echo "$GITHUB_RAW_FILES_URL/$user/$repository/${branch:-main}${file:-}"
 }
 
 github::clean_cache() {
