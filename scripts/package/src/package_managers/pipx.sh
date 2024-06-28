@@ -97,7 +97,7 @@ pipx::dump() {
   if package::common_dump_check pipx "$PIPX_DUMP_FILE_PATH"; then
     script::depends_on jq
 
-    readarray -t packages < <(pipx::pipx list --json | jq -re 'if has("venvs") then .venvs | keys | .[] else "" end' 2> /dev/null)
+    readarray -t packages < <(pipx::pipx list --json | yq -p=json -re 'if has("venvs") then .venvs | keys | .[] else "" end' 2> /dev/null)
     printf "%s\n" "${packages[@]}" | tee "$PIPX_DUMP_FILE_PATH" | log::file "Exporting $pipx_title packages"
 
     return 0

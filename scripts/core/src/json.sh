@@ -10,8 +10,8 @@ json::to_yaml() {
 
 json::is_valid() {
   if [[ -t 0 ]]; then
-    [[ -n "${1:-}" && -f "$1" ]] && jq -e '.' < "$1" > /dev/null 2>&1
+    [[ -n "${1:-}" && -f "$1" ]] && yq -p=json -e '.' < "$1" > /dev/null 2>&1
   else
-    jq -e '.' < /dev/stdin > /dev/null 2>&1
+    yq -p=json -e '.' < /dev/stdin > /dev/null 2>&1
   fi
 }

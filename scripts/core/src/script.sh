@@ -7,6 +7,7 @@ command_or_package_exists() {
 
 script::depends_on() {
   utils::curry command_not_exists utils::not command_or_package_exists
+
   non_existing_commands=$(coll::filter command_not_exists "${@:1:1}")
 
   for non_existing_command in $non_existing_commands; do

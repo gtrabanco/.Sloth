@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-ZIMFW_GIT_REPOSITORY_URL="git@github.com:zimfw/zimfw.git"
+# ZIMFW_GIT_REPOSITORY_URL="git@github.com:zimfw/zimfw.git"
+ZIMFW_GIT_REPOSITORY_URL="https://github.com/zimfw/zimfw.git"
 
 zimfw::fix_zim_home() {
   if [[ "$ZIM_HOME" == *"modules/zimfw"* ]]; then

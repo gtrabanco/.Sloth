@@ -40,90 +40,90 @@ fi
 
 zshrc_load() {
   case "${1:-both}" in
-    "zshenv")
-      echo
-      echo '###### .Sloth Variables ######'
-      if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
-        echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
-      else
-        echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
-        echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
-      fi
-      echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
-      echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
-      echo "export ZIM_HOME=\"\${DOTFILES_PATH:-}/shell/zsh/.zimfw\""
-      echo '###### End of .Sloth Variables ######'
-      echo
-      ;;
-    "zshrc")
-      echo
-      echo '###### .Sloth Loader ######'
-      echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
-      echo 'then'
-      echo '  #shellcheck disable=SC1091'
-      echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
-      echo 'else'
-      echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"'
-      echo 'fi'
-      echo '###### End of .Sloth loader ######'
-      echo
-      ;;
-    "zimrc")
-      zimrc_load
-      ;;
-    *)
-      echo 'You need to create or modify two different files'
-      echo '--------------- BEGIN .zshenv file ---------------'
-      echo
-      zshrc_load "zshenv"
-      echo
-      echo '---------------  END .zshenv file  ---------------'
-      echo
-      echo
-      echo
-      echo '--------------- BEGIN .zshrc file ---------------'
-      echo
-      zshrc_load "zshrc"
-      echo
-      echo '---------------  END .zshrc file  ---------------'
-      echo
-      ;;
+  "zshenv")
+    echo
+    echo '###### .Sloth Variables ######'
+    if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
+      echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
+    else
+      echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
+      echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
+    fi
+    echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
+    echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
+    echo "export ZIM_HOME=\"\${DOTFILES_PATH:-}/shell/zsh/.zimfw\""
+    echo '###### End of .Sloth Variables ######'
+    echo
+    ;;
+  "zshrc")
+    echo
+    echo '###### .Sloth Loader ######'
+    echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
+    echo 'then'
+    echo '  #shellcheck disable=SC1091'
+    echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
+    echo 'else'
+    echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"'
+    echo 'fi'
+    echo '###### End of .Sloth loader ######'
+    echo
+    ;;
+  "zimrc")
+    zimrc_load
+    ;;
+  *)
+    echo 'You need to create or modify two different files'
+    echo '--------------- BEGIN .zshenv file ---------------'
+    echo
+    zshrc_load "zshenv"
+    echo
+    echo '---------------  END .zshenv file  ---------------'
+    echo
+    echo
+    echo
+    echo '--------------- BEGIN .zshrc file ---------------'
+    echo
+    zshrc_load "zshrc"
+    echo
+    echo '---------------  END .zshrc file  ---------------'
+    echo
+    ;;
   esac
 }
 
 bashrc_load() {
   case "${1:-both}" in
-    "vars")
-      echo
-      echo '###### .Sloth Variables ######'
-      if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
-        echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
-      else
-        echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
-        echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
-      fi
-      echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
-      echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
-      echo '###### End of .Sloth Variables ######'
-      echo
-      ;;
-    "loader")
-      echo
-      echo '###### .Sloth Loader ######'
-      echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
-      echo 'then'
-      echo '  #shellcheck disable=SC1091'
-      echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
-      echo 'else'
-      echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"'
-      echo 'fi'
-      echo '###### End of .Sloth loader ######'
-      echo
-      ;;
-    *)
-      bashrc_load "vars"
-      bashrc_load "loader"
-      ;;
+  "vars")
+    echo
+    echo '###### .Sloth Variables ######'
+    if [[ -n "${DOTFILES_PATH_VALUE:-}" ]]; then
+      echo "export DOTFILES_PATH=\"${DOTFILES_PATH_VALUE}\""
+    else
+      echo '# When you have setup your custom dotfiles path modify next value and uncoment it'
+      echo '# export DOTFILES_PATH="${HOME}/.dotfiles"'
+    fi
+    echo "export SLOTH_PATH=\"${SLOTH_PATH_VALUE}\""
+    echo "export DOTLY_PATH=\"\${SLOTH_PATH:-}\""
+    echo '###### End of .Sloth Variables ######'
+    echo
+    ;;
+  "loader")
+    echo
+    echo '###### .Sloth Loader ######'
+    echo 'if [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]'
+    echo 'then'
+    echo '  #shellcheck disable=SC1091'
+    echo '  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh"'
+    echo 'else'
+    echo '  echo "\033[0;31m\033[1mSLOTH Loader could not be found, check \$DOTFILES_PATH & \$SLOTH_PATH variables\033[0m"'
+    echo 'fi'
+    echo '###### End of .Sloth loader ######'
+    echo
+    ;;
+  *)
+    bashrc_load "vars"
+    bashrc_load "loader"
+    ;;
   esac
 }
 
@@ -133,7 +133,7 @@ zimrc_load() {
     return
   fi
 
-  cat << EOF
+  cat <<EOF
 # If you modify this execute \`zimfw uninstall & zimfw install\`
 zmodule zimfw/environment
 zmodule zimfw/git-info
@@ -196,8 +196,8 @@ setup_bashrc() {
       ! grep -q '. .*/\.bashrc' "${HOME}/.bash_profile"
   then
     _log "Adding .bashrc to .bash_profile"
-    echo '#shellcheck disable=SC1091' >> "${HOME}/.bash_profile"
-    echo '. "${HOME}/.bashrc"' >> "${HOME}/.bash_profile"
+    echo '#shellcheck disable=SC1091' >>"${HOME}/.bash_profile"
+    echo '. "${HOME}/.bashrc"' >>"${HOME}/.bash_profile"
   fi
 
   if check_has_loader "$rcfile" && check_file_has_var_defined "$rcfile" "DOTFILES_PATH" && check_file_has_var_defined "$rcfile" "SLOTH_PATH"; then
@@ -242,7 +242,7 @@ setup_zsh() {
       { ! grep -q '\. .*/login_init.zsh.* -q &!$' "${HOME}/.zlogin" || ! grep -q '. "${ZIM_HOME}/login_init.zsh" -q &!' "${HOME}/.zlogin"; }
   then
     _log "Appending login_init.zsh in \`${HOME}/.zlogin\`"
-    echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >> "${HOME}/.zlogin"
+    echo '. "${ZIM_HOME}/login_init.zsh" -q &!' >>"${HOME}/.zlogin"
   fi
 
   if [[ ! -f "${HOME}/.zimrc" ]]; then
@@ -310,95 +310,95 @@ else
   action="$1"
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      bashrc)
-        $zshrc && output::error "\`bashrc\` subcommand is not compatible with \`zshrc\` subcommand" && exit 1
-        bashrc=true
-        action="bashrc"
-        shift
-        ;;
-      zsh | zshrc)
-        $bashrc && output::error "\`zshrc\` subcommand is not compatible with \`bashrc\` subcommand" && exit 1
-        zshrc=true
-        action="zshrc"
-        shift
-        ;;
-      shellenv)
-        #shellcheck disable=SC2034
-        shellenv=true
-        action="shellenv"
-        shift
-        ;;
-      --modify)
-        modify=true
-        shift
-        ;;
-      *)
-        ! $zshrc &&
-          ! $bashrc &&
-          ! $modify &&
-          output::error "\`--modify\` is mandatory option when no \`bashrc\` or \`zshrc\` subcommand are used" &&
-          exit 1
+    bashrc)
+      $zshrc && output::error "\`bashrc\` subcommand is not compatible with \`zshrc\` subcommand" && exit 1
+      bashrc=true
+      action="bashrc"
+      shift
+      ;;
+    zsh | zshrc)
+      $bashrc && output::error "\`zshrc\` subcommand is not compatible with \`bashrc\` subcommand" && exit 1
+      zshrc=true
+      action="zshrc"
+      shift
+      ;;
+    shellenv)
+      #shellcheck disable=SC2034
+      shellenv=true
+      action="shellenv"
+      shift
+      ;;
+    --modify)
+      modify=true
+      shift
+      ;;
+    *)
+      ! $zshrc &&
+        ! $bashrc &&
+        ! $modify &&
+        output::error "\`--modify\` is mandatory option when no \`bashrc\` or \`zshrc\` subcommand are used" &&
+        exit 1
 
-        break 2
-        ;;
+      break 2
+      ;;
     esac
   done
 fi
 
 case "${action:-${1:-}}" in
-  # Any subcommand should be here
-  bashrc)
-    if ${modify:-false}; then
-      if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
-        output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
-      else
-        output::error "🚨 Something went modifing your \`.bashrc\` file"
-      fi
+# Any subcommand should be here
+bashrc)
+  if ${modify:-false}; then
+    if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
+      output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
     else
-      bashrc_load
+      output::error "🚨 Something went modifing your \`.bashrc\` file"
     fi
-    ;;
-  zshrc)
-    if ${modify:-false}; then
-      if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
-        output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
-      else
-        output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
-      fi
+  else
+    bashrc_load
+  fi
+  ;;
+zshrc)
+  if ${modify:-false}; then
+    if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
+      output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
     else
-      zshrc_load
+      output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
     fi
-    ;;
-  shellenv)
-    [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" > /dev/null 2>&1
+  else
+    zshrc_load
+  fi
+  ;;
+shellenv)
+  [[ ! -f "${HOME}/.zimrc" ]] && zshrc_load zimrc | tee "${HOME}/.zimrc" >/dev/null 2>&1
 
-    case "${SHELL##*/}" in
-      bash)
-        bashrc_load
-        ;;
-      *)
-        zshrc_load zshenv
-        output::empty_line
-        zshrc_load zshrc
-        ;;
-    esac
-    exit
+  case "${SHELL##*/}" in
+  bash)
+    bashrc_load
     ;;
   *)
-    if ${modify:-false}; then
-      if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
-        output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
-      else
-        output::error "🚨 Something went wrong modifing your \`.bashrc\` file"
-      fi
-
-      if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
-        output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
-      else
-        output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
-      fi
-    else
-      output::error "Wrong parameters"
-    fi
+    zshrc_load zshenv
+    output::empty_line
+    zshrc_load zshrc
     ;;
+  esac
+  exit
+  ;;
+*)
+  if ${modify:-false}; then
+    if setup_bashrc 2>&1 | log::file "Setup .Sloth in .bashrc file"; then
+      output::answer "🏁 Restart your \`bash\` shell to have .Sloth loaded"
+    else
+      output::error "🚨 Something went wrong modifing your \`.bashrc\` file"
+    fi
+
+    if setup_zsh 2>&1 | log::file "Setup .Sloth in .zshenv & .zshrc files"; then
+      output::answer "🏁 Restart your \`zsh\` shell to have .Sloth loaded"
+    else
+      output::error "🚨 Something went wrong modifing your .zshrc & .zshenv file"
+    fi
+  else
+    output::error "Wrong parameters"
+  fi
+  ;;
 esac

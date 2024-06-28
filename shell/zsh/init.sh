@@ -28,7 +28,6 @@ setopt +o nomatch
 # Start zim
 if ! ${SLOTH_DISABLE_ZIMFW:-false} && [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
   [[ -z "${ZSH_HIGHLIGHT_HIGHLIGHTERS:-}" ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
-  
   #shellcheck disable=SC1091
   . "${ZIM_HOME}/init.zsh" || echo "Error loading ZimFW"
   { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loaded ZimFW"; } || true
@@ -59,8 +58,8 @@ if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
   )
 fi
 
-autoload -Uz promptinit && promptinit
-prompt "${SLOTH_ZSH_THEME:-${SLOTH_THEME:-${DOTLY_THEME:-codely}}}"
+# autoload -Uz promptinit && promptinit
+# prompt "${SLOTH_ZSH_THEME:-${SLOTH_THEME:-${DOTLY_THEME:-codely}}}"
 
 if
   [[

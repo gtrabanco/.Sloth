@@ -34,7 +34,7 @@ fi
 
 prompt_codely_pwd() {
   case "$CODELY_THEME_PWD_MODE" in
-    short) local -r prompt_dir=$("${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core short_pwd) ;;
+    short) local -r prompt_dir=$("${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/short_pwd") ;;
     full) local -r prompt_dir="$PWD" ;;
     home_relative) local -r prompt_dir=$(print -rD "$PWD") ;;
   esac
@@ -48,12 +48,6 @@ prompt_codely_git() {
 
 prompt_codely_precmd() {
   (( ${+functions[git-info]} )) && git-info
-}
-
-prompt_dotly_autoupdate() {
-  if [ -f "$DOTFILES_PATH/.sloth_update_available" ]; then
-    print -n "📥 | "
-  fi
 }
 
 prompt_codely_setup() {
@@ -72,9 +66,9 @@ prompt_codely_setup() {
   zstyle ':zim:git-info:keys' format "prompt" " %F{cyan}%b%c %C%D"
 
   if [ "$CODELY_THEME_MINIMAL" = true ]; then
-    PS1="\$(prompt_dotly_autoupdate)${prompt_codely_status} \$(prompt_codely_pwd) "
+    PS1="${prompt_codely_status} \$(prompt_codely_pwd) "
   else
-    PS1="\$(prompt_dotly_autoupdate)${prompt_codely_status} \$(prompt_codely_pwd)\$(prompt_codely_git)%f "
+    PS1="${prompt_codely_status} \$(prompt_codely_pwd)\$(prompt_codely_git)%f "
   fi
 
   if [ "$CODELY_THEME_PROMPT_IN_NEW_LINE" = true ]; then

@@ -245,7 +245,7 @@ github::curl() {
 
 github::get_latest_sloth_tag() {
   github::check_jq
-  github::curl "$(github::get_api_url "$GITHUB_SLOTH_REPOSITORY" "tags")" | jq -r '.[0].name' | uniq
+  github::curl "$(github::get_api_url "$GITHUB_SLOTH_REPOSITORY" "tags")" | yq -p=json -r '.[0].name' | uniq
 }
 
 #;
@@ -265,24 +265,24 @@ github::get_remote_file_path_json() {
   if [[ $1 == *"api.github.com/"* ]]; then
     url="$1"
   else
-    default_branch="$(github::get_api_url "$1" | github::curl | jq -r '.default_branch')"
+    default_branch="$(github::get_api_url "$1" | github::curl | yq -p=json -r '.default_branch')"
 
     if [[ -z "$default_branch" ]]; then
       echoerr "No default branch found for repository '$1'"
       return 1
     fi
 
-    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | jq -r '.commit.commit.tree.url' 2> /dev/null)"
+    url="$(github::get_api_url --branch "${default_branch}" "$1" | github::curl | yq -p=json -r '.commit.commit.tree.url' 2> /dev/null)"
   fi
   shift
 
   [[ -z "${url:-}" ]] && return 1
 
   readarray -t file_paths < <(str::join "/" "$@" | tr "/" "\n")
-  json="$(github::curl "$url" | jq --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
+  json="$(github::curl "$url" | yq -p=json --arg file_path "${file_paths[0]}" '.tree[] | select(.path == $file_path)' 2> /dev/null)"
 
   if [[ -n "$json" ]] && [[ ${#file_paths[@]} -gt 1 ]]; then
-    github::get_remote_file_path_json "$(echo "$json" | jq -r '.url')" "$(str::join / "${file_paths[@]:1}")" && return
+    github::get_remote_file_path_json "$(echo "$json" | yq -p=json -r '.url')" "$(str::join / "${file_paths[@]:1}")" && return
   elif [[ -n "$json" ]]; then
     printf "%s" "$json"
     return
