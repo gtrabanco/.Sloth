@@ -12,19 +12,19 @@ if
     [[ 
       -n "${GIT_EXECUTABLE:-}" &&
       ! -x "$GIT_EXECUTABLE" ]] &&
-    command -v git >/dev/null 2>&1
+    command -v git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -v git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-    command -v git >/dev/null 2>&1
+    command -v git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -v git)"
 
 elif
   [[ -z "${GIT_EXECUTABLE:-}" ]] &&
-    command -vp git >/dev/null 2>&1
+    command -vp git > /dev/null 2>&1
 then
   GIT_EXECUTABLE="$(command -vp git)"
 
@@ -72,7 +72,7 @@ git::git() {
 # check if a directory is a repository
 #"
 git::is_in_repo() {
-  git::git "$@" rev-parse --is-inside-work-tree >/dev/null 2>&1
+  git::git "$@" rev-parse --is-inside-work-tree > /dev/null 2>&1
 }
 
 #;
@@ -80,7 +80,7 @@ git::is_in_repo() {
 # Get the current active branch
 #"
 git::current_branch() {
-  git::git "$@" branch --show-current --no-color 2>/dev/null || return
+  git::git "$@" branch --show-current --no-color 2> /dev/null || return
 }
 
 #;
@@ -119,7 +119,7 @@ git::get_submodule_property() {
 git::submodule_exists() {
   local -r submodule_name="${1:-}"
 
-  [[ -n "$submodule_name" ]] && git::git "${@:2}" config -f ".gitmodules" submodule."$submodule_name".path >/dev/null 2>&1
+  [[ -n "$submodule_name" ]] && git::git "${@:2}" config -f ".gitmodules" submodule."$submodule_name".path > /dev/null 2>&1
 }
 
 #;
@@ -149,7 +149,7 @@ git::remove_submodule() {
 git::check_remote_exists() {
   local -r remote="${1:-${GIT_DEFAULT_REMOTE}}"
   [[ -n "${1:-}" ]] && shift
-  git::git "$@" remote get-url "$remote" >/dev/null 2>&1
+  git::git "$@" remote get-url "$remote" > /dev/null 2>&1
 }
 
 #;
@@ -224,7 +224,7 @@ git::remote_branch_exists() {
 
   ! git::check_remote_exists "$remote" "$@" && return 1
 
-  [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2>/dev/null)" ]]
+  [[ -n "$(git::git "$@" branch --remotes --list "${remote}/${branch}" 2> /dev/null)" ]]
 }
 
 #;
@@ -251,7 +251,7 @@ git::local_latest_tag_version() {
   local -r remote_url="${1:-}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:2}" describe --tags "$(git::git "${@:2}" rev-list --tags --max-count=1)" 2>/dev/null | sed 's/^v//'
+  git::git "${@:2}" describe --tags "$(git::git "${@:2}" rev-list --tags --max-count=1)" 2> /dev/null | sed 's/^v//'
 }
 
 #;
@@ -267,7 +267,7 @@ git::remote_latest_tag_version() {
   local -r version_pattern="${2:-v*.*.*}"
   [[ -z "$remote_url" ]] && return
 
-  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2>/dev/null | command awk '{gsub(/\\^\\{\\}/,"", $NF);gsub("refs/tags/",""); gsub("v",""); print $NF}' | command sort -Vur | command head -n1
+  git::git "${@:3}" ls-remote --tags --refs "$remote_url" "${version_pattern}" 2> /dev/null | command awk '{gsub(/\\^\\{\\}/,"", $NF);gsub("refs/tags/",""); gsub("v",""); print $NF}' | command sort -Vur | command head -n1
 }
 
 #;
@@ -352,7 +352,7 @@ git::set_remote_head_upstream_branch() {
 # git::check_file_exists_in_previous_commit()
 #"
 git::check_file_exists_in_previous_commit() {
-  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" >/dev/null 2>&1
+  [[ -n "${1:-}" ]] && ! git::git "${@:2}" rev-parse @~:"${1:-}" > /dev/null 2>&1
 }
 
 #;
@@ -361,7 +361,7 @@ git::check_file_exists_in_previous_commit() {
 # @param string file
 #"
 git::get_file_last_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git "${@:2}" rev-list --all --date-order --timestamp -1 "${1:-}" 2>/dev/null | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git "${@:2}" rev-list --all --date-order --timestamp -1 "${1:-}" 2> /dev/null | awk '{print $1}'
 }
 
 #;
@@ -369,7 +369,7 @@ git::get_file_last_commit_timestamp() {
 # @param string commit
 #"
 git::get_commit_timestamp() {
-  [[ -n "${1:-}" ]] && git::git "${@:2}" rev-list --all --date-order --timestamp 2>/dev/null | grep "${1:-}" | awk '{print $1}'
+  [[ -n "${1:-}" ]] && git::git "${@:2}" rev-list --all --date-order --timestamp 2> /dev/null | grep "${1:-}" | awk '{print $1}'
 }
 
 #;
@@ -386,7 +386,7 @@ git::check_file_is_modified_after_commit() {
   { [[ -z "$file_path" ]] || [[ -z "${commit_to_check:-}" ]] || [[ ! -e "$file_path" ]]; } && return 1
   shift 2
 
-  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" "$@" 2>/dev/null)"
+  file_commit_date="$(git::get_file_last_commit_timestamp "${file_path:-}" "$@" 2> /dev/null)"
 
   [[ -z "$file_commit_date" ]] && return 0 # File path did not exists previously then
   # it is more recent than any commit 😅
@@ -435,7 +435,7 @@ git::clone_branches() {
   local -r remote="${1:-origin}"
   [[ -n "${1:-}" ]] && shift
 
-  ! git::git "$@" remote get-url "$remote" >/dev/null 2>&1 && return 1
+  ! git::git "$@" remote get-url "$remote" > /dev/null 2>&1 && return 1
 
   for remote_branch in $(git::git "$@" branch -a | sed -n "/\/HEAD /d; /\/${GIT_DEFAULT_BRANCH}$/d; /remotes/p;" | xargs -I _ echo _ | grep "^remotes/${remote}"); do
     branch="${remote_branch//remotes\/${remote}\//}"
@@ -447,7 +447,7 @@ git::clone_branches() {
 # git::current_branch_is_tracked()
 #"
 git::current_branch_is_tracked() {
-  git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null
+  git::git "$@" rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2> /dev/null
 }
 
 #;
@@ -460,20 +460,20 @@ git::current_branch_is_tracked() {
 git::pull_branch() {
 
   case $# in
-  1)
-    local -r remote="${GIT_DEFAULT_REMOTE}"
-    local -r branch="${1:-$GIT_DEFAULT_BRANCH}"
-    shift
-    ;;
-  0)
-    local -r remote="${GIT_DEFAULT_REMOTE}"
-    local -r branch="${GIT_DEFAULT_BRANCH}"
-    ;;
-  *)
-    local -r remote="${1:-"$GIT_DEFAULT_REMOTE"}"
-    local -r branch="${2:-"$GIT_DEFAULT_BRANCH"}"
-    shift 2
-    ;;
+    1)
+      local -r remote="${GIT_DEFAULT_REMOTE}"
+      local -r branch="${1:-$GIT_DEFAULT_BRANCH}"
+      shift
+      ;;
+    0)
+      local -r remote="${GIT_DEFAULT_REMOTE}"
+      local -r branch="${GIT_DEFAULT_BRANCH}"
+      ;;
+    *)
+      local -r remote="${1:-"$GIT_DEFAULT_REMOTE"}"
+      local -r branch="${2:-"$GIT_DEFAULT_BRANCH"}"
+      shift 2
+      ;;
   esac
 
   # Check if remote branch exists
@@ -535,7 +535,7 @@ git::init_repository_if_necessary() {
   [[ -n "${url}" ]] && shift
   [[ -n "${1:-}" ]] && shift # remote
   [[ -n "${1:-}" ]] && shift # branch
-  git::is_in_repo "$@" >/dev/null 2>&1 && return
+  git::is_in_repo "$@" > /dev/null 2>&1 && return
 
   if [[ -n "$url" ]]; then
     git::git "$@" init 1>&2
@@ -544,7 +544,7 @@ git::init_repository_if_necessary() {
     git::git "$@" config "remote.${remote}.fetch" "+refs/heads/*:refs/remotes/${remote}/*" 1>&2
     git::git "$@" fetch --all --tags --force 1>&2
     git::git "$@" branch --set-upstream-to="${remote}/${branch}" "$branch" 1>&2
-    git::git "$@" remote set-head "$remote" --auto >/dev/null 2>&1 1>&2
+    git::git "$@" remote set-head "$remote" --auto > /dev/null 2>&1 1>&2
     head_branch="$(git::get_remote_head_upstream_branch "$remote" "$@")"
 
     if [[ -z "$head_branch" ]]; then
@@ -575,8 +575,8 @@ git::add_to_gitignore() {
   shift
 
   if [[ -n "$content" ]]; then
-    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" >/dev/null 2>&1
-    echo >/dev/null 2>&1
+    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" > /dev/null 2>&1
+    echo > /dev/null 2>&1
   fi
 
   if ! grep -q "^${content}$" "$gitignore_file_path"; then

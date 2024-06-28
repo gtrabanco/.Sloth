@@ -54,13 +54,13 @@ _log() {
   current_date=$(date "+%Y-%m-%d %H:%M:%S")
 
   touch "$DOTLY_LOG_FILE"
-  echo "----- $current_date - $log_name -----" >>"$DOTLY_LOG_FILE"
+  echo "----- $current_date - $log_name -----" >> "$DOTLY_LOG_FILE"
 
   while IFS= read -r log_message; do
-    echo "$log_message" >>"$DOTLY_LOG_FILE"
+    echo "$log_message" >> "$DOTLY_LOG_FILE"
   done
 
-  echo "" >>"$DOTLY_LOG_FILE"
+  echo "" >> "$DOTLY_LOG_FILE"
 }
 
 current_timestamp() { date +%s; }
@@ -81,7 +81,7 @@ create_dotfiles_dir() {
 }
 
 command_exists() {
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 is_macos() {
@@ -89,7 +89,7 @@ is_macos() {
 }
 
 is_clt_installed() {
-  command -vp xcode-select >/dev/null 2>&1 && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
+  command -vp xcode-select > /dev/null 2>&1 && xpath=$(command -p xcode-select --print-path) && test -d "${xpath}" && test -x "${xpath}"
 }
 
 install_clt() {
@@ -116,7 +116,7 @@ install_clt() {
   if ! is_clt_installed && command -p sudo -v -B; then
     command -p xcode-select --install
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-      until command -p xcode-select --print-path >/dev/null 2>&1; do
+      until command -p xcode-select --print-path > /dev/null 2>&1; do
         _a "Waiting for Command Line tools to be installed... Check again in 10 secs"
         sleep 10
       done
@@ -150,17 +150,17 @@ start_sudo() {
 }
 
 stop_sudo() {
-  builtin kill "$SUDO_PID" >/dev/null 2>&1
+  builtin kill "$SUDO_PID" > /dev/null 2>&1
   builtin trap - SIGINT SIGTERM
   command -p sudo -k
 }
 
 has_sudo() {
   [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && return
-  command -p sudo -n -v >/dev/null 2>&1
+  command -p sudo -n -v > /dev/null 2>&1
 }
 
-if command -v brew >/dev/null 2>&1; then
+if command -v brew > /dev/null 2>&1; then
   eval "$(command brew shellenv)"
 else
   PATH="/usr/local/bin:/opt/homebrew/bin:/home/.linuxbrew/bin:${HOME}/.homebrew/bin:${HOME}/.brew/bin:${HOME}/.linuxbrew/bin${PATH:+:$PATH}"
@@ -338,7 +338,7 @@ if ! command_exists git; then
     if is_macos; then
       _a "Checking if Command Line Tools are installed 🕵️‍♂️"
 
-      xcode-select --install 2>&1 | grep installed >/dev/null
+      xcode-select --install 2>&1 | grep installed > /dev/null
       if [[ $? ]]; then
         _a "Installing Command Line Tools 📺"
         xcode-select --install

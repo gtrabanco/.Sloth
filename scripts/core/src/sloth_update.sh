@@ -91,7 +91,7 @@ sloth_update::get_current_version() {
     return
   fi
 
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2>/dev/null
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" describe --tags --abbrev=0 2> /dev/null
 }
 
 #;
@@ -141,7 +141,7 @@ sloth_update::local_sloth_repository_can_be_updated() {
 
   # If remote exists locally
   if git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_DEFAULT_BRANCH:-main}" >/dev/null 2>&1
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" branch --set-upstream-to="${SLOTH_DEFAULT_REMOTE:-origin}/${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_DEFAULT_BRANCH:-main}" > /dev/null 2>&1
     git::check_branch_is_ahead "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}" && HAS_UNPUSHED_COMMITS=true
   fi
 
@@ -173,7 +173,7 @@ sloth_update::should_be_updated() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot >/dev/null 2>&1; then
+    if brew outdated dot > /dev/null 2>&1; then
       return 1
     else
       return 0
@@ -181,7 +181,7 @@ sloth_update::should_be_updated() {
   fi
 
   # Check if currently we want to pin to a fixed version but is more recent that current version
-  if platform::semver get major "$SLOTH_UPDATE_VERSION" >/dev/null 2>&1; then
+  if platform::semver get major "$SLOTH_UPDATE_VERSION" > /dev/null 2>&1; then
     # Different than current version & is not available in local & remote latest version is greater or equal that SLOTH_UPDATE_VERSION (pinned version)
     if
       [[ 
@@ -249,7 +249,7 @@ sloth_update::sloth_update() {
   # .Sloth were installed using a package manager
   if ${HOMEBREW_SLOTH:-false}; then
     # False if there is an update & true if current version is the latest version
-    if brew outdated dot >/dev/null 2>&1; then
+    if brew outdated dot > /dev/null 2>&1; then
       return
     else
       output::answer "Updating .Sloth by using brew"
@@ -372,41 +372,41 @@ sloth_update::async_success() {
 
   if [[ -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}" ]]; then
     case "$(str::to_lower "${SLOTH_AUTO_UPDATE_MODE:-auto}")" in
-    "silent")
-      rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
-      sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
+      "silent")
+        rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
+        sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
 
-      [[ $status -eq 0 ]] && sloth_update::exists_migration_script &&
-        output::answer ".Sloth was updated but there are a migration script that must be executed" &&
+        [[ $status -eq 0 ]] && sloth_update::exists_migration_script &&
+          output::answer ".Sloth was updated but there are a migration script that must be executed" &&
+          output::empty_line
+
+        return $status
+        ;;
+      "info")
         output::empty_line
+        output::write " ---------------------------------------------"
+        output::write "|  🥳🎉🍾 NEW .Sloth VERSION AVAILABLE 🥳🎉🍾  |"
+        output::write " ---------------------------------------------"
+        output::empty_line
+        ;;
+      "prompt")
+        # Nothing to do here
+        ;;
+      *) # auto
+        output::answer "🚀 Updating .Sloth Automatically"
+        rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
+        sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
+        if [[ $status -eq 0 ]]; then
 
-      return $status
-      ;;
-    "info")
-      output::empty_line
-      output::write " ---------------------------------------------"
-      output::write "|  🥳🎉🍾 NEW .Sloth VERSION AVAILABLE 🥳🎉🍾  |"
-      output::write " ---------------------------------------------"
-      output::empty_line
-      ;;
-    "prompt")
-      # Nothing to do here
-      ;;
-    *) # auto
-      output::answer "🚀 Updating .Sloth Automatically"
-      rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
-      sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
-      if [[ $status -eq 0 ]]; then
-
-        if sloth_update::exists_migration_script; then
-          output::answer ".Sloth was updated but there are a migration script that must be executed. Restart your terminal or execute \`dot core migration --updated\`"
+          if sloth_update::exists_migration_script; then
+            output::answer ".Sloth was updated but there are a migration script that must be executed. Restart your terminal or execute \`dot core migration --updated\`"
+          else
+            output::solution ".Sloth was updated."
+          fi
         else
-          output::solution ".Sloth was updated."
+          output::error ".Sloth was not updated, something was wrong. Check log using \`dot core debug\`"
         fi
-      else
-        output::error ".Sloth was not updated, something was wrong. Check log using \`dot core debug\`"
-      fi
-      ;;
+        ;;
     esac
   fi
 }
