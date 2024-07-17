@@ -6,8 +6,27 @@
 ##?    short_pwd
 #? v1.0.0
 
+join_str() {
+  local -r IFS=$1
+  shift
+  echo -n "${*}"
+}
+
 if [[ "$PWD" == "$HOME" ]]; then
   echo "~"
-else
-  echo ${${${:-/${(j:/:)${(M)${(s:/:)${(D)PWD:h}}#(|.)[^.]}}/${PWD:t}}//\/~/\~}/\/\//\/}
+  exit
 fi
+
+dirs=($(echo "${PWD//$HOME/"~"}" | tr '/' '\n'))
+lastpos=$((${#dirs[@]} - 1))
+process_dirs=()
+for d in ${dirs[@]}; do
+  process_dirs+=("${d:0:2}")
+done
+process_dirs[$lastpos]="${dirs[$lastpos]}"
+
+join_str '/' "${process_dirs[@]}"
+
+# if [[ $SHELL == *"zsh" ]]; then
+#   echo ${${${:-/${(j:/:)${(M)${(s:/:)${(D)PWD:h}}#(|.)[^.]}}/${PWD:t}}//\/~/\~}/\/\//\/}
+# fi
