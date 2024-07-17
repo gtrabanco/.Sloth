@@ -16,10 +16,10 @@ composer::update_all() {
 
   if [ -f "$HOME/.composer/composer.json" ]; then
     outdated=$(composer global outdated --direct -f json --no-ansi)
-    total_outdated=$(echo "$outdated" | yq -p=json '.installed' | yq -p=json length)
+    total_outdated=$(echo "$outdated" | jq '.installed' | jq length)
 
     if [ 0 -ne "$total_outdated" ]; then
-      echo "$outdated" | yq -p=json -cr '.installed | .[]' | while IFS= read -r dependency; do
+      echo "$outdated" | jq-cr '.installed | .[]' | while IFS= read -r dependency; do
         composer::update "$dependency"
       done
     else
@@ -32,10 +32,10 @@ composer::update_all() {
 }
 
 composer::update() {
-  name=$(echo "$1" | yq -p=json -r '.name')
-  current_version=$(echo "$1" | yq -p=json -r '.version')
-  new_version=$(echo "$1" | yq -p=json -r '.latest')
-  summary=$(echo "$1" | yq -p=json -r '.description')
+  name=$(echo "$1" | jq -r '.name')
+  current_version=$(echo "$1" | jq -r '.version')
+  new_version=$(echo "$1" | jq -r '.latest')
+  summary=$(echo "$1" | jq -r '.description')
   url="https://packagist.org/packages/$name"
 
   output::write "🐘 $name"
