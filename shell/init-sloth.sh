@@ -227,8 +227,9 @@ fi
 if command -v gem > /dev/null 2> /dev/null || command -vp gem > /dev/null 2>&1; then
   gem_bin="$(command -v gem || command -vp gem)"
   gem_paths="$("$gem_bin" env gempath 2> /dev/null)"
-  #shellcheck disable=SC2207
   path+=("${GEM_HOME}/bin")
+
+  #shellcheck disable=SC2207
   [[ -n "$gem_paths" ]] && path+=($(echo "$gem_paths" | command -p tr ':' "\n" | command -p xargs -I _ echo _"/bin"))
 fi
 
